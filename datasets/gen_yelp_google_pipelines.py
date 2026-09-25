@@ -65,7 +65,9 @@ function isoTime(s) {
 def fetch_categories():
     req = urllib.request.Request(CATEGORY_PAGE, headers={"User-Agent": "Mozilla/5.0"})
     page = html.unescape(urllib.request.urlopen(req, timeout=60).read().decode("utf-8", "ignore"))
-    return sorted(set(m.strip() for m in re.findall(r"<li>\s*([^<(]+?)\s*\(", page)))
+    # Each entry reads "Title (alias, countries)"; a title may itself contain parentheses,
+    # as in "American (New) (newamerican, [US])", so cut at the alias group, not the first "(".
+    return sorted(set(m.strip() for m in re.findall(r"<li>\s*([^<]+?)\s*\([a-z0-9_]+\s*,", page)))
 
 
 def js_step(step_id, table, body, prelude=""):
@@ -200,8 +202,8 @@ function to24(t) {
 }
 function parseSpan(s) {
   s = String(s).trim();
-  if (/^closed$/i.test(s)) return { closed: true };
-  if (/24 hours/i.test(s)) return { open: '00:00', close: '24:00' };
+  if (/^closed$/i.test(s)) return { closed: true, text: s };
+  if (/24 hours/i.test(s)) return { open: '00:00', close: '24:00', text: s };
   var p = s.split(/\s*[–-]\s*/);
   if (p.length !== 2) return { text: s };
   var end = p[1].match(/[AP]M$/i), start = p[0];

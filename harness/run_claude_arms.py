@@ -77,7 +77,11 @@ def child_env():
     return e
 
 
-def run_one(dab, arm, model, q, k, max_turns, arms=ARMS):
+# Twice the longest finished run seen (66 min); only a stalled session reaches it.
+TIMEOUT_S = 7200
+
+
+def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, timeout=TIMEOUT_S):
     ds, hints = arms[arm]
     root = f"{arm}_cc-{model}_r{k}"
     out = dab / f"query_{ds}" / f"query{q}" / "logs" / "data_agent" / root
@@ -102,7 +106,11 @@ def run_one(dab, arm, model, q, k, max_turns, arms=ARMS):
            "--setting-sources", "", "--max-turns", str(max_turns), "--no-session-persistence"]
     start = time.time()
     try:
-        r = subprocess.run(cmd, input=user_text, cwd=out, env=child_env(), capture_output=True, text=True)
+        r = subprocess.run(cmd, input=user_text, cwd=out, env=child_env(), capture_output=True, text=True,
+                           timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # a stalled session, not an answer: no final_agent.json, so a re-run retries it
+        return f"FAILED {root} q{q}: timed out after {timeout}s"
     except OSError as e:  # one failed launch must not end the whole batch
         return f"FAILED {root} q{q}: {e}"
     duration = time.time() - start
@@ -145,6 +153,7 @@ def main():
     ap.add_argument("--queries", default="1-13")
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--max-turns", type=int, default=100)
+    ap.add_argument("--timeout", type=int, default=TIMEOUT_S, help="wall-clock seconds per run")
     a = ap.parse_args()
     dab = a.dab.resolve()
     arms = a.arms.split(",")
@@ -152,7 +161,7 @@ def main():
     warm(dab, sorted({table[x][0] for x in arms}))
     jobs = [(x, q, k) for k in range(a.runs) for x in arms for q in parse_range(a.queries)]
     with ThreadPoolExecutor(a.workers) as pool:
-        for line in pool.map(lambda j: run_one(dab, j[0], a.model, j[1], j[2], a.max_turns, table), jobs):
+        for line in pool.map(lambda j: run_one(dab, j[0], a.model, j[1], j[2], a.max_turns, table, a.timeout), jobs):
             print(line, flush=True)
 
 
