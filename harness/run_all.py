@@ -5,7 +5,10 @@ pass ends with runs that were not run — a usage limit, or the plan refusing re
 orchestrator waits and retries the same phase, until nothing is missing or the retry budget is
 spent. Progress goes to stdout with timestamps, one line per pass.
 
-Usage: python run_all.py <dab-root> [--wait-min 30] [--max-waits 60]
+Usage: python run_all.py <dab-root> [--model M] [--phase DATASET:ARMS:QUERIES ...] [--runs 5]
+                         [--wait-min 30] [--max-waits 60]
+
+Without --phase, the default phases below run.
 """
 import argparse
 import subprocess
@@ -15,8 +18,8 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-MODEL = "claude-sonnet-5"
-PHASES = [  # (dataset, arms, queries)
+DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_PHASES = [  # (dataset, arms, queries)
     ("cve", "A", "1-10"),
     ("cve", "B", "1-10"),
     ("crmarenapro", "A,B,C", "1-13"),
@@ -27,8 +30,8 @@ def log(msg):
     print(f"{datetime.now():%Y-%m-%d %H:%M:%S} {msg}", flush=True)
 
 
-def run_phase(dab, ds, arms, queries, runs):
-    cmd = [sys.executable, str(HERE / "run_claude_arms.py"), str(dab), "--dataset", ds, "--model", MODEL,
+def run_phase(dab, model, ds, arms, queries, runs):
+    cmd = [sys.executable, str(HERE / "run_claude_arms.py"), str(dab), "--dataset", ds, "--model", model,
            "--arms", arms, "--runs", str(runs), "--queries", queries, "--workers", "3"]
     r = subprocess.run(cmd, capture_output=True, text=True)
     lines = r.stdout.splitlines()
@@ -43,15 +46,19 @@ def run_phase(dab, ds, arms, queries, runs):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dab", type=Path)
+    ap.add_argument("--model", default=DEFAULT_MODEL)
+    ap.add_argument("--phase", action="append", default=[],
+                    help="DATASET:ARMS:QUERIES, e.g. cve:A,B:1-10 (repeatable)")
     ap.add_argument("--runs", type=int, default=5)
     ap.add_argument("--wait-min", type=int, default=30)
     ap.add_argument("--max-waits", type=int, default=60)
     a = ap.parse_args()
     waits = 0
-    for ds, arms, queries in PHASES:
+    phases = [tuple(p.split(":")) for p in a.phase] or DEFAULT_PHASES
+    for ds, arms, queries in phases:
         failed_passes = 0
         while True:
-            ok, skip, not_run, failed, auth, rc = run_phase(a.dab, ds, arms, queries, a.runs)
+            ok, skip, not_run, failed, auth, rc = run_phase(a.dab, a.model, ds, arms, queries, a.runs)
             log(f"{ds} {arms}: ok={ok} already={skip} not_run={not_run} failed={failed} auth_failed={auth}")
             if auth:
                 log("authentication failed: log in again (claude /login), then rerun; stopping")

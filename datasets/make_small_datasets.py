@@ -14,7 +14,7 @@ from pathlib import Path
 
 from pymongo import MongoClient
 
-DAB = Path(sys.argv[1])
+DAB = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 
 DATASETS = {
     "bookreview": ("book_state", ["book"], """You are working with one database, book_state, stored in MongoDB.
@@ -64,8 +64,14 @@ Collections in music_state:
 
 
 def main():
+    build(DAB, DATASETS)
+
+
+def build(dab, datasets):
+    """Copy each dataset's Tapstate views into its own database, dump it, and write the
+    dataset directory setup C runs against."""
     m = MongoClient("mongodb://127.0.0.1:27017/?directConnection=true")
-    for ds, (db, views, description) in DATASETS.items():
+    for ds, (db, views, description) in datasets.items():
         m.drop_database(db)
         for v in views:
             if m["views"][v].count_documents({}) == 0:
@@ -75,7 +81,7 @@ def main():
             for v in ("track", "sale"):
                 m[db][v].create_index("song_id")
                 assert m[db][v].count_documents({"song_id": None}) == 0, f"{v} has unresolved rows"
-        src, dst = DAB / f"query_{ds}", DAB / f"query_{ds}_consolidated"
+        src, dst = dab / f"query_{ds}", dab / f"query_{ds}_consolidated"
         dst.mkdir(exist_ok=True)
         dump = dst / "query_dataset" / f"{db}_dump"
         shutil.rmtree(dump, ignore_errors=True)
