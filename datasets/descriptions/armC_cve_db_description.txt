@@ -1,0 +1,37 @@
+You are working with one database, cve_state, stored in MongoDB.
+
+cve_state holds the consolidated, entity-resolved state of a vulnerability catalog: the NVD CVE
+registry, CVSS v3 scores, CPE product configurations, CISA's Known Exploited Vulnerabilities
+(KEV) catalog, and CVE description documents. It is maintained continuously from the
+organization's source databases.
+
+Guarantees:
+- Every collection carries `cve`, the canonical CVE identifier (e.g. "CVE-2023-12345"). The same
+  CVE has the same `cve` value in every collection, so collections join on `cve` directly.
+- Values are normalized: vendor names are canonical lower-case names (aliases and variants
+  resolved), CVSS scores are numbers, flags are booleans, versions are dotted strings.
+- Each document is one row of its source, identified by `row_id`. A CVE can have several
+  documents in a collection; in cve_record, a CVE with more than one document has conflicting
+  source records.
+- Documents can be large (descriptions, references); use a projection to fetch only the fields
+  you need.
+
+Collections in cve_state:
+- cve_record: one document per NVD registry record
+  Fields: row_id, cve, published, last_modified, vuln_status, cvss3_attack_vector
+- cvss: CVSS v3 base scores
+  Fields: row_id, cve, cvss3_score (number), cvss3_severity (CRITICAL / HIGH / MEDIUM / LOW / NONE,
+  from the standard CVSS v3 score bands), score_text (as received)
+- cpe_match: CPE product configurations affected by a CVE
+  Fields: row_id, cve, vendor (canonical), product, version, vulnerable (boolean),
+  version_start_including, version_start_excluding, version_end_including, version_end_excluding,
+  criteria (as received)
+- kev_entry: CISA Known Exploited Vulnerabilities catalog entries
+  Fields: row_id, cve, vendor (canonical), vendor_project (as received), products (array of product
+  names), vulnerability_name, date_added, due_date, short_description, required_action,
+  known_ransomware_use (as received), ransomware_use (boolean: known ransomware campaign use), notes
+- cve_description: CVE description documents
+  Fields: row_id, cve, english_description (null when the CVE has no English description),
+  has_english (boolean), languages (array), severity (CRITICAL / HIGH / MEDIUM / LOW as stated in
+  the English description, null when absent), descriptions (array of {lang, value}),
+  references (array of {url, source})

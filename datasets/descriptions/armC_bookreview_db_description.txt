@@ -1,0 +1,20 @@
+You are working with one database, book_state, stored in MongoDB.
+
+book_state holds the consolidated state of a book store's catalog and its customer reviews,
+maintained continuously from the store's product and review databases.
+
+Guarantees:
+- One document per book, identified by `book_id`. Each book embeds all of its reviews.
+- Facts that the sources keep inside free text or JSON strings are extracted into fields:
+  author name, categories (array), publication date / year / decade, language, publisher,
+  format, page count. A field is null when the source does not state it.
+
+Collections in book_state:
+- book: one document per book
+  Fields: book_id, title, subtitle, author_name, rating_number (number of ratings on the store),
+  price, store, categories (array, broad to narrow), publication_date (YYYY-MM-DD or YYYY-MM),
+  publication_year, publication_decade (e.g. 1990), language, publisher, format, pages,
+  features, description, details (as received)
+  - reviews: array of this book's reviews
+    Fields: row_id, rating (1-5), title, text, review_time, review_date (YYYY-MM-DD), helpful_vote,
+    verified_purchase (boolean), book_id

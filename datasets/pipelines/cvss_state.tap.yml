@@ -1,0 +1,28 @@
+version: tapstate/v1
+kind: pipeline
+id: cvss_state
+source: [ src_cvss_metadata, src_cve_xwalk ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: resolve
+    type: join
+    from: { m: cvss_metadata, x: cve_xwalk }
+    engine: builtin
+    sql: |
+      SELECT m.row_id AS row_id, x.cve AS cve, m.score_text AS score_text
+      FROM m LEFT JOIN x ON m.cve_id = x.surface_key
+  - id: normalize
+    from: [ resolve ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          var m = String(r.score_text || '').match(/\d+(\.\d+)?/);
+          var s = m ? parseFloat(m[0]) : null;
+          r.cvss3_score = s;
+          r.cvss3_severity = s == null ? null : s >= 9 ? 'CRITICAL' : s >= 7 ? 'HIGH' : s >= 4 ? 'MEDIUM' : s > 0 ? 'LOW' : 'NONE';
+        }
+        return record;
+      }
+view: { id: cvss, from: normalize, primary_key: row_id }
