@@ -28,6 +28,19 @@ function fix(row) {
 function process(record, ctx) { fix(record.after); fix(record.before); return record; }
 """
 
+# A Salesforce id starts with a 3-character key prefix naming its object type.
+KEY_PREFIX = {"support_case": "500", "opportunity": "006", "lead": "00Q", "account": "001", "quote": "0Q0",
+              "sales_order": "801", "crm_user": "005"}
+
+
+def link_filter_js(fk, prefix):
+    """Drop a child row whose link to the root is empty or names another object type: it can never
+    join, and a child that arrives by CDC with no parent stalls the v0.5.0 nest step."""
+    return (f"function filter(record) {{\n  var r = record.after || record.before;\n"
+            f"  var v = r == null ? '' : String(r['{fk}'] == null ? '' : r['{fk}']).trim().replace(/^#/, '');\n"
+            f"  return v.indexOf('{prefix}') === 0;\n}}\n")
+
+
 # view id -> (root table, [embed]); embed = (table, parent-key column in child, path, [nested embeds])
 VIEWS = {
     "account": ("account", [
@@ -107,13 +120,14 @@ def alias(table):
     return "t_" + table.replace("__", "_")
 
 
-def pipeline_yaml(view, root, embeds, source="crm"):
+def pipeline_yaml(view, root, embeds, source="crm", link_filter=False):
     tables = tables_of(root, embeds)
+    filters = {t: link_filter_js(fk, KEY_PREFIX[root]) for t, fk, _, _ in embeds} if link_filter else {}
     y = (f"version: tapstate/v1\nkind: pipeline\nid: {view}_state\nsource: [ {source} ]\n"
          f"settings: {{ read_mode: snapshot_and_cdc }}\ntransforms:\n")
     for t in tables:
         y += f"  - id: {alias(t)}\n    from: [ {t} ]\n    type: js\n    script: |\n"
-        y += indent(CLEAN_JS, 6)
+        y += indent(CLEAN_JS + filters.get(t, ""), 6)
     if embeds:
         froms = ", ".join(f"{alias(t)}: {alias(t)}" for t in tables)
         y += (f"  - id: assemble\n    type: nest\n    from: {{ {froms} }}\n"
@@ -136,7 +150,8 @@ def main():
     --partb: only the views the Part B questions read, each pipeline on its own source listing only
     its tables. A pipeline reads every table of its source, so one shared 27-table source makes
     every pipeline decode every table's changes; with many pipelines catching up at once that ran
-    the v0.5.0 server out of memory.
+    the v0.5.0 server out of memory. Part B pipelines also drop child rows that cannot join their
+    root (see link_filter_js): replayed changes include such rows, and they stall the nest step.
     """
     ws = Path(sys.argv[1])
     partb = "--partb" in sys.argv[2:]
@@ -155,7 +170,7 @@ def main():
             (ws / "source" / f"{source}.tap.yml").write_text(
                 f"version: tapstate/v1\nkind: source\nid: {source}\nconnector: postgres\n" + SOURCE_CONFIG
                 + f"mode: cdc\ntables: [ {', '.join(tables_of(root, embeds))} ]\n")
-        (ws / "pipeline" / f"{view}_state.tap.yml").write_text(pipeline_yaml(view, root, embeds, source))
+        (ws / "pipeline" / f"{view}_state.tap.yml").write_text(pipeline_yaml(view, root, embeds, source, link_filter=partb))
     print(f"{len(views)} pipelines -> {ws}")
 
 if __name__ == "__main__":
