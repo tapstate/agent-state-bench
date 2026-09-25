@@ -1,0 +1,45 @@
+version: tapstate/v1
+kind: pipeline
+id: article_state
+source: [ src_articles, src_article_metadata, src_authors, src_article_category ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: t_article
+    from: [ articles ]
+    type: js
+    script: |
+      function process(record, ctx) { return record; }
+  - id: t_meta
+    from: [ article_metadata ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null && r.publication_date) r.publication_year = parseInt(String(r.publication_date).substr(0, 4), 10);
+        return record;
+      }
+  - id: t_author
+    from: [ authors ]
+    type: js
+    script: |
+      function process(record, ctx) { return record; }
+  - id: t_category
+    from: [ article_category ]
+    type: js
+    script: |
+      function process(record, ctx) { return record; }
+  - id: assemble
+    type: nest
+    from: { a: t_article, m: t_meta, w: t_author, c: t_category }
+    root:
+      from: a
+      key: [ article_id ]
+      embed:
+        - from: m
+          on: { article_id: article_id }
+          as: object
+          path: metadata
+          embed:
+            - { from: w, on: { author_id: author_id }, as: object, path: author }
+        - { from: c, on: { article_id: article_id }, as: object, path: classification }
+view: { id: article, from: assemble, primary_key: article_id }
