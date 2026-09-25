@@ -38,6 +38,12 @@ def run_phase(dab, model, ds, arms, queries, runs):
     count = lambda tag: sum(1 for l in lines if l.startswith(tag))
     if r.returncode != 0:
         log(f"  runner exited {r.returncode}: {r.stderr[-400:]}")
+    # the run directory of a failed run is replaced on retry, so its reason survives only here
+    problems = [l for l in lines if l.startswith(("FAILED", "NOT RUN", "AUTH FAILED"))]
+    for l in problems[:5]:
+        log(f"  {l[:300]}")
+    if len(problems) > 5:
+        log(f"  ... and {len(problems) - 5} more")
     subprocess.run("docker rm -f $(docker ps -aq --filter name=autogen-code-exec) >/dev/null 2>&1", shell=True)
     return (count("ok"), count("skip"), count("NOT RUN"), count("FAILED"), count("AUTH FAILED"),
             r.returncode)
