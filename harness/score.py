@@ -153,7 +153,7 @@ def main():
             cost = ((inp - cached) * pin + cached * pcache + out * pout) / 1e6
         tools = json.loads((run_dir / "final_agent.json").read_text()).get("llm_call_count", calls)
         rows.append({
-            "dataset": re.sub(r"_consolidated(_v[0-9]+)?$", "", qdir.parent.name[len("query_"):]),
+            "dataset": re.sub(r"_(consolidated(_v[0-9]+)?|frozen)$", "", qdir.parent.name[len("query_"):]),
             "arm": m["arm"], "model": m["model"], "run": int(m["run"]), "query": qdir.name,
             "valid": bool(v["is_valid"]), "strict": strict_ok(answer, gt),
             "input_tokens": inp, "output_tokens": out, "cached_tokens": cached,

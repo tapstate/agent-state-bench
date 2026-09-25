@@ -22,8 +22,9 @@ HERE = Path(__file__).resolve().parent
 def arms_for(dataset):
     """arm -> (DAB dataset directory, use hints)."""
     # C2: the consolidated state with question-shaped fields removed, where such a variant exists
+    # S: a stale batch copy of the consolidated state (Part B)
     return {"A": (dataset, False), "B": (dataset, True), "C": (f"{dataset}_consolidated", False),
-            "C2": (f"{dataset}_consolidated_v2", False)}
+            "C2": (f"{dataset}_consolidated_v2", False), "S": (f"{dataset}_frozen", False)}
 
 
 ARMS = arms_for("crmarenapro")
