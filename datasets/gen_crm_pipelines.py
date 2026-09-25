@@ -107,9 +107,9 @@ def alias(table):
     return "t_" + table.replace("__", "_")
 
 
-def pipeline_yaml(view, root, embeds):
+def pipeline_yaml(view, root, embeds, source="crm"):
     tables = tables_of(root, embeds)
-    y = (f"version: tapstate/v1\nkind: pipeline\nid: {view}_state\nsource: [ crm ]\n"
+    y = (f"version: tapstate/v1\nkind: pipeline\nid: {view}_state\nsource: [ {source} ]\n"
          f"settings: {{ read_mode: snapshot_and_cdc }}\ntransforms:\n")
     for t in tables:
         y += f"  - id: {alias(t)}\n    from: [ {t} ]\n    type: js\n    script: |\n"
@@ -125,20 +125,38 @@ def pipeline_yaml(view, root, embeds):
     return y
 
 
+PARTB_VIEWS = ["support_case", "crm_user", "lead", "opportunity", "account", "quote", "sales_order"]
+SOURCE_CONFIG = ("config: { host: postgres, port: 5432, database: crm, schema: public, user: postgres, "
+                 "password: secret }\n")
+
+
 def main():
+    """Usage: gen_crm_pipelines.py <workspace> [--partb]
+
+    --partb: only the views the Part B questions read, each pipeline on its own source listing only
+    its tables. A pipeline reads every table of its source, so one shared 27-table source makes
+    every pipeline decode every table's changes; with many pipelines catching up at once that ran
+    the v0.5.0 server out of memory.
+    """
     ws = Path(sys.argv[1])
+    partb = "--partb" in sys.argv[2:]
     (ws / "source").mkdir(parents=True, exist_ok=True)
     (ws / "pipeline").mkdir(parents=True, exist_ok=True)
-    for old in (ws / "pipeline").glob("*.tap.yml"):
+    for old in list((ws / "pipeline").glob("*.tap.yml")) + list((ws / "source").glob("*.tap.yml")):
         old.unlink()
-    (ws / "source" / "crm.tap.yml").write_text(
-        "version: tapstate/v1\nkind: source\nid: crm\nconnector: postgres\n"
-        "config: { host: postgres, port: 5432, database: crm, schema: public, user: postgres, password: secret }\n"
-        f"mode: cdc\ntables: [ {', '.join(ALL_TABLES)} ]\n")
-    for view, (root, embeds) in VIEWS.items():
-        (ws / "pipeline" / f"{view}_state.tap.yml").write_text(pipeline_yaml(view, root, embeds))
-    print(f"{len(VIEWS)} pipelines over {len(ALL_TABLES)} tables -> {ws}")
-
+    views = {v: VIEWS[v] for v in PARTB_VIEWS} if partb else VIEWS
+    if not partb:
+        (ws / "source" / "crm.tap.yml").write_text(
+            "version: tapstate/v1\nkind: source\nid: crm\nconnector: postgres\n" + SOURCE_CONFIG
+            + f"mode: cdc\ntables: [ {', '.join(ALL_TABLES)} ]\n")
+    for view, (root, embeds) in views.items():
+        source = f"crm_{view}" if partb else "crm"
+        if partb:
+            (ws / "source" / f"{source}.tap.yml").write_text(
+                f"version: tapstate/v1\nkind: source\nid: {source}\nconnector: postgres\n" + SOURCE_CONFIG
+                + f"mode: cdc\ntables: [ {', '.join(tables_of(root, embeds))} ]\n")
+        (ws / "pipeline" / f"{view}_state.tap.yml").write_text(pipeline_yaml(view, root, embeds, source))
+    print(f"{len(views)} pipelines -> {ws}")
 
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ Per checkpoint k:
   5. write each question's directory with this checkpoint's ground truth, for A/B, C and S
   6. run every question in every setup; the next batch waits until all of them are done
 
-The Tapstate pipelines for crmarenapro must be running (see gen_crm_pipelines.py) and the
+The Part B Tapstate pipelines must be running (gen_crm_pipelines.py <ws> --partb) and the
 `views` database must hold only their collections.
 
 Usage: python run_partb.py <dab-root> [--model claude-sonnet-5] [--runs 3] [--from 0] [--to 5]
@@ -26,7 +26,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "datasets"))
 import partb_crm as P  # noqa: E402
 import partb_questions as Q  # noqa: E402
-from gen_crm_pipelines import VIEWS  # noqa: E402
+from gen_crm_pipelines import PARTB_VIEWS, VIEWS as ALL_VIEWS  # noqa: E402
+
+VIEWS = {v: ALL_VIEWS[v] for v in PARTB_VIEWS}
 from run_all import run_phase  # noqa: E402
 
 MONGO = MongoClient("mongodb://127.0.0.1:27017/?directConnection=true")
@@ -81,6 +83,17 @@ def freeze():
 def description(db, live):
     src = (HERE.parent / "datasets" / "descriptions" / "armC_db_description.txt").read_text()
     src = src.replace("crm_state", db)
+    head, _, body = src.partition("Collections in")
+    first, _, rest = body.partition("\n")
+    blocks, cur = [], None
+    for line in rest.splitlines():
+        if line.startswith("- "):
+            cur = [line]
+            blocks.append(cur)
+        elif cur is not None:
+            cur.append(line)
+    keep = [b for b in blocks if b[0][2:].split(":")[0] in VIEWS]
+    src = head + "Collections in" + first + "\n" + "\n".join(l for b in keep for l in b) + "\n"
     if not live:
         src = src.replace("It is maintained continuously from\nthe company's operational databases.",
                           "It is copied from the company's operational databases by a batch job.")
@@ -104,6 +117,7 @@ def write_dirs(dab, k):
         if spec is None:
             continue
         db, live = spec
+        (d / "query_dataset" / "none").mkdir(parents=True, exist_ok=True)  # the config loader requires the path
         (d / "db_config.yaml").write_text(
             f"db_clients:\n  {db}:\n    db_type: mongo\n    db_name: {db}\n    dump_folder: query_dataset/none\n")
         (d / "db_description.txt").write_text(description(db, live))
@@ -140,6 +154,9 @@ def main():
             if auth:
                 log("authentication failed: log in again, then rerun with --from " + str(k))
                 return 2
+            if rc != 0 and not (ok or skip):
+                log(f"cp{k}: the runner failed before running anything; stopping (rerun with --from {k})")
+                return 1
             if not_run or failed:
                 time.sleep(a.wait_min * 60 if not_run else 10)
                 continue
