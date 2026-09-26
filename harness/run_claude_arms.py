@@ -77,11 +77,34 @@ def child_env():
     return e
 
 
-# Twice the longest finished run seen (66 min); only a stalled session reaches it.
-TIMEOUT_S = 7200
+# A session that makes no tool call for this long has stalled. Only inactivity is limited: a long
+# run that keeps working is bounded by --max-turns, the benchmark's own budget.
+IDLE_S = 1800
 
 
-def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, timeout=TIMEOUT_S):
+def last_activity(out, since):
+    """When the run last did something: its newest log file write, or its start."""
+    return max([since] + [f.stat().st_mtime for f in out.glob("*.jsonl")])
+
+
+def run_session(cmd, user_text, out, idle):
+    """Run one session; returns (stdout, stderr, returncode), or None if it went idle and was killed."""
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            cwd=out, env=child_env(), text=True)
+    start, pending = time.time(), user_text
+    while True:
+        try:
+            stdout, stderr = proc.communicate(input=pending, timeout=60)
+            return stdout, stderr, proc.returncode
+        except subprocess.TimeoutExpired:
+            pending = None
+            if time.time() - last_activity(out, start) > idle:
+                proc.kill()
+                proc.communicate()
+                return None
+
+
+def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, idle=IDLE_S):
     ds, hints = arms[arm]
     root = f"{arm}_cc-{model}_r{k}"
     out = dab / f"query_{ds}" / f"query{q}" / "logs" / "data_agent" / root
@@ -106,13 +129,13 @@ def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, timeout=TIMEOUT_S):
            "--setting-sources", "", "--max-turns", str(max_turns), "--no-session-persistence"]
     start = time.time()
     try:
-        r = subprocess.run(cmd, input=user_text, cwd=out, env=child_env(), capture_output=True, text=True,
-                           timeout=timeout)
-    except subprocess.TimeoutExpired:
-        # a stalled session, not an answer: no final_agent.json, so a re-run retries it
-        return f"FAILED {root} q{q}: timed out after {timeout}s"
+        done = run_session(cmd, user_text, out, idle)
     except OSError as e:  # one failed launch must not end the whole batch
         return f"FAILED {root} q{q}: {e}"
+    if done is None:
+        # a stalled session, not an answer: no final_agent.json, so a re-run retries it
+        return f"FAILED {root} q{q}: no activity for {idle}s"
+    r = subprocess.CompletedProcess(cmd, done[2], done[0], done[1])
     duration = time.time() - start
     (out / "claude_stdout.txt").write_text(r.stdout)
     (out / "claude_stderr.txt").write_text(r.stderr)
@@ -153,7 +176,7 @@ def main():
     ap.add_argument("--queries", default="1-13")
     ap.add_argument("--workers", type=int, default=3)
     ap.add_argument("--max-turns", type=int, default=100)
-    ap.add_argument("--timeout", type=int, default=TIMEOUT_S, help="wall-clock seconds per run")
+    ap.add_argument("--idle", type=int, default=IDLE_S, help="seconds without a tool call before a run is killed")
     a = ap.parse_args()
     dab = a.dab.resolve()
     arms = a.arms.split(",")
@@ -161,7 +184,7 @@ def main():
     warm(dab, sorted({table[x][0] for x in arms}))
     jobs = [(x, q, k) for k in range(a.runs) for x in arms for q in parse_range(a.queries)]
     with ThreadPoolExecutor(a.workers) as pool:
-        for line in pool.map(lambda j: run_one(dab, j[0], a.model, j[1], j[2], a.max_turns, table, a.timeout), jobs):
+        for line in pool.map(lambda j: run_one(dab, j[0], a.model, j[1], j[2], a.max_turns, table, a.idle), jobs):
             print(line, flush=True)
 
 
