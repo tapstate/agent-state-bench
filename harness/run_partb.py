@@ -15,6 +15,7 @@ Usage: python run_partb.py <dab-root> [--model claude-sonnet-5] [--runs 3] [--fr
 """
 import argparse
 import json
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -62,6 +63,10 @@ def view_signature(db):
     return sig
 
 
+class NotSynced(SystemExit):
+    pass
+
+
 def wait_synced(timeout=1800):
     want = source_signature()
     t0 = time.time()
@@ -71,7 +76,7 @@ def wait_synced(timeout=1800):
         if not bad:
             return time.time() - t0
         time.sleep(2)
-    raise SystemExit(f"views did not catch up within {timeout}s: {bad}")
+    raise NotSynced(f"views did not catch up within {timeout}s: {bad}")
 
 
 def freeze():
@@ -132,13 +137,25 @@ def main():
     ap.add_argument("--from", dest="start", type=int, default=0)
     ap.add_argument("--to", type=int, default=len(P.CHECKPOINTS) - 1)
     ap.add_argument("--wait-min", type=int, default=30)
+    ap.add_argument("--repair", help="a command that brings stalled views back in line with the source; "
+                    "run when they do not catch up, and the checkpoint is recorded as repaired, with no sync time")
     a = ap.parse_args()
     record = a.dab / "partb_checkpoints.jsonl"
     for k in range(a.start, a.to + 1):
         counts = P.apply(k)
         applied = time.time()
-        lag = wait_synced()
-        log(f"cp{k} {P.CHECKPOINTS[k]}: applied {counts}; views caught up in {lag:.1f}s")
+        repaired = False
+        try:
+            lag = wait_synced()
+            log(f"cp{k} {P.CHECKPOINTS[k]}: applied {counts}; views caught up in {lag:.1f}s")
+        except NotSynced as e:
+            if not a.repair:
+                raise
+            log(f"cp{k} {P.CHECKPOINTS[k]}: applied {counts}; {e}; repairing")
+            subprocess.run(a.repair, shell=True, check=True)
+            wait_synced(timeout=120)
+            lag, repaired = None, True
+            log(f"cp{k}: views repaired and in line with the source")
         if k == 0:
             freeze()
         P.export(k, a.dab)
@@ -146,7 +163,8 @@ def main():
         truths = write_dirs(a.dab, k)
         with record.open("a") as f:
             f.write(json.dumps({"checkpoint": k, "asof": P.CHECKPOINTS[k], "applied_at": applied,
-                                "changes": counts, "sync_seconds": lag, "truth": truths}) + "\n")
+                                "changes": counts, "sync_seconds": lag, "repaired": repaired,
+                                "truth": truths}) + "\n")
         while True:
             ok, skip, not_run, failed, auth, rc = run_phase(a.dab, a.model, f"crmlive_cp{k}", "A,B,C,S",
                                                               f"1-{len(Q.QUESTIONS)}", a.runs)
