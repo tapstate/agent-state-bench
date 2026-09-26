@@ -38,8 +38,9 @@ transforms:
         - from: m
           on: { article_id: article_id }
           as: object
+          key: [ article_id ]
           path: metadata
           embed:
-            - { from: w, on: { author_id: author_id }, as: object, path: author }
-        - { from: c, on: { article_id: article_id }, as: object, path: classification }
+            - { from: w, on: { author_id: author_id }, as: object, key: [ author_id ], path: author }
+        - { from: c, on: { article_id: article_id }, as: object, key: [ article_id ], path: classification }
 view: { id: article, from: assemble, primary_key: article_id }

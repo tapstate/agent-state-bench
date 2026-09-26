@@ -56,7 +56,7 @@ Guarantees:
 Collections in googlelocal_state:
 - place: one document per business
   Fields: gmap_id, name, description, city, state, zip, num_of_reviews,
-  hours (object: weekday -> {open: "HH:MM", close: "HH:MM", text} or {closed: true}),
+  hours (object: weekday -> {open: "HH:MM", close: "HH:MM", text} or {closed: true, text}; text is the source wording, such as "Open 24 hours"),
   misc (object of service options, amenities and the like, as received), status_text (as received)
   - reviews: array of this business's reviews
     Fields: row_id, gmap_id, author, rating (1-5), text, review_date, review_time
