@@ -85,14 +85,20 @@ batch, because waiting cannot fix it.
 
 - **cve, setup C** resolves the dataset's scrambled keys with an inverse of DAB's own corruption
   generator: an upper bound on what resolved state can do, not what a product resolver reaches.
-- **The cve `cpe_match` collection** is built in Python with the pipeline's exact logic, because
-  the Tapstate v0.5.0 join ran out of memory on it (tapstate/tapstate#505); 8 rows a join left
-  unmatched are filled from the crosswalk and reported (tapstate/tapstate#496).
+- **cve needs a server newer than v0.5.0.** On v0.5.0 the `cpe_match` join runs out of memory
+  (tapstate/tapstate#505) and 8 rows stay unmatched (tapstate/tapstate#496); both are fixed on the
+  Tapstate `main` branch. The results were produced from collections built in Python with the
+  pipeline's logic plus a crosswalk fill for those 8 rows; all five cve collections were later
+  rebuilt by Tapstate alone on a `main` build (`430a8fc`) and are identical to them, row for row
+  and field for field. The dataset builder now refuses any unresolved row.
 - **Some setup C fields were chosen after reading the questions.** Every such choice is checked:
   bookreview without its question-shaped `publication_decade` field scores the same, and the
   music entity resolution is graded against the public MusicBrainz 20K clusters on all songs
   (`eval/eval_music_er.py`: pairwise F1 0.94, 92% of songs exact).
-- The data is static; a freshness test, with the sources changing between questions, is in progress.
+- **Freshness timing is not measured yet.** In the freshness test (sources changing between
+  checkpoints) some views stopped following their sources on the tested server
+  (tapstate/tapstate#526) and were reloaded before the agents ran, so answers reflect current data
+  but the time to catch up is not reported.
 
 ## License
 

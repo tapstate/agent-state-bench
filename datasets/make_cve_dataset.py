@@ -19,12 +19,6 @@ SRC = DAB / "query_cve"
 DST = DAB / "query_cve_consolidated"
 DB = "cve_state"
 VIEWS = ["cve_record", "cvss", "cpe_match", "kev_entry", "cve_description"]
-# view -> (source table, its scrambled-key column): used only to fill rows the Tapstate join left
-# unmatched (tapstate/tapstate#496); the fill is counted and reported, never silent.
-SOURCE_OF = {"cve_record": ("cves", "cve_id"), "cvss": ("cvss_metadata", "cve_id"),
-             "cpe_match": ("cpe_matches", "cve_id"), "kev_entry": ("kev_entries", "cve_ref"),
-             "cve_description": ("cve_documents", "cve_key")}
-
 DESCRIPTION = f"""You are working with one database, {DB}, stored in MongoDB.
 
 {DB} holds the consolidated, entity-resolved state of a vulnerability catalog: the NVD CVE
@@ -73,16 +67,10 @@ def main():
             raise SystemExit(f"view {v} is empty")
         m["views"][v].aggregate([{"$project": {"_id": 0}}, {"$out": {"db": DB, "coll": v}}])
         m[DB][v].create_index("cve")
-        missing = [d["row_id"] for d in m[DB][v].find({"cve": None}, {"row_id": 1})]
-        if missing:
-            import psycopg2
-            table, col = SOURCE_OF[v]
-            cur = psycopg2.connect("host=127.0.0.1 port=55432 user=postgres password=secret dbname=cvesrc").cursor()
-            cur.execute(f"select t.row_id, x.cve from {table} t join cve_xwalk x on x.surface_key = t.{col} "
-                        "where t.row_id = any(%s)", (missing,))
-            for row_id, cve in cur.fetchall():
-                m[DB][v].update_one({"row_id": row_id}, {"$set": {"cve": cve}})
-            print(f"{v}: filled {len(missing)} rows the join left unmatched, from the crosswalk")
+        unresolved = m[DB][v].count_documents({"cve": None})
+        if unresolved:
+            raise SystemExit(f"{v}: {unresolved} rows have no canonical cve; every row must come resolved "
+                             "from the Tapstate view")
     DST.mkdir(exist_ok=True)
     dump = DST / "query_dataset" / "cve_state_dump"
     shutil.rmtree(dump, ignore_errors=True)
