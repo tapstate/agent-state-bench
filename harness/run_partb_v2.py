@@ -101,27 +101,37 @@ class Stack:
                        check=True, capture_output=True)
 
     def reload(self):
-        """Reload every view from scratch on a fresh replication slot, then check it against the source."""
+        """Reload every view from scratch on a fresh replication slot, one view at a time, each checked
+        against the source before the next starts; a view that does not match within 10 minutes is
+        reloaded again (up to 3 attempts). Starting all four at once stalled the largest one."""
         self.stop_all()
-        cur = psycopg2.connect(DSN).cursor()
-        for _ in range(60):
-            cur.execute("select count(*) from pg_replication_slots where database = 'tpccsrc' and active")
-            if cur.fetchone()[0] == 0:
-                break
-            time.sleep(5)
-        cur.execute("select count(pg_drop_replication_slot(slot_name)) from pg_replication_slots "
-                    "where database = 'tpccsrc' and not active")
-        cur.connection.commit()
-        for v in VIEWS:
-            MONGO["views"][v].drop()
-            self.cli(f"start {v}_state")
         t0 = time.time()
-        while time.time() - t0 < 1800:
-            bad = mismatches()
-            if not bad:
-                return time.time() - t0
-            time.sleep(10)
-        raise SystemExit(f"views did not match the source after a reload: {bad}")
+        for v in VIEWS:
+            for attempt in range(3):
+                self.cli(f"stop {v}_state -y")
+                self.drop_free_slots()
+                MONGO["views"][v].drop()
+                self.cli(f"start {v}_state")
+                t1 = time.time()
+                while time.time() - t1 < 600 and v in mismatches([v]):
+                    time.sleep(10)
+                if v not in mismatches([v]):
+                    break
+                log(f"reload: {v} did not match the source after 10 minutes (attempt {attempt + 1}); retrying")
+            else:
+                raise SystemExit(f"view {v} did not match the source after 3 reloads")
+        return time.time() - t0
+
+    def drop_free_slots(self):
+        cur = psycopg2.connect(DSN).cursor()
+        for _ in range(12):
+            time.sleep(5)
+            cur.execute("select count(pg_drop_replication_slot(slot_name)) from pg_replication_slots "
+                        "where database = 'tpccsrc' and not active")
+            cur.connection.commit()
+            cur.execute("select count(*) from pg_replication_slots where database = 'tpccsrc' and not active")
+            if cur.fetchone()[0] == 0:
+                return
 
 
 def num(v):
@@ -129,7 +139,7 @@ def num(v):
     return v.to_decimal() if hasattr(v, "to_decimal") else v
 
 
-def mismatches():
+def mismatches(views=None):
     """Views whose documents differ from the source on the fields the workload changes."""
     cur = psycopg2.connect(DSN).cursor()
     want, got = {}, {}
@@ -151,7 +161,7 @@ def mismatches():
     want["item"] = {r[0]: (r[1], r[2]) for r in cur.fetchall()}
     got["item"] = {d["pk"]: next(((s["s_quantity"], s["s_ytd"]) for s in d.get("stock", []) if s["s_w_id"] == 1), None)
                    for d in MONGO["views"]["item"].find({}, {"pk": 1, "stock": 1})}
-    return [v for v in want if want[v] != got[v]]
+    return [v for v in want if (views is None or v in views) and want[v] != got[v]]
 
 
 def snapshot(db):
