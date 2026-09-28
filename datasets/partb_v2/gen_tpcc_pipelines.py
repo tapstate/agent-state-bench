@@ -53,11 +53,14 @@ def pipeline_yaml(view, root, key, embeds):
     for t in tables:
         y += (f"  - id: t_{t}\n    from: [ {t} ]\n    type: js\n    script: |\n"
               f"      {root_js(key) if t == root else PASS}\n")
-    if not embeds:
-        return y + f"view: {{ id: {view}, from: t_{root}, primary_key: pk }}\n"
+    # The view is keyed by the single field `pk`, and a view key must be the identity of what feeds it;
+    # a table's own identity is its composite primary key, so every view goes through a nest step whose
+    # root is keyed by `pk` (with no embeds for a flat view).
     froms = ", ".join(f"t_{t}: t_{t}" for t in tables)
     y += (f"  - id: assemble\n    type: nest\n    from: {{ {froms} }}\n    root:\n      from: t_{root}\n"
-          f"      key: [ {', '.join(key)} ]\n      embed:\n")
+          f"      key: [ pk ]\n")
+    if embeds:
+        y += "      embed:\n"
     for child, on, as_, path, ckey in embeds:
         on_s = ", ".join(f"{c}: {p}" for c, p in on.items())
         y += (f"        - from: t_{child}\n          on: {{ {on_s} }}\n          as: {as_}\n"
