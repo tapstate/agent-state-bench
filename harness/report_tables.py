@@ -42,7 +42,7 @@ for ds in DS:
         if not (a and c): continue
         ratio = a['usd_per_correct'] / c['usd_per_correct'] if c['usd_per_correct'] not in (0, float('inf')) and a['usd_per_correct'] != float('inf') else None
         print(f"| {NAME.get(ds, ds)} | {m} | {p(a)} | {p(b) if b else '—'} | {p(c)} | "
-              f"{usd(a['usd_per_correct'])} → {usd(c['usd_per_correct'])}{f' ({ratio:.0f}×)' if ratio else ''} | "
+              f"{usd(a['usd_per_correct'])} → {usd(c['usd_per_correct'])}{f' ({ratio:.1f}×)' if ratio and ratio < 10 else (f' ({ratio:.0f}×)' if ratio else '')} | "
               f"{tok(a['med_tokens'])} → {tok(c['med_tokens'])} |")
 print("\n### Table 2 — a cheaper model on consolidated state vs. the frontier model on raw sources\n")
 print("| dataset | Haiku on C | Opus on A | Opus on B | $/correct Haiku C vs Opus A |")
