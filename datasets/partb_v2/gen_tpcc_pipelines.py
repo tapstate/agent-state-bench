@@ -4,7 +4,7 @@ Views (one pipeline each, each on its own source listing only its tables):
   customer   one document per customer
   order      one document per order, its order lines embedded
   district   one document per district, its undelivered orders (new_order) embedded as the backlog
-  stock      one document per (warehouse, item) stock record, the item embedded
+  item       one document per item, its stock record in each warehouse embedded
 
 TPC-C data is clean, so no cleanup rules: every step passes rows through, and every embed names its
 key explicitly (a js step's output carries no primary key).
@@ -17,11 +17,12 @@ from pathlib import Path
 PASS = "function process(record, ctx) { return record; }"
 
 
-def root_js(key):
-    """Pass rows through and add `pk`, the composite key as one string: a view key is a single field."""
-    parts = " + '-' + ".join(f"r.{k}" for k in key)
+def root_js(cols, field="pk"):
+    """Pass rows through and add `field`, the given columns joined into one string: a view key is a single
+    field, and an embed joins on its parent's key."""
+    parts = " + '-' + ".join(f"r.{k}" for k in cols)
     return ("function process(record, ctx) { var r = record.after || record.before; "
-            f"if (r != null) {{ r.pk = String({parts}); }} return record; }}")
+            f"if (r != null) {{ r.{field} = String({parts}); }} return record; }}")
 
 # view -> (root table, root key, [(child table, on {child col: parent col}, as, path, key)])
 VIEWS = {
@@ -33,8 +34,8 @@ VIEWS = {
     "district": ("district", ["d_w_id", "d_id"], [
         ("new_order", {"no_w_id": "d_w_id", "no_d_id": "d_id"}, "array", "backlog", ["no_o_id"]),
     ]),
-    "stock": ("stock", ["s_w_id", "s_i_id"], [
-        ("item", {"i_id": "s_i_id"}, "object", "item", ["i_id"]),
+    "item": ("item", ["i_id"], [
+        ("stock", {"s_i_id": "i_id"}, "array", "stock", ["s_w_id"]),
     ]),
 }
 SOURCE = ("config: { host: postgres, port: 5432, database: tpccsrc, schema: public, user: postgres, "
@@ -50,9 +51,12 @@ def pipeline_yaml(view, root, key, embeds):
     tables = [root] + [e[0] for e in embeds]
     y = (f"version: tapstate/v1\nkind: pipeline\nid: {view}_state\nsource: [ tpcc_{view} ]\n"
          f"settings: {{ read_mode: snapshot_and_cdc }}\ntransforms:\n")
+    # An embed joins on its parent's key, which is `pk`; each child derives the same string from its
+    # own foreign-key columns, in the parent key's order, as `ppk`.
+    child_keys = {c: [next(k for k, v in on.items() if v == pcol) for pcol in key] for c, on, _, _, _ in embeds}
     for t in tables:
-        y += (f"  - id: t_{t}\n    from: [ {t} ]\n    type: js\n    script: |\n"
-              f"      {root_js(key) if t == root else PASS}\n")
+        js = root_js(key) if t == root else (root_js(child_keys[t], "ppk") if t in child_keys else PASS)
+        y += f"  - id: t_{t}\n    from: [ {t} ]\n    type: js\n    script: |\n      {js}\n"
     # The view is keyed by the single field `pk`, and a view key must be the identity of what feeds it;
     # a table's own identity is its composite primary key, so every view goes through a nest step whose
     # root is keyed by `pk` (with no embeds for a flat view).
@@ -62,8 +66,7 @@ def pipeline_yaml(view, root, key, embeds):
     if embeds:
         y += "      embed:\n"
     for child, on, as_, path, ckey in embeds:
-        on_s = ", ".join(f"{c}: {p}" for c, p in on.items())
-        y += (f"        - from: t_{child}\n          on: {{ {on_s} }}\n          as: {as_}\n"
+        y += (f"        - from: t_{child}\n          on: {{ ppk: pk }}\n          as: {as_}\n"
               f"          key: [ {', '.join(ckey)} ]\n          path: {path}\n")
         if as_ == "array":
             y += f"          arrayKey: [ {', '.join(ckey)} ]\n"

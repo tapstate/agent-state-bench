@@ -123,3 +123,46 @@ def instantiate(cur, seed):
         truth = [list(r) for r in cur.fetchall()]
         out.append({**q, "params": params, "text": q["text"].format(**params), "truth": truth})
     return out
+
+
+VALIDATE_PY = '''"""Generated for one Part B v2 question at one question time."""
+import re
+
+EXPECTED = {expected!r}   # every value of the reference result, flattened
+
+
+def numbers(text):
+    return [float(x.replace(",", "")) for x in re.findall(r"-?\\d[\\d,]*(?:\\.\\d+)?", text)]
+
+
+def validate(llm_output: str):
+    text = llm_output.lower()
+    got = numbers(llm_output)
+    for e in EXPECTED:
+        s = str(e).strip()
+        if s.lower() in ("yes", "no"):
+            other = "no" if s.lower() == "yes" else "yes"
+            if not re.search(r"\\b" + s.lower() + r"\\b", text) or re.search(r"\\b" + other + r"\\b", text):
+                return False, f"expected a clear {{s}}"
+            continue
+        try:
+            want = float(s)
+        except ValueError:
+            if s.lower() not in text:
+                return False, f"missing {{s}}"
+            continue
+        tol = 0.011 if "." in s else 0
+        if not any(abs(g - want) <= tol for g in got):
+            return False, f"missing {{s}}"
+    return True, "all expected values present"
+'''
+
+
+def write_query_dir(qdir, q):
+    """One DAB-style question directory: query.json, ground_truth.csv, validate.py."""
+    import json
+    qdir.mkdir(parents=True, exist_ok=True)
+    (qdir / "query.json").write_text(json.dumps(q["text"]))
+    flat = [str(v) for row in q["truth"] for v in row]
+    (qdir / "ground_truth.csv").write_text("\n".join(",".join(str(v) for v in row) for row in q["truth"]) + "\n")
+    (qdir / "validate.py").write_text(VALIDATE_PY.format(expected=flat))
