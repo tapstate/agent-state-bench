@@ -24,7 +24,9 @@ def arms_for(dataset):
     # C2: the consolidated state with question-shaped fields removed, where such a variant exists
     # S: a stale batch copy of the consolidated state (Part B)
     return {"A": (dataset, False), "B": (dataset, True), "C": (f"{dataset}_consolidated", False),
-            "C2": (f"{dataset}_consolidated_v2", False), "S": (f"{dataset}_frozen", False)}
+            "C2": (f"{dataset}_consolidated_v2", False), "S": (f"{dataset}_frozen", False),
+            # S1..S4: copies of the consolidated state taken by a batch reload at increasing lags (Part B v2)
+            **{f"S{i}": (f"{dataset}_lag{i}", False) for i in range(1, 5)}}
 
 
 ARMS = arms_for("crmarenapro")

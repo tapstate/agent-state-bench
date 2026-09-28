@@ -1,7 +1,7 @@
 """Generate the Tapstate workspace that consolidates a TPC-C database (Postgres `tpccsrc`) for Part B v2.
 
 Views (one pipeline each, each on its own source listing only its tables):
-  customer   one document per customer
+  customer   one document per customer, its orders (headers) embedded
   order      one document per order, its order lines embedded
   district   one document per district, its undelivered orders (new_order) embedded as the backlog
   item       one document per item, its stock record in each warehouse embedded
@@ -19,14 +19,17 @@ PASS = "function process(record, ctx) { return record; }"
 
 def root_js(cols, field="pk"):
     """Pass rows through and add `field`, the given columns joined into one string: a view key is a single
-    field, and an embed joins on its parent's key."""
-    parts = " + '-' + ".join(f"r.{k}" for k in cols)
-    return ("function process(record, ctx) { var r = record.after || record.before; "
-            f"if (r != null) {{ r.{field} = String({parts}); }} return record; }}")
+    field, and an embed joins on its parent's key. Set on both images: an update's before image
+    carries the key its write is addressed by."""
+    parts = " + '-' + ".join(f"r.{c}" for c in cols)
+    fn = f"function k(r) {{ if (r != null) {{ r.{field} = String({parts}); }} }}"
+    return fn + " function process(record, ctx) { k(record.before); k(record.after); return record; }"
 
 # view -> (root table, root key, [(child table, on {child col: parent col}, as, path, key)])
 VIEWS = {
-    "customer": ("customer", ["c_w_id", "c_d_id", "c_id"], []),
+    "customer": ("customer", ["c_w_id", "c_d_id", "c_id"], [
+        ("orders", {"o_w_id": "c_w_id", "o_d_id": "c_d_id", "o_c_id": "c_id"}, "array", "orders", ["o_id"]),
+    ]),
     "order": ("orders", ["o_w_id", "o_d_id", "o_id"], [
         ("order_line", {"ol_w_id": "o_w_id", "ol_d_id": "o_d_id", "ol_o_id": "o_id"}, "array", "lines",
          ["ol_number"]),
