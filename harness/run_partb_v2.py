@@ -196,6 +196,14 @@ def write_dirs(dab, name, qs, dbs):
         (d / "db_description.txt").write_text(DESCRIPTION.format(db=db, freshness=LIVE if live else COPY))
 
 
+def lag_targets(tx_per_day):
+    """Transaction counts, from the start of a question time's window, at which each copy is taken,
+    and the count at which T is reached: the week-old copy first, T last."""
+    per_min = tx_per_day / (24 * 60)
+    week = LAGS[0][2]
+    return [(arm, round((week - minutes) * per_min)) for arm, _, minutes in LAGS], round(week * per_min)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dab", type=Path)
@@ -208,22 +216,21 @@ def main():
     ap.add_argument("--wait-min", type=int, default=30)
     a = ap.parse_args()
     stack, record = Stack(a.stack), a.dab / "partb_v2_times.jsonl"
-    per_min = a.tx_per_day / (24 * 60)
+    targets, at_t = lag_targets(a.tx_per_day)
     for k in range(a.start, a.times):
         name, taken = f"tpcc_t{k}", {}
         stack.restart_server()
         done = 0
-        for i, (arm, label, minutes) in enumerate(LAGS):
-            # run the workload up to T - lag (the first copy of each T also covers the gap since the last T)
-            target = round((LAGS[0][2] - minutes) * per_min)
+        for (arm, label, minutes), (_, target) in zip(LAGS, targets):
+            # run the workload up to T - lag
             stack.workload(target - done)
             done = target
             secs = stack.reload()
             db = f"{name}_{arm.lower()}"
             snapshot(db)
-            taken[arm] = {"db": db, "lag": label, "tx_before_T": round(minutes * per_min), "reload_s": round(secs)}
+            taken[arm] = {"db": db, "lag": label, "tx_before_T": at_t - target, "reload_s": round(secs)}
             log(f"{name}: copy {arm} ({label} before T) taken; reload {secs:.0f}s")
-        stack.workload(round(LAGS[0][2] * per_min) - done)
+        stack.workload(at_t - done)
         secs = stack.reload()
         snapshot(f"{name}_c")
         cur = psycopg2.connect(DSN).cursor()
