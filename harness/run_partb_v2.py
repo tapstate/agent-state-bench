@@ -86,6 +86,19 @@ class Stack:
         return subprocess.run([str(self.path / "tsx.sh"), "tpccws", *commands], capture_output=True,
                               text=True).stdout
 
+    def restart_server(self):
+        """Restart the server container between question times: its memory grows with every reload,
+        and every copy is a fresh reload anyway, so nothing depends on the running pipelines."""
+        self.stop_all()
+        subprocess.run(["docker", "restart", "ts-server-1"], check=True, capture_output=True)
+        for _ in range(60):
+            out = subprocess.run(["docker", "inspect", "ts-server-1", "--format", "{{.State.Health.Status}}"],
+                                 capture_output=True, text=True).stdout.strip()
+            if out == "healthy":
+                return
+            time.sleep(5)
+        raise SystemExit("the server did not come back healthy after a restart")
+
     def stop_all(self):
         for v in VIEWS:
             self.cli(f"stop {v}_state -y")
@@ -198,6 +211,7 @@ def main():
     per_min = a.tx_per_day / (24 * 60)
     for k in range(a.start, a.times):
         name, taken = f"tpcc_t{k}", {}
+        stack.restart_server()
         done = 0
         for i, (arm, label, minutes) in enumerate(LAGS):
             # run the workload up to T - lag (the first copy of each T also covers the gap since the last T)

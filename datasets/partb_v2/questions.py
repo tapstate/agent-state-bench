@@ -141,8 +141,13 @@ def validate(llm_output: str):
     for e in EXPECTED:
         s = str(e).strip()
         if s.lower() in ("yes", "no"):
-            other = "no" if s.lower() == "yes" else "yes"
-            if not re.search(r"\\b" + s.lower() + r"\\b", text) or re.search(r"\\b" + other + r"\\b", text):
+            # "no" may be stated as "not" ("has not been delivered"); a clear answer carries only one side
+            said_yes = bool(re.search(r"\\byes\\b", text))
+            if s.lower() == "yes":
+                ok = said_yes and not re.search(r"\\bno\\b", text)
+            else:
+                ok = not said_yes and bool(re.search(r"\\b(no|not)\\b", text))
+            if not ok:
                 return False, f"expected a clear {{s}}"
             continue
         try:
