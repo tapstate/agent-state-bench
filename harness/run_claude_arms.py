@@ -153,6 +153,10 @@ def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, idle=IDLE_S):
         # a usage limit or an access refusal before any work: not a finished run, so it gets
         # no final_agent.json and a re-run retries it
         return f"NOT RUN {root} q{q}: {text[:200]}"
+    if not (out / "tool_calls.jsonl").exists():
+        # a real run calls at least one DAB tool; none means the tool server never came up, so this
+        # is a harness failure, not an agent answer, and is retried rather than scored
+        return f"FAILED {root} q{q}: no DAB tool was called (tool server unavailable?)"
     answer_file = out / "answer.json"
     answer = json.loads(answer_file.read_text())["answer"] if answer_file.exists() else ""
     (out / "final_agent.json").write_text(json.dumps({
