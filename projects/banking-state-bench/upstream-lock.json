@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-10-04",
+  "primary": {
+    "name": "NPCI/TauIndianBankBench",
+    "repository": "https://github.com/npci/TauIndianBankBench",
+    "commit": "dd4ecc7f5e1d0454243eb4cae8c03d2b496ca00f",
+    "package_version": "1.0.0",
+    "code_license": "MIT",
+    "dataset": "https://huggingface.co/datasets/NPCI/tau-indian-banking",
+    "dataset_revision": null,
+    "dataset_available_in_environment": false,
+    "source_archive_sha256": "0ce01fe9c61ae3419d71a4a9987613ef8317373c563d140581d87cfc47b652f7"
+  },
+  "fallback": {
+    "name": "sierra-research/tau2-bench",
+    "minimum_corrected_release": "1.0.1",
+    "license": "MIT",
+    "note": "banking_knowledge grading changed in 1.0.1; pre/post scores are not comparable"
+  }
+}

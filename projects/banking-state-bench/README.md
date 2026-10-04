@@ -2,6 +2,9 @@
 
 Status: initiated 2026-10-04; no experimental banking results yet.
 
+Phase-1 implementation and evidence are in [FINDINGS.md](FINDINGS.md). The local
+dynamic smoke test is a **custom extension**, not an upstream benchmark score.
+
 ## Research question
 
 At the same business-safety requirement, does current, consolidated operational state let a banking agent complete more legitimate tasks without human intervention, and at a lower complete cost, than competent alternatives?
