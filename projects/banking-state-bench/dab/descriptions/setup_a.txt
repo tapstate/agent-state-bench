@@ -1,0 +1,55 @@
+You are working with six databases to solve this query. They are the operational systems of one retail bank in India. Amounts are in Indian rupees (INR).
+
+Here are the descriptions of these six databases:
+
+1. core_banking
+   - This database is stored in a PostgreSQL database and is the bank's core banking system: customers, their deposit accounts, account transactions, cheques, and fixed and recurring deposits.
+   - This database consists of six tables:
+     - customers: Bank customers
+       - Fields: customer_id, name, age, gender, senior_citizen, kyc_status, monthly_income, comm_line1, comm_line2, comm_city, comm_state, comm_pincode, perm_line1, perm_line2, perm_city, perm_state, perm_pincode (comm_ = communication address, perm_ = permanent address)
+     - accounts: Savings and current accounts
+       - Fields: account_id, customer_id, account_type, status, ifsc, home_branch, nominee_name, nominee_relationship, open_date, available_balance, hold_amount, currency
+     - account_holders: Holders of each account, in order (holder_seq 1 is the primary holder)
+       - Fields: account_id, holder_seq, holder_name
+     - transactions: Account transactions
+       - Fields: reference_id, account_id, txn_date, description, amount, direction, channel, balance_after
+     - cheques: Cheque leaves issued on accounts
+       - Fields: account_id, cheque_number, status
+     - deposits: Fixed deposits (kind FD) and recurring deposits (kind RD)
+       - Fields: deposit_id, payout_account, kind, principal, rate, tenure_months, start_date, maturity_date, maturity_amount, payout_type, maturity_instruction, status, nominee_name, nominee_relationship, monthly_installment, installments_paid, total_deposited, source_account
+
+2. cards
+   - This database is stored in a SQLite database and is the bank's card management system.
+   - This database consists of two tables:
+     - cards: Debit and credit cards
+       - Fields: card_id, account_no, card_type, network, status, credit_limit, available_limit
+     - card_controls: Per-card usage controls, one row per channel (atm, online, pos) and region (domestic, international)
+       - Fields: card_id, account_no, channel, region, enabled, daily_limit
+
+3. lending
+   - This database is stored in a DuckDB database and is the bank's loan management system.
+   - This database consists of one table:
+     - loans: Home, personal and gold loans
+       - Fields: loan_id, borrower_ref, loan_type, outstanding, rate, emi, remaining_tenure_months, next_due_date, status
+
+4. payments
+   - This database is stored in a SQLite database and is the bank's payments hub.
+   - This database consists of one table:
+     - mandates: Standing payment mandates (UPI autopay, NACH and similar) that debit an account
+       - Fields: mandate_id, debit_account, payee, amount, frequency, next_debit_date, status, mandate_type
+
+5. crm
+   - This database is stored in a MongoDB database and is the bank's customer relationship management system.
+   - This database consists of three collections:
+     - customers: Customer relationship data
+       - Fields: _id, segment, profession, sector, employer, marital_status, email, phone
+     - service_requests: Service requests raised by customers
+       - Fields: _id, request_id, category, description, related_transaction_id, account_id, status, priority, created_at, eta
+     - offers: Product offers shown to customers
+       - Fields: _id, customer, offer_id, type, title, detail, indicative
+
+6. insurance
+   - This database is stored in a DuckDB database and is the feed of insurance policies the bank distributes for its partner insurers.
+   - This database consists of one table:
+     - policies: Insurance policies held by bank customers
+       - Fields: policy_id, policyholder_ref, policy_name, insurer, sum_assured, premium, frequency, status, next_premium_date, nominee_name, nominee_relationship

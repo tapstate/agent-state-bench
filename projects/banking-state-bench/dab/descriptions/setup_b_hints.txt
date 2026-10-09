@@ -1,0 +1,10 @@
+HINTS:
+- Each system identifies customers and accounts in its own format. The canonical forms are those of core_banking: customer_id like CUST_35359B3E, account_id like SB1785318658 (SB = savings, CA = current).
+- cards: account_no is the account number without its SB/CA prefix, stored as an integer (SB1785318658 -> 1785318658). Cards have no customer field; reach the customer through the account.
+- lending: borrower_ref is the customer id without the CUST_ prefix, in lower case (CUST_35359B3E -> 35359b3e).
+- payments: debit_account is the account's IFSC code and account id joined by a slash (OURB0105821/SB1785318658).
+- crm: customers._id and offers.customer use a hyphen instead of the underscore (CUST-35359B3E). service_requests.account_id is the canonical account id.
+- insurance: policyholder_ref is 'OURB:' followed by the customer id without its CUST_ prefix (CUST_35359B3E -> OURB:35359B3E).
+- core_banking.deposits.payout_account is the canonical account id of the deposit's owner.
+- card_id, deposit_id and loan_id are not unique across customers: the same id can belong to different customers. Identify a card by (card_id, account_no), a deposit by (deposit_id, payout_account), and a loan by (loan_id, borrower_ref).
+- Customer names, phone numbers and e-mail addresses are not unique; never join on them.

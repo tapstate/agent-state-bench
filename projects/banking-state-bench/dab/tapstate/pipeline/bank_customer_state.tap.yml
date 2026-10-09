@@ -1,0 +1,358 @@
+version: tapstate/v1
+kind: pipeline
+id: bank_customer_state
+# One document per bank customer, consolidated from six source systems (SOURCE_SPLIT.md §2).
+# Each system's key format is mapped back to the canonical customer/account id in its own js step.
+# Rows that only carry an account (deposits, cards, mandates, service requests) are nested under
+# that account, and the final `shape` step lifts them to the customer, where the upstream record
+# keeps them. `shape` also restores the field shapes a nest produces differently (holder names, the
+# card controls map, nominee objects, login_context). Everything under an account joins on the
+# account number without its SB/CA prefix (the cards system's only account key; unique), as a
+# string on both sides, since sibling embeds must share one parent key and a nest matches keys by
+# typed value. No joins: a join can only read source tables.
+source: [ src_bank_cbs, src_bank_cards, src_bank_lending, src_bank_payments, src_bank_crm, src_bank_insurance ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  # --- core banking ------------------------------------------------------------------------
+  - id: t_cust
+    from: [ customers ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) { r.age = num(r.age); r.monthly_income = num(r.monthly_income); }
+        return record;
+      }
+  - id: t_acct
+    from: [ accounts ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function day(v) {   // a SQL DATE as YYYY-MM-DD, whatever form the runtime hands it over in
+        if (v == null) return null;
+        if (typeof v === 'number') return new Date(v < 1e6 ? v * 86400000 : v).toISOString().substr(0, 10);
+        if (typeof v === 'string') return v.substr(0, 10);
+        if (typeof v.toISOString === 'function') return v.toISOString().substr(0, 10);
+        var y = v.year, m = v.monthValue != null ? v.monthValue : v.month, d = v.dayOfMonth != null ? v.dayOfMonth : v.day;
+        if (y != null && m != null && d != null) return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        var t = String(v);
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
+      }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          // the cards system writes this account as an integer without its SB/CA prefix
+          r.account_no_key = String(parseInt(r.account_id.substr(2), 10));
+          r.available_balance = num(r.available_balance); r.hold_amount = num(r.hold_amount);
+          r.open_date = day(r.open_date);
+        }
+        return record;
+      }
+  - id: t_holders
+    from: [ account_holders ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) { r.holder_seq = Number(r.holder_seq); r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10)); }
+        return record;
+      }
+  - id: t_txn
+    from: [ transactions ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function day(v) {   // a SQL DATE as YYYY-MM-DD, whatever form the runtime hands it over in
+        if (v == null) return null;
+        if (typeof v === 'number') return new Date(v < 1e6 ? v * 86400000 : v).toISOString().substr(0, 10);
+        if (typeof v === 'string') return v.substr(0, 10);
+        if (typeof v.toISOString === 'function') return v.toISOString().substr(0, 10);
+        var y = v.year, m = v.monthValue != null ? v.monthValue : v.month, d = v.dayOfMonth != null ? v.dayOfMonth : v.day;
+        if (y != null && m != null && d != null) return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        var t = String(v);
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
+      }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.date = day(r.txn_date); delete r.txn_date;
+          r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+          r.amount = num(r.amount); r.balance_after = num(r.balance_after);
+        }
+        return record;
+      }
+  - id: t_cheques
+    from: [ cheques ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+        return record;
+      }
+  - id: t_dep
+    from: [ deposits ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function day(v) {   // a SQL DATE as YYYY-MM-DD, whatever form the runtime hands it over in
+        if (v == null) return null;
+        if (typeof v === 'number') return new Date(v < 1e6 ? v * 86400000 : v).toISOString().substr(0, 10);
+        if (typeof v === 'string') return v.substr(0, 10);
+        if (typeof v.toISOString === 'function') return v.toISOString().substr(0, 10);
+        var y = v.year, m = v.monthValue != null ? v.monthValue : v.month, d = v.dayOfMonth != null ? v.dayOfMonth : v.day;
+        if (y != null && m != null && d != null) return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        var t = String(v);
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
+      }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          ['principal', 'rate', 'tenure_months', 'maturity_amount', 'monthly_installment', 'installments_paid',
+           'total_deposited'].forEach(function (k) { r[k] = num(r[k]); });
+          r.start_date = day(r.start_date); r.maturity_date = day(r.maturity_date);
+          r.account_no_key = String(parseInt(String(r.payout_account).substr(2), 10));
+        }
+        return record;
+      }
+  # --- cards: account_no (integer, no prefix) -> canonical account and its customer --------
+  - id: t_cards
+    from: [ cards ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.account_no_key = String(r.account_no);
+          r.credit_limit = Number(r.credit_limit); r.available_limit = Number(r.available_limit);
+        }
+        return record;
+      }
+  - id: t_ctl
+    from: [ card_controls ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.account_no_key = String(r.account_no);
+          r.enabled = Number(r.enabled) === 1;
+          r.daily_limit = r.daily_limit == null ? null : Number(r.daily_limit);
+        }
+        return record;
+      }
+  # --- lending: borrower_ref (lower-case suffix) -> customer_id ----------------------------
+  - id: t_loans
+    from: [ loans ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function day(v) {   // a SQL DATE as YYYY-MM-DD, whatever form the runtime hands it over in
+        if (v == null) return null;
+        if (typeof v === 'number') return new Date(v < 1e6 ? v * 86400000 : v).toISOString().substr(0, 10);
+        if (typeof v === 'string') return v.substr(0, 10);
+        if (typeof v.toISOString === 'function') return v.toISOString().substr(0, 10);
+        var y = v.year, m = v.monthValue != null ? v.monthValue : v.month, d = v.dayOfMonth != null ? v.dayOfMonth : v.day;
+        if (y != null && m != null && d != null) return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        var t = String(v);
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
+      }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.customer_id = 'CUST_' + String(r.borrower_ref).toUpperCase();
+          ['outstanding', 'rate', 'emi', 'remaining_tenure_months'].forEach(function (k) { r[k] = num(r[k]); });
+          r.next_due_date = day(r.next_due_date);
+        }
+        return record;
+      }
+  # --- payments: debit_account (IFSC/account) -> account and its customer ------------------
+  - id: t_mand
+    from: [ mandates ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.account_id = String(r.debit_account).split('/')[1];
+          r.type = r.mandate_type; r.amount = Number(r.amount);
+          r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+        }
+        return record;
+      }
+  # --- CRM: CUST-xxxx -> CUST_xxxx; service requests reach the customer through the account -
+  - id: t_req
+    from: [ service_requests ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+        return record;
+      }
+  - id: t_crm
+    from: [ crm_customers ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) r.customer_id = String(r._id).replace('-', '_');
+        return record;
+      }
+  - id: t_offers
+    from: [ offers ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) { r.customer_id = String(r.customer).replace('-', '_'); r.offer_row = Number(r._id); }
+        return record;
+      }
+  # --- insurance: OURB:xxxx -> customer_id ---------------------------------------------------
+  - id: t_pol
+    from: [ policies ]
+    type: js
+    script: |
+      function num(v) { return v == null ? null : Number(v); }
+      function day(v) {   // a SQL DATE as YYYY-MM-DD, whatever form the runtime hands it over in
+        if (v == null) return null;
+        if (typeof v === 'number') return new Date(v < 1e6 ? v * 86400000 : v).toISOString().substr(0, 10);
+        if (typeof v === 'string') return v.substr(0, 10);
+        if (typeof v.toISOString === 'function') return v.toISOString().substr(0, 10);
+        var y = v.year, m = v.monthValue != null ? v.monthValue : v.month, d = v.dayOfMonth != null ? v.dayOfMonth : v.day;
+        if (y != null && m != null && d != null) return y + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        var t = String(v);
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
+      }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.customer_id = 'CUST_' + String(r.policyholder_ref).split(':')[1];
+          r.sum_assured = num(r.sum_assured); r.premium = num(r.premium);
+          r.next_premium_date = day(r.next_premium_date);
+        }
+        return record;
+      }
+  # --- one document per customer -----------------------------------------------------------
+  - id: assemble
+    type: nest
+    from: { cu: t_cust, cr: t_crm, ac: t_acct, ho: t_holders, tx: t_txn, ch: t_cheques, de: t_dep, ca: t_cards,
+            ct: t_ctl, ma: t_mand, rq: t_req, lo: t_loans, po: t_pol, of: t_offers }
+    root:
+      from: cu
+      key: [ customer_id ]
+      embed:
+        - { from: cr, on: { customer_id: customer_id }, as: object, path: crm, key: [ customer_id ] }
+        - from: ac
+          on: { customer_id: customer_id }
+          as: array
+          path: accounts
+          arrayKey: [ account_id ]
+          embed:
+            - { from: ho, on: { account_no_key: account_no_key }, as: array, path: holders, arrayKey: [ holder_seq ] }
+            - { from: tx, on: { account_no_key: account_no_key }, as: array, path: transactions, arrayKey: [ reference_id ] }
+            - { from: ch, on: { account_no_key: account_no_key }, as: array, path: cheques, arrayKey: [ cheque_number ] }
+            - { from: de, on: { account_no_key: account_no_key }, as: array, path: deposits, arrayKey: [ deposit_id ] }
+            - from: ca
+              on: { account_no_key: account_no_key }
+              as: array
+              path: cards
+              arrayKey: [ card_id ]
+              embed:
+                - { from: ct, on: { card_id: card_id, account_no_key: account_no_key }, as: array, path: controls,
+                    arrayKey: [ channel, region ] }
+            - { from: ma, on: { account_no_key: account_no_key }, as: array, path: mandates, arrayKey: [ mandate_id ] }
+            - { from: rq, on: { account_no_key: account_no_key }, as: array, path: requests, arrayKey: [ request_id ] }
+        - { from: lo, on: { customer_id: customer_id }, as: array, path: loans, arrayKey: [ loan_id ] }
+        - { from: po, on: { customer_id: customer_id }, as: array, path: insurance, arrayKey: [ policy_id ] }
+        - { from: of, on: { customer_id: customer_id }, as: array, path: offers, arrayKey: [ offer_row ] }
+  - id: shape
+    from: [ assemble ]
+    type: js
+    script: |
+      function nominee(r) {
+        return (r.nominee_name == null && r.nominee_relationship == null) ? null
+          : { name: r.nominee_name, relationship: r.nominee_relationship };
+      }
+      function only(r, keys) { var o = {}; keys.forEach(function (k) { o[k] = r[k]; }); return o; }
+      function ids(arr, k) { return arr.map(function (x) { return x[k]; }); }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r == null) return record;
+        var crm = r.crm || {};
+        var addr = function (p) {
+          return { line1: r[p + '_line1'], line2: r[p + '_line2'], city: r[p + '_city'], state: r[p + '_state'],
+                   pincode: r[p + '_pincode'] };
+        };
+        var profile = { name: r.name, age: r.age, gender: r.gender, senior_citizen: r.senior_citizen,
+                        segment: crm.segment, profession: crm.profession, sector: crm.sector, employer: crm.employer,
+                        marital_status: crm.marital_status, monthly_income: r.monthly_income,
+                        kyc_status: r.kyc_status, email: crm.email, phone: crm.phone,
+                        communication_address: addr('comm'), permanent_address: addr('perm') };
+        var accounts = [], deposits = [], cards = [], mandates = [], requests = [];
+        (r.accounts || []).forEach(function (a) {
+          var holders = (a.holders || []).slice().sort(function (x, y) { return x.holder_seq - y.holder_seq; });
+          accounts.push({ account_id: a.account_id, account_type: a.account_type, status: a.status, ifsc: a.ifsc,
+                          home_branch: a.home_branch, holders: holders.map(function (h) { return h.holder_name; }),
+                          nominee: nominee(a), open_date: a.open_date, available_balance: a.available_balance,
+                          hold_amount: a.hold_amount, currency: a.currency,
+                          transactions: (a.transactions || []).map(function (t) {
+                            return only(t, ['reference_id', 'date', 'description', 'amount', 'direction', 'channel',
+                                            'balance_after']); }),
+                          cheques: (a.cheques || []).map(function (c) { return only(c, ['cheque_number', 'status']); }) });
+          // lifted to the customer, where the upstream record keeps them
+          (a.deposits || []).forEach(function (d) {
+            var o = {};
+            ['deposit_id', 'kind', 'principal', 'rate', 'tenure_months', 'start_date', 'maturity_date',
+             'maturity_amount', 'payout_type', 'maturity_instruction', 'status', 'payout_account',
+             'monthly_installment', 'installments_paid', 'total_deposited', 'source_account'].forEach(function (k) {
+              if (d[k] != null) o[k] = d[k];   // FD and RD carry different fields
+            });
+            o.nominee = nominee(d);
+            deposits.push(o);
+          });
+          (a.cards || []).forEach(function (k) {
+            var controls = {};
+            (k.controls || []).forEach(function (c) {
+              controls[c.channel] = controls[c.channel] || {};
+              var v = { enabled: c.enabled };
+              if (c.daily_limit != null) v.daily_limit = c.daily_limit;
+              controls[c.channel][c.region] = v;
+            });
+            var o = only(k, ['card_id', 'card_type', 'network', 'status', 'credit_limit', 'available_limit']);
+            o.linked_account = a.account_id;
+            o.controls = controls;
+            cards.push(o);
+          });
+          (a.mandates || []).forEach(function (m) {
+            mandates.push(only(m, ['mandate_id', 'account_id', 'payee', 'amount', 'frequency', 'next_debit_date',
+                                   'status', 'type']));
+          });
+          (a.requests || []).forEach(function (q) {
+            requests.push(only(q, ['request_id', 'category', 'description', 'related_transaction_id', 'account_id',
+                                   'status', 'priority', 'created_at', 'eta']));
+          });
+        });
+        var loans = (r.loans || []).map(function (l) {
+          return only(l, ['loan_id', 'loan_type', 'outstanding', 'rate', 'emi', 'remaining_tenure_months',
+                          'next_due_date', 'status']); });
+        var insurance = (r.insurance || []).map(function (p) {
+          var o = only(p, ['policy_id', 'policy_name', 'insurer', 'sum_assured', 'premium', 'frequency', 'status',
+                           'next_premium_date']);
+          o.nominee = nominee(p);
+          return o;
+        });
+        record.after = {
+          customer_id: r.customer_id, profile: profile,
+          login_context: { customer_id: r.customer_id, linked_accounts: ids(accounts, 'account_id'),
+                           linked_products: ids(deposits, 'deposit_id').concat(ids(loans, 'loan_id'),
+                                                                               ids(insurance, 'policy_id')),
+                           linked_cards: ids(cards, 'card_id') },
+          accounts: accounts, deposits: deposits, loans: loans, cards: cards, mandates: mandates,
+          insurance: insurance, requests: requests,
+          offers: (r.offers || []).map(function (o) { return only(o, ['offer_id', 'type', 'title', 'detail', 'indicative']); })
+        };
+        return record;
+      }
+view: { id: bank_customer, from: shape, primary_key: customer_id }
