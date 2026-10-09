@@ -45,3 +45,27 @@ def test_interval_narrows_with_more_questions():
     lo1, hi1 = bootstrap_ci(synthetic(20), pass_at_1, n=2000)
     lo4, hi4 = bootstrap_ci(synthetic(80), pass_at_1, n=2000)
     assert (hi4 - lo4) < (hi1 - lo1)
+
+
+def test_haiku_55_price_tier_is_per_request():
+    from score import call_cost
+    # up to 100,000 prompt tokens: $0.10 in, $0.50 out, $0.01 cache read per million
+    assert abs(call_cost("claude-haiku-5-5", 100_000, 0, 0) - 0.01) < 1e-9
+    # over 100,000: $0.50 in, $2.50 out, $0.05 cache read; cache reads count toward the prompt length
+    assert abs(call_cost("claude-haiku-5-5", 100_001, 0, 0) - 0.0500005) < 1e-9
+    assert abs(call_cost("claude-haiku-5-5", 200_000, 150_000, 1_000) - (50_000 * 0.50 + 150_000 * 0.05 + 1_000 * 2.50) / 1e6) < 1e-9
+
+
+def test_usage_prices_each_request_on_its_own(tmp_path):
+    import json
+    from score import usage
+    log = tmp_path / "llm_calls.jsonl"
+    calls = [
+        {"response": {"usage": {"prompt_tokens": 50_000, "completion_tokens": 100, "prompt_tokens_details": {"cached_tokens": 0}}}},
+        {"response": {"usage": {"prompt_tokens": 150_000, "completion_tokens": 200, "prompt_tokens_details": {"cached_tokens": 100_000}}}},
+    ]
+    log.write_text("\n".join(json.dumps(c) for c in calls) + "\n")
+    inp, out, cached, n, cost = usage(log, "claude-haiku-5-5")
+    assert (inp, out, cached, n) == (200_000, 300, 100_000, 2)
+    expected = (50_000 * 0.10 + 100 * 0.50) / 1e6 + (50_000 * 0.50 + 100_000 * 0.05 + 200 * 2.50) / 1e6
+    assert abs(cost - expected) < 1e-9

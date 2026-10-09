@@ -7,6 +7,7 @@ per-query guidance.
 
 Usage: python make_small_datasets.py <dab-root>
 """
+import os
 import shutil
 import subprocess
 import sys
@@ -86,7 +87,7 @@ def build(dab, datasets):
         dump = dst / "query_dataset" / f"{db}_dump"
         shutil.rmtree(dump, ignore_errors=True)
         dump.mkdir(parents=True)
-        subprocess.run(["docker", "run", "--rm", "--network", "ts_default", "-v", f"{dump}:{dump}", "mongo:7.0",
+        subprocess.run(["docker", "run", "--rm", "--user", f"{os.getuid()}:{os.getgid()}", "--network", "ts_default", "-v", f"{dump}:{dump}", "mongo:7.0",
                         "mongodump", "--quiet", "--uri", "mongodb://mongo:27017/?directConnection=true",
                         f"--db={db}", f"--out={dump}"], check=True)
         (dst / "db_config.yaml").write_text(

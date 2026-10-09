@@ -18,12 +18,17 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-# List prices read 2026-09-23 (Claude API reference): input, output, cache read.
+# List prices in USD per million tokens: (input, output, cache read).
+# Read 2026-09-23 for the models above; Haiku 5.5 from the Claude pricing page on 2026-10-09.
 PRICES = {
     "claude-opus-5": (5.00, 25.00, 0.50),
     "claude-sonnet-5": (2.00, 10.00, 0.20),
     "claude-haiku-4-5": (1.00, 5.00, 0.10),
+    "claude-haiku-5-5": (0.10, 0.50, 0.01),
 }
+# Haiku 5.5 is priced by prompt length: a request whose prompt (cache reads included) is over
+# 100,000 tokens pays these prices instead. The tier is per request, not per run.
+LONG_PROMPT = {"claude-haiku-5-5": (100_000, (0.50, 2.50, 0.05))}
 ROOT_RE = re.compile(r"^(?P<arm>[A-Z][0-9]?)_(?P<model>.+)_r(?P<run>\d+)$")  # model "cc-<id>" = Claude Code agent
 
 
@@ -38,16 +43,31 @@ def strict_ok(answer, gt_lines):
     return bool(want) and got == want
 
 
-def usage(llm_log):
+def call_cost(model, prompt, cached, completion):
+    """USD for one API request, priced on its own prompt length where the model has a tier."""
+    pin, pout, pcache = PRICES.get(model, (float("nan"),) * 3)
+    tier = LONG_PROMPT.get(model)
+    if tier and prompt > tier[0]:
+        pin, pout, pcache = tier[1]
+    return ((prompt - cached) * pin + cached * pcache + completion * pout) / 1e6
+
+
+def usage(llm_log, model):
+    """Token totals and cost over one run's API requests, each priced on its own."""
     inp = out = cached = calls = 0
+    cost = 0.0
     for line in llm_log.read_text().splitlines():
         rec = json.loads(line)
         u = (rec.get("response") or {}).get("usage") or {}
+        p = u.get("prompt_tokens") or 0
+        c = ((u.get("prompt_tokens_details") or {}).get("cached_tokens")) or 0
+        o = u.get("completion_tokens") or 0
         calls += 1
-        inp += u.get("prompt_tokens") or 0
-        out += u.get("completion_tokens") or 0
-        cached += ((u.get("prompt_tokens_details") or {}).get("cached_tokens")) or 0
-    return inp, out, cached, calls
+        inp += p
+        out += o
+        cached += c
+        cost += call_cost(model, p, c, o)
+    return inp, out, cached, calls, cost
 
 
 def pass_at_1(rs):
@@ -148,9 +168,7 @@ def main():
             calls = cr.get("num_turns") or 0
             cost = cr.get("total_cost_usd") or 0.0
         else:
-            inp, out, cached, calls = usage(run_dir / "llm_calls.jsonl")
-            pin, pout, pcache = PRICES.get(m["model"], (float("nan"),) * 3)
-            cost = ((inp - cached) * pin + cached * pcache + out * pout) / 1e6
+            inp, out, cached, calls, cost = usage(run_dir / "llm_calls.jsonl", m["model"])
         tools = json.loads((run_dir / "final_agent.json").read_text()).get("llm_call_count", calls)
         rows.append({
             "dataset": re.sub(r"_(consolidated(_v[0-9]+)?|frozen|lag[0-9])$", "", qdir.parent.name[len("query_"):]),
