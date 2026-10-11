@@ -20,9 +20,13 @@ transforms:
     script: |
       function num(v) { return v == null ? null : Number(v); }
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) { r.age = num(r.age); r.monthly_income = num(r.monthly_income); }
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) { r.age = num(r.age); r.monthly_income = num(r.monthly_income); }
       }
   - id: t_acct
     from: [ accounts ]
@@ -40,23 +44,31 @@ transforms:
         return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
       }
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           // the cards system writes this account as an integer without its SB/CA prefix
           r.account_no_key = String(parseInt(r.account_id.substr(2), 10));
           r.available_balance = num(r.available_balance); r.hold_amount = num(r.hold_amount);
           r.open_date = day(r.open_date);
         }
-        return record;
       }
   - id: t_holders
     from: [ account_holders ]
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) { r.holder_seq = Number(r.holder_seq); r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10)); }
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) { r.holder_seq = Number(r.holder_seq); r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10)); }
       }
   - id: t_txn
     from: [ transactions ]
@@ -74,22 +86,30 @@ transforms:
         return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
       }
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.date = day(r.txn_date); delete r.txn_date;
           r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
           r.amount = num(r.amount); r.balance_after = num(r.balance_after);
         }
-        return record;
       }
   - id: t_cheques
     from: [ cheques ]
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
       }
   - id: t_dep
     from: [ deposits ]
@@ -107,14 +127,18 @@ transforms:
         return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
       }
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           ['principal', 'rate', 'tenure_months', 'maturity_amount', 'monthly_installment', 'installments_paid',
            'total_deposited'].forEach(function (k) { r[k] = num(r[k]); });
           r.start_date = day(r.start_date); r.maturity_date = day(r.maturity_date);
           r.account_no_key = String(parseInt(String(r.payout_account).substr(2), 10));
         }
-        return record;
       }
   # --- cards: account_no (integer, no prefix) -> canonical account and its customer --------
   - id: t_cards
@@ -122,25 +146,33 @@ transforms:
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.account_no_key = String(r.account_no);
           r.credit_limit = Number(r.credit_limit); r.available_limit = Number(r.available_limit);
         }
-        return record;
       }
   - id: t_ctl
     from: [ card_controls ]
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.account_no_key = String(r.account_no);
           r.enabled = Number(r.enabled) === 1;
           r.daily_limit = r.daily_limit == null ? null : Number(r.daily_limit);
         }
-        return record;
       }
   # --- lending: borrower_ref (lower-case suffix) -> customer_id ----------------------------
   - id: t_loans
@@ -159,13 +191,17 @@ transforms:
         return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
       }
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.customer_id = 'CUST_' + String(r.borrower_ref).toUpperCase();
           ['outstanding', 'rate', 'emi', 'remaining_tenure_months'].forEach(function (k) { r[k] = num(r[k]); });
           r.next_due_date = day(r.next_due_date);
         }
-        return record;
       }
   # --- payments: debit_account (IFSC/account) -> account and its customer ------------------
   - id: t_mand
@@ -173,13 +209,17 @@ transforms:
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.account_id = String(r.debit_account).split('/')[1];
           r.type = r.mandate_type; r.amount = Number(r.amount);
           r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
         }
-        return record;
       }
   # --- CRM: CUST-xxxx -> CUST_xxxx; service requests reach the customer through the account -
   - id: t_req
@@ -187,27 +227,39 @@ transforms:
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) r.account_no_key = String(parseInt(String(r.account_id).substr(2), 10));
       }
   - id: t_crm
     from: [ crm_customers ]
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) r.customer_id = String(r._id).replace('-', '_');
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) r.customer_id = String(r._id).replace('-', '_');
       }
   - id: t_offers
     from: [ offers ]
     type: js
     script: |
       function process(record, ctx) {
-        var r = record.after;
-        if (r != null) { r.customer_id = String(r.customer).replace('-', '_'); r.offer_row = Number(r._id); }
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
         return record;
+      }
+      function fix(r) {
+        if (r != null) { r.customer_id = String(r.customer).replace('-', '_'); r.offer_row = Number(r._id); }
       }
   # --- insurance: OURB:xxxx -> customer_id ---------------------------------------------------
   - id: t_pol
@@ -226,13 +278,17 @@ transforms:
         return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.substr(0, 10) : 'unparsed:' + JSON.stringify(v);
       }
       function process(record, ctx) {
-        var r = record.after;
+        // the before image too: a delete carries only that, and the nest needs its join key
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
         if (r != null) {
           r.customer_id = 'CUST_' + String(r.policyholder_ref).split(':')[1];
           r.sum_assured = num(r.sum_assured); r.premium = num(r.premium);
           r.next_premium_date = day(r.next_premium_date);
         }
-        return record;
       }
   # --- one document per customer -----------------------------------------------------------
   - id: assemble

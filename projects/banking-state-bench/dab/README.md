@@ -65,3 +65,12 @@ The pilot runs on the Claude subscription login (the runner removes API keys fro
 environment), so the reported costs are API-equivalent estimates. Runs resume: rerunning the
 same command continues rather than repeats. The runner's own default `DOCKER_HOST` is the Docker
 Desktop path, so it must be set on Linux.
+
+## Freshness extension
+
+`freshness/` replays 1–6 July into the live core banking database while agents answer, and
+compares continuously updated consolidated state (Tapstate) with a nightly warehouse and the live
+sources. Design, as-built notes and commands are in [`../FRESHNESS.md`](../FRESHNESS.md) (§13). The
+decisions made during the unattended run are in [`freshness/RUN_LOG.md`](freshness/RUN_LOG.md).
+The extension points Tapstate's core banking source at `bank_cbs` and stores that database's
+dates as text, which also changes what setup A sees if the static pilot is rerun.

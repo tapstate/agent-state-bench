@@ -1,0 +1,704 @@
+[
+ {
+  "id": 25,
+  "day": 0,
+  "slot": 0,
+  "t": 180,
+  "sim_time": "2026-07-01 08:13",
+  "kind": "control",
+  "template": "spend_power",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": "CUST_4E25D87F",
+  "accounts": [
+   "SB5388494164"
+  ],
+  "candidates": 309,
+  "text": "Current time: 2026-07-01 08:13 IST. What is customer CUST_4E25D87F's total spending power right now: the available balance across all of their accounts plus the available limit on their active credit cards?",
+  "answer": [
+   "money",
+   47350.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   47350.0,
+   1.0
+  ]
+ },
+ {
+  "id": 26,
+  "day": 0,
+  "slot": 2,
+  "t": 1680,
+  "sim_time": "2026-07-01 13:52",
+  "kind": "changed",
+  "template": "mandate_cover",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "customer_id": "CUST_DCCD6EFD",
+  "accounts": [
+   "SB5785868040"
+  ],
+  "candidates": 93,
+  "text": "Current time: 2026-07-01 13:52 IST. If each active payment mandate on customer CUST_DCCD6EFD's savings account SB5785868040 debited once, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   139900.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   151900.0,
+   1.0
+  ]
+ },
+ {
+  "id": 27,
+  "day": 0,
+  "slot": 3,
+  "t": 2430,
+  "sim_time": "2026-07-01 16:41",
+  "kind": "changed",
+  "template": "spend_power",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": "CUST_9748C87C",
+  "accounts": [
+   "SB1086308353"
+  ],
+  "candidates": 95,
+  "text": "Current time: 2026-07-01 16:41 IST. What is customer CUST_9748C87C's total spending power right now: the available balance across all of their accounts plus the available limit on their active credit cards?",
+  "answer": [
+   "money",
+   280000.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   280299.0,
+   1.0
+  ]
+ },
+ {
+  "id": 28,
+  "day": 0,
+  "slot": 4,
+  "t": 3180,
+  "sim_time": "2026-07-01 19:30",
+  "kind": "portfolio",
+  "template": "affluent_total",
+  "systems": [
+   "core_banking",
+   "crm"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": null,
+  "text": "Current time: 2026-07-01 19:30 IST. What is the total available balance right now across all accounts of customers in the AFFLUENT segment?",
+  "answer": [
+   "money",
+   308952798.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   309955236.0,
+   1.0
+  ]
+ },
+ {
+  "id": 29,
+  "day": 1,
+  "slot": 0,
+  "t": 4020,
+  "sim_time": "2026-07-02 08:13",
+  "kind": "control",
+  "template": "net_position",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_1F860D07",
+  "accounts": [
+   "SB3682856096"
+  ],
+  "candidates": 396,
+  "text": "Current time: 2026-07-02 08:13 IST. What is customer CUST_1F860D07's net position right now: the total available balance across all of their accounts minus the total outstanding on their loans?",
+  "answer": [
+   "money",
+   67466.67,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   67466.67,
+   1.0
+  ]
+ },
+ {
+  "id": 30,
+  "day": 1,
+  "slot": 1,
+  "t": 4770,
+  "sim_time": "2026-07-02 11:02",
+  "kind": "changed",
+  "template": "net_position",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_EA27E8B4",
+  "accounts": [
+   "SB2318609854"
+  ],
+  "candidates": 52,
+  "text": "Current time: 2026-07-02 11:02 IST. What is customer CUST_EA27E8B4's net position right now: the total available balance across all of their accounts minus the total outstanding on their loans?",
+  "answer": [
+   "money",
+   34083.33,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   28483.33,
+   1.0
+  ]
+ },
+ {
+  "id": 31,
+  "day": 1,
+  "slot": 2,
+  "t": 5520,
+  "sim_time": "2026-07-02 13:52",
+  "kind": "changed",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_2A1921A5",
+  "accounts": [
+   "SB8372064494"
+  ],
+  "candidates": 29,
+  "text": "Current time: 2026-07-02 13:52 IST. If customer CUST_2A1921A5 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB8372064494, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   403639.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   408489.0,
+   1.0
+  ]
+ },
+ {
+  "id": 32,
+  "day": 1,
+  "slot": 3,
+  "t": 6270,
+  "sim_time": "2026-07-02 16:41",
+  "kind": "changed",
+  "template": "obligations",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance",
+   "payments"
+  ],
+  "customer_id": "CUST_9DDDDED0",
+  "accounts": [
+   "SB3099693324"
+  ],
+  "candidates": 28,
+  "text": "Current time: 2026-07-02 16:41 IST. If customer CUST_9DDDDED0 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB3099693324, and each active payment mandate on that account also debited once, what would its available balance be afterwards?",
+  "answer": [
+   "money",
+   120873.66,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   122673.66,
+   1.0
+  ]
+ },
+ {
+  "id": 33,
+  "day": 1,
+  "slot": 4,
+  "t": 7020,
+  "sim_time": "2026-07-02 19:30",
+  "kind": "portfolio",
+  "template": "home_loan_total",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": null,
+  "text": "Current time: 2026-07-02 19:30 IST. What is the total available balance right now across all accounts of customers who have a home loan?",
+  "answer": [
+   "money",
+   202968279.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   203489777.0,
+   1.0
+  ]
+ },
+ {
+  "id": 34,
+  "day": 2,
+  "slot": 0,
+  "t": 7860,
+  "sim_time": "2026-07-03 08:13",
+  "kind": "control",
+  "template": "mandate_cover",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "customer_id": "CUST_28F3840A",
+  "accounts": [
+   "SB7794504323"
+  ],
+  "candidates": 634,
+  "text": "Current time: 2026-07-03 08:13 IST. If each active payment mandate on customer CUST_28F3840A's savings account SB7794504323 debited once, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   183551.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   183551.0,
+   1.0
+  ]
+ },
+ {
+  "id": 35,
+  "day": 2,
+  "slot": 1,
+  "t": 8610,
+  "sim_time": "2026-07-03 11:02",
+  "kind": "changed",
+  "template": "mandate_cover",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "customer_id": "CUST_61FB84EA",
+  "accounts": [
+   "SB1858255549"
+  ],
+  "candidates": 49,
+  "text": "Current time: 2026-07-03 11:02 IST. If each active payment mandate on customer CUST_61FB84EA's savings account SB1858255549 debited once, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   143500.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   158500.0,
+   1.0
+  ]
+ },
+ {
+  "id": 36,
+  "day": 2,
+  "slot": 2,
+  "t": 9360,
+  "sim_time": "2026-07-03 13:52",
+  "kind": "changed",
+  "template": "spend_power",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": "CUST_391D8014",
+  "accounts": [
+   "CA7701030538",
+   "SB6045201588"
+  ],
+  "candidates": 69,
+  "text": "Current time: 2026-07-03 13:52 IST. What is customer CUST_391D8014's total spending power right now: the available balance across all of their accounts plus the available limit on their active credit cards?",
+  "answer": [
+   "money",
+   881699.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   836699.0,
+   1.0
+  ]
+ },
+ {
+  "id": 37,
+  "day": 2,
+  "slot": 3,
+  "t": 10110,
+  "sim_time": "2026-07-03 16:41",
+  "kind": "changed",
+  "template": "net_position",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_9DC0DFB2",
+  "accounts": [
+   "SB4005920056"
+  ],
+  "candidates": 131,
+  "text": "Current time: 2026-07-03 16:41 IST. What is customer CUST_9DC0DFB2's net position right now: the total available balance across all of their accounts minus the total outstanding on their loans?",
+  "answer": [
+   "money",
+   445366.67,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   447866.67,
+   1.0
+  ]
+ },
+ {
+  "id": 38,
+  "day": 2,
+  "slot": 4,
+  "t": 10860,
+  "sim_time": "2026-07-03 19:30",
+  "kind": "portfolio",
+  "template": "mandate_accounts_total",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": null,
+  "text": "Current time: 2026-07-03 19:30 IST. What is the total available balance right now across all accounts that have at least one active payment mandate?",
+  "answer": [
+   "money",
+   519083893.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   519879515.0,
+   1.0
+  ]
+ },
+ {
+  "id": 39,
+  "day": 3,
+  "slot": 0,
+  "t": 11700,
+  "sim_time": "2026-07-04 08:13",
+  "kind": "control",
+  "template": "obligations",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance",
+   "payments"
+  ],
+  "customer_id": "CUST_6879A3F6",
+  "accounts": [
+   "SB1593303391"
+  ],
+  "candidates": 105,
+  "text": "Current time: 2026-07-04 08:13 IST. If customer CUST_6879A3F6 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB1593303391, and each active payment mandate on that account also debited once, what would its available balance be afterwards?",
+  "answer": [
+   "money",
+   70445.32,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   70445.32,
+   1.0
+  ]
+ },
+ {
+  "id": 40,
+  "day": 3,
+  "slot": 1,
+  "t": 12450,
+  "sim_time": "2026-07-04 11:02",
+  "kind": "changed",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_FC8C7D56",
+  "accounts": [
+   "SB6498266930"
+  ],
+  "candidates": 8,
+  "text": "Current time: 2026-07-04 11:02 IST. If customer CUST_FC8C7D56 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB6498266930, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   48545.32,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   13545.32,
+   1.0
+  ]
+ },
+ {
+  "id": 41,
+  "day": 3,
+  "slot": 2,
+  "t": 13200,
+  "sim_time": "2026-07-04 13:52",
+  "kind": "changed",
+  "template": "obligations",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance",
+   "payments"
+  ],
+  "customer_id": "CUST_4144C785",
+  "accounts": [
+   "SB3287701469"
+  ],
+  "candidates": 15,
+  "text": "Current time: 2026-07-04 13:52 IST. If customer CUST_4144C785 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB3287701469, and each active payment mandate on that account also debited once, what would its available balance be afterwards?",
+  "answer": [
+   "money",
+   88948.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   97448.0,
+   1.0
+  ]
+ },
+ {
+  "id": 42,
+  "day": 3,
+  "slot": 3,
+  "t": 13950,
+  "sim_time": "2026-07-04 16:41",
+  "kind": "changed",
+  "template": "mandate_cover",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "customer_id": "CUST_04F2A910",
+  "accounts": [
+   "SB8054014323"
+  ],
+  "candidates": 139,
+  "text": "Current time: 2026-07-04 16:41 IST. If each active payment mandate on customer CUST_04F2A910's savings account SB8054014323 debited once, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   142201.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   144001.0,
+   1.0
+  ]
+ },
+ {
+  "id": 43,
+  "day": 3,
+  "slot": 4,
+  "t": 14700,
+  "sim_time": "2026-07-04 19:30",
+  "kind": "portfolio",
+  "template": "credit_card_total",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": null,
+  "text": "Current time: 2026-07-04 19:30 IST. What is the total available balance right now across all accounts of customers who hold an active credit card?",
+  "answer": [
+   "money",
+   306901271.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   307332966.0,
+   1.0
+  ]
+ },
+ {
+  "id": 44,
+  "day": 4,
+  "slot": 0,
+  "t": 15540,
+  "sim_time": "2026-07-05 08:13",
+  "kind": "control",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_B3B7F46B",
+  "accounts": [
+   "SB2953313427"
+  ],
+  "candidates": 149,
+  "text": "Current time: 2026-07-05 08:13 IST. If customer CUST_B3B7F46B paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB2953313427, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   28355.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   28355.0,
+   1.0
+  ]
+ },
+ {
+  "id": 45,
+  "day": 4,
+  "slot": 1,
+  "t": 16290,
+  "sim_time": "2026-07-05 11:02",
+  "kind": "changed",
+  "template": "spend_power",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": "CUST_7EED3375",
+  "accounts": [
+   "CA8555573626",
+   "SB5673897892"
+  ],
+  "candidates": 24,
+  "text": "Current time: 2026-07-05 11:02 IST. What is customer CUST_7EED3375's total spending power right now: the available balance across all of their accounts plus the available limit on their active credit cards?",
+  "answer": [
+   "money",
+   557700.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   565700.0,
+   1.0
+  ]
+ },
+ {
+  "id": 46,
+  "day": 4,
+  "slot": 2,
+  "t": 17040,
+  "sim_time": "2026-07-05 13:52",
+  "kind": "changed",
+  "template": "net_position",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_67CFC696",
+  "accounts": [
+   "CA8034561867",
+   "SB8383645756"
+  ],
+  "candidates": 52,
+  "text": "Current time: 2026-07-05 13:52 IST. What is customer CUST_67CFC696's net position right now: the total available balance across all of their accounts minus the total outstanding on their loans?",
+  "answer": [
+   "money",
+   1886966.67,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   1878966.67,
+   1.0
+  ]
+ },
+ {
+  "id": 47,
+  "day": 4,
+  "slot": 3,
+  "t": 17790,
+  "sim_time": "2026-07-05 16:41",
+  "kind": "changed",
+  "template": "obligations",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance",
+   "payments"
+  ],
+  "customer_id": "CUST_8E3C686D",
+  "accounts": [
+   "SB9191228734"
+  ],
+  "candidates": 14,
+  "text": "Current time: 2026-07-05 16:41 IST. If customer CUST_8E3C686D paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB9191228734, and each active payment mandate on that account also debited once, what would its available balance be afterwards?",
+  "answer": [
+   "money",
+   494839.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   523339.0,
+   1.0
+  ]
+ },
+ {
+  "id": 48,
+  "day": 4,
+  "slot": 4,
+  "t": 18540,
+  "sim_time": "2026-07-05 19:30",
+  "kind": "control",
+  "template": "spend_power",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "customer_id": "CUST_58826F08",
+  "accounts": [
+   "SB9457076977"
+  ],
+  "candidates": 233,
+  "text": "Current time: 2026-07-05 19:30 IST. What is customer CUST_58826F08's total spending power right now: the available balance across all of their accounts plus the available limit on their active credit cards?",
+  "answer": [
+   "money",
+   298000.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   298000.0,
+   1.0
+  ]
+ }
+]
