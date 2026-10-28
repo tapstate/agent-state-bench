@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_bank_cbs
+connector: postgres
+config: { host: postgres, port: 5432, database: banksrc, schema: cbs, user: postgres, password: secret }
+mode: cdc
+tables: [ customers, accounts, account_holders, transactions, cheques, deposits ]

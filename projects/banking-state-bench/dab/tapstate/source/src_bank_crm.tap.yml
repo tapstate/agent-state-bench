@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_bank_crm
+connector: postgres
+config: { host: postgres, port: 5432, database: banksrc, schema: crm, user: postgres, password: secret }
+mode: cdc
+tables: [ crm_customers, service_requests, offers ]
