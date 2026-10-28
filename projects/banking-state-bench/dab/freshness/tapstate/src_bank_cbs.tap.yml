@@ -1,0 +1,10 @@
+version: tapstate/v1
+kind: source
+id: src_bank_cbs
+# Freshness extension (FRESHNESS.md §4): Tapstate reads the agents' own live core banking database,
+# bank_cbs, so that "current" means the same thing in every arm. Replaces dab/tapstate/source/
+# src_bank_cbs.tap.yml (which reads the banksrc.cbs copy) while the extension runs.
+connector: postgres
+config: { host: postgres, port: 5432, database: bank_cbs, schema: public, user: postgres, password: secret }
+mode: cdc
+tables: [ customers, accounts, account_holders, transactions, cheques, deposits ]

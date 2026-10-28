@@ -1,0 +1,508 @@
+[
+ {
+  "id": 1,
+  "category": "single-source control",
+  "systems": [
+   "core_banking"
+  ],
+  "text": "How many recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive?",
+  "answer": [
+   "count",
+   53
+  ]
+ },
+ {
+  "id": 2,
+  "category": "single-source control",
+  "systems": [
+   "cards"
+  ],
+  "text": "How many credit cards are currently frozen?",
+  "answer": [
+   "count",
+   102
+  ]
+ },
+ {
+  "id": 3,
+  "category": "single-source control",
+  "systems": [
+   "lending"
+  ],
+  "text": "What is the total outstanding amount across all home loans? Give the amount in rupees to two decimals.",
+  "answer": [
+   "money",
+   462482291.67,
+   1.0
+  ]
+ },
+ {
+  "id": 4,
+  "category": "single-source control",
+  "systems": [
+   "payments"
+  ],
+  "text": "Which payee has the most paused mandates, and how many paused mandates does it have?",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "NovaTel Postpaid"
+    ],
+    [
+     "count",
+     88
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 5,
+  "category": "two sources",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "text": "Customer CUST_0FE6E9CD has frozen cards. List each frozen card's id and the id of the bank account it is linked to (an account id such as SB1785318658).",
+  "answer": [
+   "all",
+   [
+    [
+     "ids",
+     [
+      "CARD60216",
+      "CARD35862"
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       "CARD60216",
+       [
+        "text",
+        "SB7029842045"
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       "CARD35862",
+       [
+        "text",
+        "SB7029842045"
+       ]
+      ]
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 6,
+  "category": "two sources",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "text": "How many senior-citizen customers hold at least one gold loan?",
+  "answer": [
+   "count",
+   27
+  ]
+ },
+ {
+  "id": 7,
+  "category": "two sources",
+  "systems": [
+   "crm",
+   "core_banking"
+  ],
+  "text": "What is the total available balance across all savings accounts held by customers in the HNI segment? Give the amount in rupees to two decimals.",
+  "answer": [
+   "money",
+   421214400.0,
+   1.0
+  ]
+ },
+ {
+  "id": 8,
+  "category": "two sources",
+  "systems": [
+   "core_banking",
+   "payments"
+  ],
+  "text": "For customer CUST_04B8D21C, list the ids of the active mandates that debit one of the customer's savings accounts, and give the total monthly amount of those mandates.",
+  "answer": [
+   "all",
+   [
+    [
+     "ids",
+     [
+      "MND29967257",
+      "MND19809350"
+     ]
+    ],
+    [
+     "money",
+     5399,
+     0.5
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 9,
+  "category": "two sources",
+  "systems": [
+   "crm",
+   "core_banking"
+  ],
+  "text": "How many open service requests belong to customers aged 60 or over?",
+  "answer": [
+   "count",
+   318
+  ]
+ },
+ {
+  "id": 10,
+  "category": "two sources",
+  "systems": [
+   "core_banking",
+   "insurance"
+  ],
+  "text": "How many senior-citizen customers hold at least one insurance policy?",
+  "answer": [
+   "count",
+   105
+  ]
+ },
+ {
+  "id": 11,
+  "category": "two sources",
+  "systems": [
+   "core_banking",
+   "cards"
+  ],
+  "text": "Which home branch has the most frozen cards linked to accounts held at that branch, and how many frozen cards is that?",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "New Delhi Main Branch"
+    ],
+    [
+     "count",
+     30
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 12,
+  "category": "two sources",
+  "systems": [
+   "crm",
+   "lending"
+  ],
+  "text": "What is the average EMI of the personal loans held by customers in the MASS segment? Give the amount in rupees to two decimals.",
+  "answer": [
+   "money",
+   5208.9,
+   0.01
+  ]
+ },
+ {
+  "id": 13,
+  "category": "three or more sources",
+  "systems": [
+   "crm",
+   "lending",
+   "payments",
+   "core_banking"
+  ],
+  "text": "How many customers in the HNI segment hold a home loan and have at least one paused mandate?",
+  "answer": [
+   "count",
+   18
+  ]
+ },
+ {
+  "id": 14,
+  "category": "three or more sources",
+  "systems": [
+   "core_banking",
+   "cards",
+   "lending",
+   "crm"
+  ],
+  "text": "For customer CUST_08796420, report: (a) the total available balance across all of their accounts, (b) the number of their cards that are not frozen, (c) the total outstanding amount across their loans, and (d) the number of their open service requests. Give amounts in rupees to two decimals.",
+  "answer": [
+   "all",
+   [
+    [
+     "money",
+     575000.0,
+     1.0
+    ],
+    [
+     "money",
+     193750.0,
+     1.0
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "(b)",
+        "not frozen",
+        "unfrozen",
+        "active card"
+       ],
+       [
+        "count",
+        1
+       ]
+      ],
+      [
+       [
+        "(d)",
+        "service request"
+       ],
+       [
+        "count",
+        1
+       ]
+      ]
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 15,
+  "category": "three or more sources",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "text": "How many customers whose communication address is in Maharashtra hold both a home loan and at least one insurance policy?",
+  "answer": [
+   "count",
+   11
+  ]
+ },
+ {
+  "id": 16,
+  "category": "three or more sources",
+  "systems": [
+   "core_banking",
+   "cards",
+   "payments"
+  ],
+  "text": "How many savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them?",
+  "answer": [
+   "count",
+   80
+  ]
+ },
+ {
+  "id": 17,
+  "category": "three or more sources",
+  "systems": [
+   "crm",
+   "core_banking",
+   "cards"
+  ],
+  "text": "How many customers in the Information Technology sector made at least one ATM debit transaction between 2026-06-15 and 2026-06-30 (inclusive) and also hold a frozen debit card?",
+  "answer": [
+   "count",
+   6
+  ]
+ },
+ {
+  "id": 18,
+  "category": "three or more sources",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "text": "Which state, by customers' communication address, has the highest total outstanding gold-loan amount, and what is that total? Give the amount in rupees to two decimals.",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "Maharashtra"
+    ],
+    [
+     "money",
+     4070000.0,
+     1.0
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 19,
+  "category": "three or more sources",
+  "systems": [
+   "crm",
+   "core_banking",
+   "insurance"
+  ],
+  "text": "What is the total sum assured of the insurance policies held by senior-citizen customers in the AFFLUENT segment? Give the amount in rupees to two decimals.",
+  "answer": [
+   "money",
+   79250000.0,
+   1.0
+  ]
+ },
+ {
+  "id": 20,
+  "category": "three or more sources",
+  "systems": [
+   "core_banking",
+   "cards",
+   "lending",
+   "payments",
+   "insurance"
+  ],
+  "text": "For customer CUST_0C2A9F19, how many of each of the following do they hold: accounts, cards, deposits, loans, insurance policies, and mandates? Answer in the form 'accounts: N, cards: N, deposits: N, loans: N, insurance policies: N, mandates: N'.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "accounts",
+     [
+      "count",
+      2
+     ]
+    ],
+    [
+     "cards",
+     [
+      "count",
+      1
+     ]
+    ],
+    [
+     "deposits",
+     [
+      "count",
+      1
+     ]
+    ],
+    [
+     "loans",
+     [
+      "count",
+      1
+     ]
+    ],
+    [
+     "insurance",
+     [
+      "count",
+      1
+     ]
+    ],
+    [
+     "mandates",
+     [
+      "count",
+      3
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 21,
+  "category": "portfolio",
+  "systems": [
+   "crm",
+   "lending"
+  ],
+  "text": "For each customer segment (HNI, AFFLUENT, MASS), what is the total outstanding amount across all loans held by customers in that segment? Give amounts in rupees to two decimals.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "HNI",
+     [
+      "money",
+      279643333.35,
+      1.0
+     ]
+    ],
+    [
+     "AFFLUENT",
+     [
+      "money",
+      179140416.68,
+      1.0
+     ]
+    ],
+    [
+     "MASS",
+     [
+      "money",
+      65770833.34,
+      1.0
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 22,
+  "category": "portfolio",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance",
+   "cards"
+  ],
+  "text": "How many customers hold all four of: a fixed or recurring deposit, a loan, an insurance policy, and a credit card?",
+  "answer": [
+   "count",
+   59
+  ]
+ },
+ {
+  "id": 23,
+  "category": "portfolio",
+  "systems": [
+   "core_banking",
+   "lending",
+   "payments"
+  ],
+  "text": "For customers whose communication address is in Kerala, what is the total of the monthly EMIs on their loans plus the amounts of their active monthly mandates? Give the amount in rupees to two decimals.",
+  "answer": [
+   "money",
+   437785.37,
+   1.0
+  ]
+ },
+ {
+  "id": 24,
+  "category": "portfolio",
+  "systems": [
+   "cards",
+   "core_banking"
+  ],
+  "text": "How many customers have a credit card whose available limit is below half of its credit limit, and also a savings account with an available balance above 500000 rupees?",
+  "answer": [
+   "count",
+   56
+  ]
+ }
+]
