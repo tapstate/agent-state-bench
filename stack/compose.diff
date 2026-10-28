@@ -1,0 +1,12 @@
+14a15
+>     ports: ["127.0.0.1:27017:27017"]
+79a81
+>     ports: ["127.0.0.1:55432:5432"]
+97c99
+<       - "max_wal_senders=4"
+---
+>       - "max_wal_senders=40"
+99c101
+<       - "max_replication_slots=4"
+---
+>       - "max_replication_slots=40"

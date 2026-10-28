@@ -1,0 +1,9 @@
+#!/bin/sh
+# Stand-in for the harness's `mongorestore --nsInclude=DB.* DUMP_DIR`: runs the Mongo image's
+# mongorestore on the compose network, with the dump directory mounted at the same path.
+dump=; args=
+for a in "$@"; do
+  case "$a" in --*) args="$args $a" ;; *) dump="$a" ;; esac
+done
+exec docker run --rm --network "${DAB_MONGO_NETWORK:-ts_default}" -v "$dump:$dump:ro" mongo:7.0 \
+  mongorestore --quiet --uri "mongodb://mongo:27017/?directConnection=true" $args "$dump"

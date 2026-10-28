@@ -1,0 +1,66 @@
+version: tapstate/v1
+kind: pipeline
+id: book_state
+source: [ src_books_info, src_review ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: t_book
+    from: [ books_info ]
+    type: js
+    script: |
+      var MONTHS = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+      var LANGS = ['English','Spanish','French','German','Italian','Portuguese','Chinese','Japanese','Korean','Russian','Dutch','Arabic','Hebrew','Latin','Greek','Swedish','Norwegian','Danish','Polish','Hindi'];
+      function json(s, dflt) { try { return JSON.parse(s); } catch (e) { return dflt; } }
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r == null) return record;
+        var d = String(r.details || ''), m;
+        var cats = json(r.categories, null);
+        r.categories = Array.isArray(cats) ? cats : [];
+        var a = json(r.author, null);
+        r.author_name = a && a.name ? a.name : null;
+        delete r.author;
+        r.publication_date = null; r.publication_year = null;
+        // the listing subtitle ("Paperback – January 1, 1998") is the fallback when details has no date
+        if (!/(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}, )?\d{4}/.test(d)) d = d + ' ' + String(r.subtitle || '');
+        if ((m = d.match(/(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}), (\d{4})/))) {
+          r.publication_date = m[3] + '-' + pad(MONTHS[m[1].toLowerCase()]) + '-' + pad(parseInt(m[2], 10));
+          r.publication_year = parseInt(m[3], 10);
+        } else if ((m = d.match(/(January|February|March|April|May|June|July|August|September|October|November|December) (\d{4})/))) {
+          r.publication_date = m[2] + '-' + pad(MONTHS[m[1].toLowerCase()]);
+          r.publication_year = parseInt(m[2], 10);
+        } else if ((m = d.match(/\b(1[5-9]\d\d|20\d\d)\b/))) {
+          r.publication_year = parseInt(m[1], 10);
+        }
+        r.publication_decade = r.publication_year == null ? null : Math.floor(r.publication_year / 10) * 10;
+        r.language = null;
+        for (var i = 0; i < LANGS.length; i++) { if (new RegExp('\\b' + LANGS[i] + '\\b').test(d)) { r.language = LANGS[i]; break; } }
+        r.publisher = (m = d.match(/[Pp]ublished by ([^,.;]+?)(?:,| in | on |\.)/)) ? m[1].trim() : null;
+        r.pages = (m = d.match(/(\d[\d,]*) pages/)) ? parseInt(m[1].replace(/,/g, ''), 10) : null;
+        var f = d.match(/\b(hardcover|paperback|mass market paperback|kindle|board book|spiral-bound|audio cd|library binding)\b/i);
+        r.format = f ? f[1].toLowerCase() : null;
+        return record;
+      }
+  - id: t_review
+    from: [ review ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r != null) {
+          r.book_id = String(r.purchase_id || '').trim().replace(/^purchaseid_/, 'bookid_');
+          r.verified_purchase = String(r.verified_purchase) === '1' || String(r.verified_purchase).toLowerCase() === 'true';
+          r.review_date = r.review_time ? String(r.review_time).substr(0, 10) : null;
+        }
+        return record;
+      }
+  - id: assemble
+    type: nest
+    from: { b: t_book, v: t_review }
+    root:
+      from: b
+      key: [ book_id ]
+      embed:
+        - { from: v, on: { book_id: book_id }, as: array, path: reviews, arrayKey: [ row_id ] }
+view: { id: book, from: assemble, primary_key: book_id }

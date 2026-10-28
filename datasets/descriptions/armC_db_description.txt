@@ -1,0 +1,83 @@
+You are working with one database, crm_state, stored in MongoDB.
+
+crm_state holds the consolidated current state of a company's CRM: sales pipeline, customer
+support, products, orders, users and knowledge articles. It is maintained continuously from
+the company's operational databases.
+
+Guarantees:
+- Each collection holds one document per entity, identified by the field `id`.
+- Identifiers are normalized: every reference field (a field named `...id` or `...id__c`)
+  holds exactly the `id` of the document it refers to. Text values are trimmed.
+- Child records are embedded in their parent document as arrays, as listed below. The same
+  child record may also exist as its own collection.
+- Field names are lower-case. Dates are ISO-8601 strings.
+- Embedded arrays can be long (an opportunity carries all of its tasks, call transcripts and
+  emails), so whole documents can be large; use a projection to fetch only the fields you need.
+
+Collections in crm_state:
+- account: one document per account record
+  Fields: id, name, phone, industry, description, numberofemployees, shippingstate
+  - contacts: array of contact records whose accountid equals this document's id
+    Fields: id, firstname, lastname, email, accountid
+  - contracts: array of contract records whose accountid equals this document's id
+    Fields: id, accountid, status, startdate, customersigneddate, companysigneddate, description, contractterm
+- opportunity: one document per opportunity record
+  Fields: id, contractid__c, accountid, contactid, ownerid, probability, amount, stagename, name, description, createddate, closedate
+  - line_items: array of opportunitylineitem records whose opportunityid equals this document's id
+    Fields: id, opportunityid, product2id, pricebookentryid, quantity, totalprice
+  - quotes: array of quote records whose opportunityid equals this document's id
+    Fields: id, opportunityid, accountid, contactid, name, description, status, createddate, expirationdate
+    - line_items: array of quotelineitem records whose quoteid equals this document's id
+      Fields: id, quoteid, opportunitylineitemid, product2id, pricebookentryid, quantity, unitprice, discount, totalprice
+  - tasks: array of task records whose whatid equals this document's id
+    Fields: id, whatid, ownerid, priority, status, activitydate, subject, description
+  - events: array of event records whose whatid equals this document's id
+    Fields: id, whatid, ownerid, startdatetime, subject, description, durationinminutes, location, isalldayevent
+  - voice_calls: array of voicecalltranscript__c records whose opportunityid__c equals this document's id
+    Fields: id, opportunityid__c, leadid__c, body__c, createddate, endtime__c
+  - emails: array of emailmessage records whose relatedtoid equals this document's id
+    Fields: id, subject, textbody, parentid, fromaddress, toids, messagedate, relatedtoid
+- lead: one document per lead record
+  Fields: id, firstname, lastname, email, phone, company, status, convertedcontactid, convertedaccountid, title, createddate, converteddate, isconverted, ownerid
+  - voice_calls: array of voicecalltranscript__c records whose leadid__c equals this document's id
+    Fields: id, opportunityid__c, leadid__c, body__c, createddate, endtime__c
+- support_case: one document per support_case record
+  Fields: id, priority, subject, description, status, contactid, createddate, closeddate, orderitemid__c, issueid__c, accountid, ownerid
+  - history: array of casehistory__c records whose caseid__c equals this document's id
+    Fields: id, caseid__c, oldvalue__c, newvalue__c, createddate, field__c
+  - emails: array of emailmessage records whose parentid equals this document's id
+    Fields: id, subject, textbody, parentid, fromaddress, toids, messagedate, relatedtoid
+  - chats: array of livechattranscript records whose caseid equals this document's id
+    Fields: id, caseid, accountid, ownerid, body, endtime, livechatvisitorid, contactid
+- quote: one document per quote record
+  Fields: id, opportunityid, accountid, contactid, name, description, status, createddate, expirationdate
+  - line_items: array of quotelineitem records whose quoteid equals this document's id
+    Fields: id, quoteid, opportunitylineitemid, product2id, pricebookentryid, quantity, unitprice, discount, totalprice
+- sales_order: one document per sales_order record
+  Fields: id, accountid, status, effectivedate, pricebook2id, ownerid
+  - items: array of orderitem records whose orderid equals this document's id
+    Fields: id, orderid, product2id, quantity, unitprice, pricebookentryid
+- product: one document per product2 record
+  Fields: id, name, description, isactive, external_id__c
+  - pricebook_entries: array of pricebookentry records whose product2id equals this document's id
+    Fields: id, pricebook2id, product2id, unitprice
+  - categories: array of productcategoryproduct records whose productid equals this document's id
+    Fields: id, productcategoryid, productid
+- crm_user: one document per crm_user record
+  Fields: id, firstname, lastname, email, phone, username, alias, languagelocalekey, emailencodingkey, timezonesidkey, localesidkey
+  - territories: array of userterritory2association records whose userid equals this document's id
+    Fields: id, userid, territory2id
+- contact: one document per contact record
+  Fields: id, firstname, lastname, email, accountid
+- contract: one document per contract record
+  Fields: id, accountid, status, startdate, customersigneddate, companysigneddate, description, contractterm
+- knowledge_article: one document per knowledge__kav record
+  Fields: id, title, faq_answer__c, summary, urlname
+- issue: one document per issue__c record
+  Fields: id, name, description__c
+- territory: one document per territory2 record
+  Fields: id, name, description
+- product_category: one document per productcategory record
+  Fields: id, name, catalogid
+- pricebook: one document per pricebook2 record
+  Fields: id, name, description, isactive, validfrom, validto

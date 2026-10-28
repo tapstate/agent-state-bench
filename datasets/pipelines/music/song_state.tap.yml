@@ -1,0 +1,12 @@
+version: tapstate/v1
+kind: pipeline
+id: song_state
+source: [ src_songs ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: t_song
+    from: [ songs ]
+    type: js
+    script: |
+      function process(record, ctx) { return record; }
+view: { id: song, from: t_song, primary_key: song_id }

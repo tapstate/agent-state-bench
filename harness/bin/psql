@@ -1,0 +1,12 @@
+#!/bin/sh
+# Stand-in for the harness's `psql -h.. -U.. -d DB -f FILE`: runs psql inside the Postgres
+# container (no client is installed on the host) and feeds FILE on stdin.
+db=postgres; file=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -d) db="$2"; shift 2 ;;
+    -f) file="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+exec docker exec -i "${DAB_PG_CONTAINER:-ts-postgres-1}" psql -q -U postgres -d "$db" < "$file"

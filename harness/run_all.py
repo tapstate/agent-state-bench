@@ -1,0 +1,90 @@
+"""Run every remaining benchmark phase to completion, surviving plan usage limits.
+
+Each phase is one run_claude_arms.py invocation (resumable: finished runs are skipped). When a
+pass ends with runs that were not run — a usage limit, or the plan refusing requests — the
+orchestrator waits and retries the same phase, until nothing is missing or the retry budget is
+spent. Progress goes to stdout with timestamps, one line per pass.
+
+Usage: python run_all.py <dab-root> [--model M] [--phase DATASET:ARMS:QUERIES ...] [--runs 5]
+                         [--wait-min 30] [--max-waits 60]
+
+Without --phase, the default phases below run.
+"""
+import argparse
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_PHASES = [  # (dataset, arms, queries)
+    ("cve", "A", "1-10"),
+    ("cve", "B", "1-10"),
+    ("crmarenapro", "A,B,C", "1-13"),
+]
+
+
+def log(msg):
+    print(f"{datetime.now():%Y-%m-%d %H:%M:%S} {msg}", flush=True)
+
+
+def run_phase(dab, model, ds, arms, queries, runs):
+    cmd = [sys.executable, str(HERE / "run_claude_arms.py"), str(dab), "--dataset", ds, "--model", model,
+           "--arms", arms, "--runs", str(runs), "--queries", queries, "--workers", "3"]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    lines = r.stdout.splitlines()
+    count = lambda tag: sum(1 for l in lines if l.startswith(tag))
+    if r.returncode != 0:
+        log(f"  runner exited {r.returncode}: {r.stderr[-400:]}")
+    # the run directory of a failed run is replaced on retry, so its reason survives only here
+    problems = [l for l in lines if l.startswith(("FAILED", "NOT RUN", "AUTH FAILED"))]
+    for l in problems[:5]:
+        log(f"  {l[:300]}")
+    if len(problems) > 5:
+        log(f"  ... and {len(problems) - 5} more")
+    subprocess.run("docker rm -f $(docker ps -aq --filter name=autogen-code-exec) >/dev/null 2>&1", shell=True)
+    return (count("ok"), count("skip"), count("NOT RUN"), count("FAILED"), count("AUTH FAILED"),
+            r.returncode)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("dab", type=Path)
+    ap.add_argument("--model", default=DEFAULT_MODEL)
+    ap.add_argument("--phase", action="append", default=[],
+                    help="DATASET:ARMS:QUERIES, e.g. cve:A,B:1-10 (repeatable)")
+    ap.add_argument("--runs", type=int, default=5)
+    ap.add_argument("--wait-min", type=int, default=30)
+    ap.add_argument("--max-waits", type=int, default=60)
+    a = ap.parse_args()
+    waits = 0
+    phases = [tuple(p.split(":")) for p in a.phase] or DEFAULT_PHASES
+    for ds, arms, queries in phases:
+        failed_passes = 0
+        while True:
+            ok, skip, not_run, failed, auth, rc = run_phase(a.dab, a.model, ds, arms, queries, a.runs)
+            log(f"{ds} {arms}: ok={ok} already={skip} not_run={not_run} failed={failed} auth_failed={auth}")
+            if auth:
+                log("authentication failed: log in again (claude /login), then rerun; stopping")
+                return 2
+            if not_run:
+                waits += 1
+                if waits > a.max_waits:
+                    log("retry budget spent; stopping")
+                    return 1
+                log(f"usage limit or refusal: waiting {a.wait_min} min (wait {waits}/{a.max_waits})")
+                time.sleep(a.wait_min * 60)
+                continue
+            if (failed or rc) and failed_passes < 3:
+                failed_passes += 1
+                log("launch failures: retrying the phase")
+                continue
+            break
+    log("all phases done")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

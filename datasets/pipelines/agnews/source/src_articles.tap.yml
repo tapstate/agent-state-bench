@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_articles
+connector: postgres
+config: { host: postgres, port: 5432, database: agnewssrc, schema: public, user: postgres, password: secret }
+mode: cdc
+tables: [ articles ]

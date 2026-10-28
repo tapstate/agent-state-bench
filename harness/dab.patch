@@ -1,0 +1,130 @@
+diff --git a/common_scaffold/prompts/prompt_builder.py b/common_scaffold/prompts/prompt_builder.py
+index fb83f9fa8..3eb9c57fb 100644
+--- a/common_scaffold/prompts/prompt_builder.py
++++ b/common_scaffold/prompts/prompt_builder.py
+@@ -58,6 +58,7 @@ EXAMPLES:
+ - query_db:
+ {"tool": "query_db", "args": {"db_name": "some_db_name", "query": "SELECT * FROM some_table LIMIT some_limit;"}} # for SQL databases
+ {"tool": "query_db", "args": {"db_name": "some_db_name", "query": "{\"collection\": \"some_collection\", \"filter\": {some_filter}, \"projection\": {some_projection}, \"limit\": some_limit}"}} # for MongoDB databases
++{"tool": "query_db", "args": {"db_name": "some_db_name", "query": "{\"collection\": \"some_collection\", \"pipeline\": [some_aggregation_stages]}"}} # MongoDB aggregation
+ 
+ - list_db:
+ {"tool": "list_db", "args": {"db_name": "some_db_name"}}
+diff --git a/common_scaffold/tools/QueryDBTool.py b/common_scaffold/tools/QueryDBTool.py
+index b47e91944..1cd48368c 100644
+--- a/common_scaffold/tools/QueryDBTool.py
++++ b/common_scaffold/tools/QueryDBTool.py
+@@ -46,7 +46,7 @@ class QueryDBTool(BaseTool):
+                         },
+                         "query": {
+                             "type": "string",
+-                            "description": "The query to execute. For SQL databases, provide a SQL query string. For MongoDB, provide a JSON string representing the query, including `collection` field, and optional `filter`, `projection`, and `limit` fields."
++                            "description": "The query to execute. For SQL databases, provide a SQL query string. For MongoDB, provide a JSON string representing the query, including `collection` field, and optional `filter`, `projection`, and `limit` fields; or `collection` plus `pipeline` (a list of aggregation stages) to run an aggregation instead."
+                         }
+                     },
+                     "required": ["db_name", "query"]
+diff --git a/common_scaffold/tools/db_utils/mongo_utils.py b/common_scaffold/tools/db_utils/mongo_utils.py
+index 4e7e0a6e4..2830ac03a 100644
+--- a/common_scaffold/tools/db_utils/mongo_utils.py
++++ b/common_scaffold/tools/db_utils/mongo_utils.py
+@@ -1,4 +1,5 @@
+ import json
++import os
+ import pandas as pd
+ from pymongo import MongoClient
+ from common_scaffold.tools.db_utils import db_config
+@@ -17,6 +18,8 @@ MongoDB Config:
+ # Reference: https://www.mongodb.com/docs/manual/administration/install-community/?linux-distribution=ubuntu&linux-package=default&operating-system=linux&search-linux=with-search-linux#start-mongodb-12
+ 
+ def load_db(dump_folder: str, db_name: str):
++    if os.getenv("DAB_PERSISTENT_DBS") and check_db_exists(db_name):
++        return
+     if check_db_exists(db_name) == True:
+         logging.getLogger(__name__).warning(f"Database '{db_name}' already exists. Cleaning up before loading dump.")
+         clean_up(db_name)
+@@ -53,6 +56,8 @@ def check_db_exists(db_name):
+             raise FatalError(f"MongoDB existence check error ({type(e).__name__}): {str(e)}")
+ 
+ def clean_up(db_name):
++    if os.getenv("DAB_PERSISTENT_DBS"):
++        return
+     logging.getLogger(__name__).debug(f"Cleaning up MongoDB database '{db_name}'")
+     with MongoClient(db_config.MONGO_URI) as mongo_client:
+         try:
+@@ -77,17 +82,21 @@ class MongoQueryDBTool:
+         collection = query_json["collection"]
+         filter = query_json.get("filter", {})
+         projection = query_json.get("projection", None)
+-        limit = query_json.get("limit", 5)
++        limit = query_json.get("limit", None)  # no silent cap: matches SQL, which returns every row
++        pipeline = query_json.get("pipeline", None)
++        if pipeline is not None and not isinstance(pipeline, list):
++            raise ValueError("Invalid Mongo query: `pipeline` must be a list of aggregation stages")
+         return {
+             "db_name": db_client['db_name'],
+             "collection": collection,
+             "filter": filter,
+             "projection": projection,
+-            "limit": limit
++            "limit": limit,
++            "pipeline": pipeline,
+         }
+ 
+     @staticmethod
+-    def exec(db_name, collection, filter, projection, limit):
++    def exec(db_name, collection, filter, projection, limit, pipeline=None):
+         with MongoClient(db_config.MONGO_URI) as mongo_client:
+             db = mongo_client[db_name]
+ 
+@@ -95,10 +104,13 @@ class MongoQueryDBTool:
+                 raise ValueError(f"Collection does not exist: {collection}")
+         
+             try:
+-                cursor = db[collection].find(filter, projection)
+-                if limit is not None:
+-                    cursor = cursor.limit(limit)
+-                result = list(cursor)
++                if pipeline is not None:
++                    result = list(db[collection].aggregate(pipeline))
++                else:
++                    cursor = db[collection].find(filter, projection)
++                    if limit is not None:
++                        cursor = cursor.limit(limit)
++                    result = list(cursor)
+             except Exception as e:
+                 raise ValueError(f"MongoDB query execution error ({type(e).__name__}): {str(e)}")
+         
+diff --git a/common_scaffold/tools/db_utils/postgres_utils.py b/common_scaffold/tools/db_utils/postgres_utils.py
+index 8b49e6e07..f4855682c 100644
+--- a/common_scaffold/tools/db_utils/postgres_utils.py
++++ b/common_scaffold/tools/db_utils/postgres_utils.py
+@@ -22,6 +22,8 @@ def pg_ident(identifier: str) -> str:
+ 
+ 
+ def load_db(sql_file: str, db_name: str):
++    if os.getenv("DAB_PERSISTENT_DBS") and check_db_exists(db_name):
++        return
+     if check_db_exists(db_name):
+         logging.getLogger(__name__).warning(f"Database '{db_name}' already exists. Cleaning up before loading dump.")
+         clean_up(db_name)
+@@ -91,6 +93,8 @@ def check_db_exists(db_name):
+     
+ 
+ def clean_up(db_name):
++    if os.getenv("DAB_PERSISTENT_DBS"):
++        return
+     logging.getLogger(__name__).debug(f"Cleaning up PostgreSQL database '{db_name}'")
+     try:
+         conn = psycopg2.connect(
+diff --git a/run_agent.py b/run_agent.py
+index a840b82da..caf7b7adc 100644
+--- a/run_agent.py
++++ b/run_agent.py
+@@ -10,6 +10,7 @@ from datetime import datetime
+ DATASET_LIST = [
+     "bookreview",
+     "crmarenapro",
++    "crmarenapro_consolidated",
+     "DEPS_DEV_V1",
+     "GITHUB_REPOS",
+     "googlelocal",
