@@ -1,78 +1,176 @@
-# Banking Operational State Benchmark — project charter
+# Banking state benchmark
 
-Status: initiated 2026-10-04; no experimental banking results yet.
+Does a data agent answer bank questions better, or more cheaply, when it reads one consolidated
+customer record than when it reads the bank's separate source systems? This project measures it
+on [DAB](https://github.com/ucbepic/DataAgentBench)'s agent harness, with NPCI's synthetic
+[tau-indian-banking](https://huggingface.co/datasets/NPCI/tau-indian-banking) data split into six
+source systems, and the consolidated record built by [Tapstate](https://github.com/tapstate/tapstate)
+Community.
 
-Phase-1 implementation and evidence are in [FINDINGS.md](FINDINGS.md). The local
-dynamic smoke test is a **custom extension**, not an upstream benchmark score.
+| Setup | What the agent reads |
+|---|---|
+| A | six source databases (Postgres, SQLite, DuckDB, MongoDB), each writing customer and account keys in its own format |
+| B | the same six databases, with the key formats and join paths described |
+| C | one MongoDB collection, one document per customer, built by a Tapstate pipeline from the six sources |
 
-## Research question
+Same agent, tools, prompt and 24 questions in every setup. Design and full results:
+[SOURCE_SPLIT.md](SOURCE_SPLIT.md). The freshness extension (live sources, a nightly warehouse,
+and continuously updated state): [FRESHNESS.md](FRESHNESS.md). The original research plan:
+[CHARTER.md](CHARTER.md).
 
-At the same business-safety requirement, does current, consolidated operational state let a banking agent complete more legitimate tasks without human intervention, and at a lower complete cost, than competent alternatives?
+## Results: Claude Opus 5.5
 
-Do not optimize for an impressive multiplier. Failure to improve over direct source tools is a valid result. This project is separate from the launch milestone.
+Two batches of 360 runs (24 questions × 3 setups × 5 runs), on 2026-10-09 and 2026-10-30, pooled:
 
-## Candidate sources
+| Setup | pass@1 (95% CI) | Median tokens per run | Median turns |
+|---|---|---:|---:|
+| A: six sources, no hints | 0.992 (0.98–1.00) | 77,184 | 7 |
+| B: six sources, key hints | 0.983 (0.96–1.00) | 73,956 | 7 |
+| C: consolidated state | 0.992 (0.98–1.00) | 22,184 | 4 |
 
-1. **TauIndianBankBench**, NPCI AI Research Team: https://github.com/npci/TauIndianBankBench and https://huggingface.co/datasets/NPCI/tau-indian-banking. The current README describes 1,000 synthetic tasks, 50 scenario families, 33 banking tools plus human transfer, and ACTION + DB scoring. Source material includes accounts, transactions, cards, deposits, loans, mandates, and service requests. This is a new benchmark, not an independently established banking certification.
-2. **τ-Banking / τ-Knowledge**, Sierra Research: https://arxiv.org/abs/2603.04370 and https://github.com/sierra-research/tau2-bench. A second validation target; separate knowledge retrieval failures from state failures. Use the current corrected release and pin its exact commit, data revision, scorer, and task split.
-3. **BPI Challenge 2017**: https://research.tue.nl/nl/datasets/bpi-challenge-2017/ . Optional historical loan-event replay, not a counterfactual action simulator or a modern account ledger.
+The agent was equally accurate in every setup, and used about 3.5 times fewer tokens on the
+consolidated state. Every failure in both batches was a protocol miss (a correct answer never
+submitted). Per batch: [dab/PILOT_RESULTS_opus.md](dab/PILOT_RESULTS_opus.md) and
+[dab/RERUN_RESULTS_opus.md](dab/RERUN_RESULTS_opus.md).
 
-Source descriptions were checked on 2026-10-04. Confirm provenance, data/code license, dataset availability, and usable upstream tests before choosing. Record changes rather than assuming current descriptions remain true.
+## Reproduce it
 
-## First implementation milestone
+Tested from scratch on Linux (Ubuntu 26.04, Docker Engine 29, Compose 2.40). macOS with Docker
+Desktop should work with the `DOCKER_HOST` change in step 1 and `shasum -a 256` in place of
+`sha256sum`, but has not been tested. Needs Docker with Compose v2, Python 3.12, git, about 8 GB
+of disk, and for the agent runs either a Claude login for Claude Code or an API key for an
+OpenAI-compatible endpoint. All commands run from the root of this repository.
 
-Deliver a runnable, local, no-paid-API smoke test before bulk experiments:
+### 1. Settings
 
-1. Inspect the current upstream code and data. Pin versions and hash inputs. Do not redistribute upstream datasets unless terms permit it.
-2. Reproduce original fixture loading and deterministic reference-action scoring on a small, transparently selected task set, using scripted trajectories or a supported mock agent. Do not invent an LLM score.
-3. Audit which tools revalidate state on write and which task families depend on mutable facts. Select a representative pilot set, not only tasks engineered to fail on old snapshots; report immutable controls too.
-4. Define a read-only state adapter and an authoritative write adapter. Keep authentication, authorization, policy retrieval, user confirmation, idempotency, and write-time conditional validation identical across experimental arms.
-5. Implement one clearly labeled dynamic-extension smoke test: an external process changes business state during the episode; a stale reader sees an earlier version and a current reader sees the applicable version. Use rules supported by the pinned simulator. Log events, read versions, intended actions, accepted/rejected actions, and ground truth.
-6. Provide executable tests, commands, a findings note, and a bounded paid-pilot proposal. Do not start a metered API batch without the human choosing models, simulator, and budget.
+```sh
+. projects/banking-state-bench/env.sh
+```
 
-If upstream cannot run locally, document the concrete blocker and build only a labeled adapter-contract fixture; do not claim to have reproduced the benchmark.
+Source it in every shell you use. It sets the ports (Postgres 55432, MongoDB 27017, Tapstate
+8080), the database credentials, and what the harness needs. If a port is taken, export a
+different one first (`export PG_PORT=56432` and so on), then source it. On Docker Desktop, also
+`export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` first.
 
-## Experimental arms
+### 2. Stack: Tapstate Community 0.7.0, MongoDB, Postgres
 
-| Arm | Representation | Freshness |
-|---|---|---|
-| Direct-source control | Original competent source tools | Current source reads |
-| F/P | Fragmented source-shaped state | Periodic / lagged |
-| F/C | Fragmented source-shaped state | Continuously updated |
-| U/P | Unified entity state | Periodic / lagged |
-| U/C | Unified entity state | Continuously updated |
+```sh
+docker compose -p "$BANK_STACK" -f projects/banking-state-bench/stack/docker-compose.yml up -d
+docker build -t python-data:3.12 -f stack/python-data.Dockerfile stack   # the agent's Python sandbox
+```
 
-The 2×2 design separates consolidation from freshness. The direct-source control answers why an extra infrastructure layer is justified. Reduce to a smaller pilot only with an explicit explanation. Do not give only one arm golden documents, reference actions, answers, or extra policy knowledge. Keep semantically equivalent fields and tool budgets.
+Install the Tapstate CLI from the
+[v0.7.0 release](https://github.com/tapstate/tapstate/releases/tag/v0.7.0) (Linux x64 shown;
+releases for arm64 and macOS sit beside it), then register the two connectors the pipeline uses:
 
-Lag is an observed or explicitly simulated quantity, not a label. CDC-based claims require a real concurrent writer, state updater, and reader; replayed or reloaded snapshots do not establish live CDC latency or uptime.
+```sh
+curl -sSLO https://github.com/tapstate/tapstate/releases/download/v0.7.0/tapstate-0.7.0-linux-x64.tar.gz
+curl -sSLO https://github.com/tapstate/tapstate/releases/download/v0.7.0/tapstate-0.7.0-linux-x64.tar.gz.sha256
+sha256sum -c tapstate-0.7.0-linux-x64.tar.gz.sha256 && tar xzf tapstate-0.7.0-linux-x64.tar.gz
+T="$PWD/tapstate-cli-0.7.0/bin/tapstate -c $TAPSTATE_SERVER -u admin"
+$T register postgres
+$T register mongodb
+```
 
-## Dynamic correctness contract
+### 3. DAB and Python
 
-- Specify action preconditions from simulator policy, not guessed banking law.
-- Record effective source commit/version, read version, decision time, action time, and update/recovery times.
-- An external event schedule must be reproducible and shared across paired arms. Use event barriers when trajectories take different numbers of calls; disclose the scheduling choice.
-- Original reference-action replay assumes a deterministic starting environment. New external events need a versioned, time-aware oracle and explicitly updated scoring; do not reuse an invalid static gold hash.
-- Distinguish read-time correctness, unsafe action attempts, source-side rejected attempts, and actual accepted incorrect mutations.
-- Current state is not a distributed transaction guarantee. Preserve write-time revalidation and explicitly handle changes between read and write.
-- A correct refusal or required escalation is not an error. Refusing all legitimate requests is not success.
+DAB is not redistributed here (its repository has no license file), so clone it at the pinned
+commit and apply this kit's changes to its harness. The bank benchmark needs none of DAB's own
+datasets, so their large files can be skipped.
 
-## Metrics and acceptance
+```sh
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/ucbepic/DataAgentBench.git ../DataAgentBench
+git -C ../DataAgentBench checkout 0290945c2b38
+git -C ../DataAgentBench apply "$PWD/harness/dab.patch"
+DAB="$(cd ../DataAgentBench && pwd)"
 
-Primary: safe legitimate task-completion rate at a declared risk threshold. Report task denominators, correct refusal/escalation, human handoff, rejected writes, unsafe accepted writes, and repeated-trial reliability.
+python3.12 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+```
 
-Secondary: commit-to-readable p50/p95/p99, stale-read rate, recovery and manual interventions, source calls/load, latency, tokens, actual API spend, pipeline build/maintenance work, and infrastructure costs. Per-success cost includes failures. Do not turn synthetic dollar amounts into real avoided losses.
+The patch's changes are listed in the kit's [README](../../README.md#changes-to-dabs-harness-harnessdabpatch).
 
-Freeze transformations, selection rules, prompts, policies, and simulator before holdout evaluation. Cluster uncertainty by task/scenario rather than treating repeats as independent customers. Include changed and unchanged cases and report coverage plus stress-test results separately. Seek clean-machine reproduction before claiming independent reproducibility.
+### 4. Data
 
-## Branch and operational boundary
+```sh
+cd projects/banking-state-bench/dab
+python fetch_data.py                 # the pinned NPCI revision, with file hashes checked
+python split_sources.py "$DAB"       # setups A/B: the six source systems, loaded into Postgres and MongoDB
+python make_queries.py "$DAB"        # the 24 questions, answers and validators, for all setups
+```
 
-Use a separate `codex/` branch and worktree. Own only banking-project files on that branch. The publication task owns `release/`; do not rewrite its narrative or import pilot results into it. Treat `/Users/tjworks/dev/dab-bench-runs` as a read-only source of prior work. No production banking access, real financial actions, paid bulk calls, GitHub pushes, website deployment, or automatic messages to other tasks are authorized by this charter.
+### 5. Setup C through Tapstate
 
-## Backlog
+```sh
+python load_bank_to_postgres.py "$DAB"         # the six systems as Tapstate's sources (Postgres banksrc)
+$T apply tapstate                              # sources and the bank_customer_state pipeline
+for s in cbs cards lending payments crm insurance; do $T discover-schema src_bank_$s; done
+$T apply tapstate                              # again, so the pipeline is sized from row counts
+$T start bank_customer_state
+python verify_tapstate.py "$DAB" --wait --install
+```
 
-- [ ] B0: pinned source/license/provenance audit.
-- [ ] B1: original fixture and reference scorer reproduced locally.
-- [ ] B2: mutable-state dependency and write-protection audit.
-- [ ] B3: adapter contract plus one dynamic-extension test.
-- [ ] B4: bounded, priced pilot proposal with held-out tasks and controls.
-- [ ] B5: human-approved API pilot, continuous-update experiment, independent reproduction.
+The last step waits until the pipeline's view holds all 944 customers, checks every document
+field for field against the upstream record, and only then installs it as setup C. It takes a
+few minutes.
+
+### 6. Check, then run
+
+```sh
+python reset_dbs.py "$DAB"           # restore every database from the dataset files; before every batch
+python dry_run.py "$DAB" ../../../harness    # no model calls: databases, reference answers, sandbox, prompts
+cd ../../..
+```
+
+Run a smoke test first (`--runs 1 --queries 1`: three runs), then the full batch. Runs resume:
+rerunning a command continues it, and a new batch on the same checkout needs `--runs` raised
+(runs 5 to 9 are made by `--runs 10`).
+
+**Claude through Claude Code**, as published. It uses the Claude login of the machine and
+removes API keys from the agent's environment:
+
+```sh
+python harness/run_claude_arms.py "$DAB" --dataset bank --model claude-opus-5-5 \
+  --arms A,B,C --runs 5 --queries 1-24 --workers 3
+```
+
+**Any other model**, through an OpenAI-compatible endpoint (a provider's API, OpenRouter,
+Together, a local vLLM server), with DAB's own agent loop:
+
+```sh
+export DAB_LLM_BASE_URL=https://openrouter.ai/api/v1 DAB_LLM_API_KEY=...
+python harness/run_arms.py "$DAB" --dataset bank --model moonshotai/kimi-k2 \
+  --arms A,B,C --runs 5 --queries 1-24 --workers 3
+```
+
+The two runners give the agent the same tools, data and questions, but differ in the agent loop
+and in the tool-call instructions in the system prompt. Compare setups within one runner and
+model; do not compare token counts across runners.
+
+### 7. Score
+
+```sh
+python harness/score.py "$DAB" --csv scores.csv
+python projects/banking-state-bench/dab/analyze_pilot.py scores.csv harness --model cc-claude-opus-5-5
+```
+
+`--model` is the model as it appears in the run directories: `cc-<model>` for Claude Code runs,
+and the model name with `/` replaced by `-` for the other runner. For a model the scorer has no
+price for, add `--price <model>=<input>,<output>,<cached input>` in USD per million tokens to
+`score.py`.
+
+### What to expect
+
+The 360-run Opus 5.5 batch took 42 minutes with three workers, used about 20.5 million tokens,
+and cost $42 at API list prices (Claude Code's API-equivalent estimate). Agent runs are
+nondeterministic: expect the pass rates within the confidence intervals above and the median
+token ratio between setups A/B and C near 3.5, not identical token counts.
+
+### Troubleshooting
+
+- **`permission denied` on the Docker socket:** add yourself to the `docker` group and log in
+  again, or prefix the runner commands with `sg docker -c "..."`.
+- **`reset_dbs.py` refuses because of a replication slot:** the freshness extension's pipeline
+  still reads `bank_cbs`. Stop it (`$T stop bank_customer_state`) and drop the slot it names.
+- **The freshness extension** ([FRESHNESS.md](FRESHNESS.md) §13) changes `bank_cbs`; run
+  `reset_dbs.py` before going back to the source-split batch.

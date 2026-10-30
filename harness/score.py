@@ -6,7 +6,7 @@ in llm_calls.jsonl. Cost uses list prices (USD per million tokens) recorded belo
 date they were read; failed runs count toward cost, so cost per correct answer cannot be won
 by being cheap and wrong.
 
-Usage: python score.py <dab-root> [--csv out.csv]
+Usage: python score.py <dab-root> [--csv out.csv] [--price MODEL=IN,OUT,CACHE ...]
 """
 import argparse
 import csv
@@ -143,7 +143,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dab", type=Path)
     ap.add_argument("--csv", type=Path)
+    ap.add_argument("--price", action="append", default=[], metavar="MODEL=IN,OUT,CACHE",
+                    help="USD per million tokens (input, output, cached input) for a model not in "
+                         "PRICES; MODEL as in the run directory names. Repeatable.")
     a = ap.parse_args()
+    for spec in a.price:
+        name, _, vals = spec.partition("=")
+        PRICES[name] = tuple(float(v) for v in vals.split(","))
     sys.path.insert(0, str(a.dab))
     from common_scaffold.validate.validate import validate
 

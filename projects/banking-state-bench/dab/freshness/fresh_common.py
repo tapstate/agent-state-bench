@@ -6,9 +6,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-from common import MONGO_URI  # noqa: E402
+from common import MONGO_URI, PG  # noqa: E402
 
-PG = dict(host="127.0.0.1", port=55432, user="postgres", password="secret")
 CBS_DB = "bank_cbs"                 # the live core banking system: agents and Tapstate read it
 VIEW = ("views", "bank_customer")   # Tapstate's view; that database also holds other projects' views
 LIVE_DB = "bank_live"               # U/C: a continuous mirror of the view, so the agent sees only it

@@ -1,8 +1,37 @@
+diff --git a/common_scaffold/DataAgent.py b/common_scaffold/DataAgent.py
+index 128b31855..087083167 100644
+--- a/common_scaffold/DataAgent.py
++++ b/common_scaffold/DataAgent.py
+@@ -73,7 +73,14 @@ class DataAgent:
+         self.logger.info(f"\tmax_iterations: {self.max_iterations}")
+         self.llm_call_count = 0
+         load_dotenv()
+-        if "gpt" in deployment_name.lower():
++        if os.getenv("DAB_LLM_BASE_URL"):
++            # Any OpenAI-compatible endpoint (vLLM, OpenRouter, Together, a provider's own API):
++            # the model name is passed through unchanged.
++            self.client = OpenAI(
++                api_key=os.getenv("DAB_LLM_API_KEY") or "none",
++                base_url=os.getenv("DAB_LLM_BASE_URL"),
++            )
++        elif "gpt" in deployment_name.lower():
+             self.client = AzureOpenAI(
+                 api_key=os.getenv("AZURE_API_KEY"),
+                 api_version=os.getenv("AZURE_API_VERSION"),
 diff --git a/common_scaffold/prompts/prompt_builder.py b/common_scaffold/prompts/prompt_builder.py
-index fb83f9fa8..3eb9c57fb 100644
+index fb83f9fa8..5357215e0 100644
 --- a/common_scaffold/prompts/prompt_builder.py
 +++ b/common_scaffold/prompts/prompt_builder.py
-@@ -58,6 +58,7 @@ EXAMPLES:
+@@ -14,6 +14,8 @@ KIMI_TOOL_CALL_INSTRUCTINOS = """2. Inside execute_python code you may read stor
+ 
+ CLAUDE_TOOL_CALL_INSTRUCTIONS = """2. Inside execute_python code you may read storage entries directly as variables using the provided key names. You should directly use the key names as variable names in your code, e.g., if the tool call id is "toolu_1", you can access its result via the variable `var_toolu_1` in your code, without quotes or other modifications."""
+ 
++GENERIC_TOOL_CALL_INSTRUCTIONS = """2. Inside execute_python code you may read storage entries using the provided key names: the result of the tool call with id <id> is `locals()['var_<id>']`, e.g., if the tool call id is 'call_1', you can access its result via `locals()['var_call_1']` in your code."""
++
+ SYSTEM_PROMPT = """
+ You are a data analysis agent. Use only the tools listed below to answer the user's query, based on the provided DATABASE DESCRIPTION for logical database names and their types (SQL or MongoDB), and the results of previous tool calls.
+ 
+@@ -58,6 +60,7 @@ EXAMPLES:
  - query_db:
  {"tool": "query_db", "args": {"db_name": "some_db_name", "query": "SELECT * FROM some_table LIMIT some_limit;"}} # for SQL databases
  {"tool": "query_db", "args": {"db_name": "some_db_name", "query": "{\"collection\": \"some_collection\", \"filter\": {some_filter}, \"projection\": {some_projection}, \"limit\": some_limit}"}} # for MongoDB databases
@@ -10,6 +39,16 @@ index fb83f9fa8..3eb9c57fb 100644
  
  - list_db:
  {"tool": "list_db", "args": {"db_name": "some_db_name"}}
+@@ -88,7 +91,8 @@ def init_messages(user_query: str, db_description: str, deployment_name: str, sy
+     elif "claude" in deployment_name.lower():
+         tool_call_instructions = CLAUDE_TOOL_CALL_INSTRUCTIONS
+     else:
+-        raise ValueError(f"Unknown deployment_name: {deployment_name}")
++        # any other model: tool call ids differ by provider and need not be valid identifiers
++        tool_call_instructions = GENERIC_TOOL_CALL_INSTRUCTIONS
+     
+     return [
+         {
 diff --git a/common_scaffold/tools/QueryDBTool.py b/common_scaffold/tools/QueryDBTool.py
 index b47e91944..1cd48368c 100644
 --- a/common_scaffold/tools/QueryDBTool.py
@@ -117,14 +156,16 @@ index 8b49e6e07..f4855682c 100644
      try:
          conn = psycopg2.connect(
 diff --git a/run_agent.py b/run_agent.py
-index a840b82da..caf7b7adc 100644
+index a840b82da..78f502d85 100644
 --- a/run_agent.py
 +++ b/run_agent.py
-@@ -10,6 +10,7 @@ from datetime import datetime
+@@ -10,6 +10,9 @@ from datetime import datetime
  DATASET_LIST = [
      "bookreview",
      "crmarenapro",
 +    "crmarenapro_consolidated",
++    "bank",
++    "bank_consolidated",
      "DEPS_DEV_V1",
      "GITHUB_REPOS",
      "googlelocal",
