@@ -56,6 +56,7 @@ different one first (`export PG_PORT=56432` and so on), then source it. On Docke
 
 ```sh
 docker compose -p "$BANK_STACK" -f projects/banking-state-bench/stack/docker-compose.yml up -d
+docker compose -p "$BANK_STACK" -f projects/banking-state-bench/stack/docker-compose.yml wait bootstrap  # exits 0 once the admin exists
 docker build -t python-data:3.12 -f stack/python-data.Dockerfile stack   # the agent's Python sandbox
 ```
 
