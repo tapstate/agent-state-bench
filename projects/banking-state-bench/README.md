@@ -111,7 +111,9 @@ $T start bank_customer_state
 python verify_tapstate.py "$DAB" --wait --install
 ```
 
-The last step waits until the pipeline's view holds all 944 customers, checks every document
+The first `apply` warns that nest sizes are only a floor (`nest.capacity-estimate-incomplete`);
+that is expected, and the second `apply`, after schema discovery, sizes them. The last step
+waits until the pipeline's view holds all 944 customers, checks every document
 field for field against the upstream record, and only then installs it as setup C. It takes a
 few minutes.
 
