@@ -104,9 +104,9 @@ python make_queries.py "$DAB"        # the 24 questions, answers and validators,
 
 ```sh
 python load_bank_to_postgres.py "$DAB"         # the six systems as Tapstate's sources (Postgres banksrc)
-$T apply tapstate                              # sources and the bank_customer_state pipeline
+$T apply "$PWD/tapstate"                            # sources and the bank_customer_state pipeline
 for s in cbs cards lending payments crm insurance; do $T discover-schema src_bank_$s; done
-$T apply tapstate                              # again, so the pipeline is sized from row counts
+$T apply "$PWD/tapstate"                            # again, so the pipeline is sized from row counts
 $T start bank_customer_state
 python verify_tapstate.py "$DAB" --wait --install
 ```
