@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_books_info
+connector: postgres
+config: { host: postgres, port: 5432, database: booksrc, schema: public, user: postgres, password: secret }
+mode: cdc
+tables: [ books_info ]

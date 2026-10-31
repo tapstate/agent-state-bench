@@ -1,0 +1,16 @@
+version: tapstate/v1
+kind: pipeline
+id: sale_state
+source: [ src_sales, src_song_xwalk ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: resolve
+    type: join
+    from: { s: sales, x: song_xwalk }
+    engine: builtin
+    sql: |
+      SELECT s.sale_id AS sale_id, s.track_id AS track_id, x.song_id AS song_id, x.song_title AS song_title,
+             x.song_artist AS song_artist, x.song_album AS song_album, s.country AS country, s.store AS store,
+             s.units_sold AS units_sold, s.revenue_usd AS revenue_usd
+      FROM s LEFT JOIN x ON s.track_id = x.track_id
+view: { id: sale, from: resolve, primary_key: sale_id }
