@@ -1,0 +1,38 @@
+You are working with one database, bank_state, stored in MongoDB. Amounts are in Indian rupees (INR).
+
+bank_state holds the consolidated current state of one retail bank's customers in India, maintained continuously from the bank's core banking, cards, lending, payments, CRM and insurance systems.
+
+Guarantees:
+- One document per customer, identified by `customer_id` (also its `_id`), e.g. CUST_35359B3E.
+- Every account, deposit, loan, card, mandate, insurance policy, service request and offer of the customer is embedded in that customer's document, and in no other document.
+- Account ids are the canonical ids (e.g. SB1785318658; SB = savings, CA = current). Every reference to an account (`linked_account`, `payout_account`, `source_account`, `account_id`) holds such an id, and it is always an account of the same customer.
+- card_id, deposit_id and loan_id are unique within a customer, not across customers.
+- Customer names, phone numbers and e-mail addresses are not unique.
+- Dates are ISO-8601 strings (YYYY-MM-DD; created_at includes the time).
+
+Collection in bank_state:
+- customer: one document per customer
+  Fields: _id, customer_id
+  - profile: object
+    Fields: name, age, gender, senior_citizen, segment, profession, sector, employer, marital_status, monthly_income, kyc_status, email, phone
+    - communication_address, permanent_address: objects with fields line1, line2, city, state, pincode
+  - login_context: object with fields customer_id, linked_accounts (account ids), linked_products (deposit, loan and policy ids), linked_cards (card ids)
+  - accounts: array of savings and current accounts
+    Fields: account_id, account_type, status, ifsc, home_branch, holders (names, primary holder first), nominee (object with name, relationship; null if none), open_date, available_balance, hold_amount, currency
+    - transactions: array; fields reference_id, date, description, amount, direction, channel, balance_after
+    - cheques: array; fields cheque_number, status
+  - deposits: array of fixed deposits (kind FD) and recurring deposits (kind RD)
+    Fields: deposit_id, kind, principal (FD), rate, tenure_months, start_date, maturity_date, maturity_amount, payout_type (FD), maturity_instruction, status, payout_account, nominee (object), monthly_installment (RD), installments_paid (RD), total_deposited (RD), source_account (RD)
+  - loans: array of home, personal and gold loans
+    Fields: loan_id, loan_type, outstanding, rate, emi, remaining_tenure_months, next_due_date, status
+  - cards: array of debit and credit cards
+    Fields: card_id, card_type, network, status, credit_limit, available_limit, linked_account
+    - controls: object keyed by channel (atm, online, pos), then region (domestic, international); each holds enabled and, when set, daily_limit
+  - mandates: array of standing payment mandates that debit one of the customer's accounts
+    Fields: mandate_id, account_id, payee, amount, frequency, next_debit_date, status, type
+  - insurance: array of insurance policies
+    Fields: policy_id, policy_name, insurer, sum_assured, premium, frequency, status, next_premium_date, nominee (object)
+  - requests: array of service requests
+    Fields: request_id, category, description, related_transaction_id, account_id, status, priority, created_at, eta
+  - offers: array of product offers shown to the customer
+    Fields: offer_id, type, title, detail, indicative

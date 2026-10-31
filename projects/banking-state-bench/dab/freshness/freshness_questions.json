@@ -1,0 +1,693 @@
+[
+ {
+  "id": 1,
+  "day": 0,
+  "slot": 0,
+  "t": 180,
+  "sim_time": "2026-07-01 08:13",
+  "kind": "control",
+  "template": "balance",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_1239D7D5",
+  "accounts": [
+   "SB4516247616"
+  ],
+  "candidates": 892,
+  "text": "Current time: 2026-07-01 08:13 IST. What is the available balance of account SB4516247616 right now?",
+  "answer": [
+   "money",
+   1113900.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   1113900.0,
+   1.0
+  ]
+ },
+ {
+  "id": 2,
+  "day": 0,
+  "slot": 2,
+  "t": 1680,
+  "sim_time": "2026-07-01 13:52",
+  "kind": "changed",
+  "template": "balance",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_582645B1",
+  "accounts": [
+   "SB5033530740"
+  ],
+  "candidates": 125,
+  "text": "Current time: 2026-07-01 13:52 IST. What is the available balance of account SB5033530740 right now?",
+  "answer": [
+   "money",
+   161700.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   164200.0,
+   1.0
+  ]
+ },
+ {
+  "id": 3,
+  "day": 0,
+  "slot": 3,
+  "t": 2430,
+  "sim_time": "2026-07-01 16:41",
+  "kind": "changed",
+  "template": "last_txn",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_61AF5E8A",
+  "accounts": [
+   "SB7252994408"
+  ],
+  "candidates": 186,
+  "text": "Current time: 2026-07-01 16:41 IST. What is the reference id of the most recent transaction on account SB7252994408?",
+  "answer": [
+   "ids",
+   [
+    "TXN2430659475"
+   ]
+  ],
+  "warehouse_answer": [
+   "ids",
+   [
+    "TXN9286647132"
+   ]
+  ]
+ },
+ {
+  "id": 4,
+  "day": 0,
+  "slot": 4,
+  "t": 3180,
+  "sim_time": "2026-07-01 19:30",
+  "kind": "changed",
+  "template": "emi",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_E851F10B",
+  "accounts": [
+   "SB9164216373"
+  ],
+  "candidates": 121,
+  "text": "Current time: 2026-07-01 19:30 IST. If customer CUST_E851F10B paid one EMI on each of their loans from savings account SB9164216373, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   3604915.29,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   3754915.29,
+   1.0
+  ]
+ },
+ {
+  "id": 5,
+  "day": 1,
+  "slot": 0,
+  "t": 4020,
+  "sim_time": "2026-07-02 08:13",
+  "kind": "control",
+  "template": "emi",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_3F30CB5B",
+  "accounts": [
+   "SB2428838822"
+  ],
+  "candidates": 408,
+  "text": "Current time: 2026-07-02 08:13 IST. If customer CUST_3F30CB5B paid one EMI on each of their loans from savings account SB2428838822, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   147663.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   147663.0,
+   1.0
+  ]
+ },
+ {
+  "id": 6,
+  "day": 1,
+  "slot": 1,
+  "t": 4770,
+  "sim_time": "2026-07-02 11:02",
+  "kind": "changed",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_BCB9DBC8",
+  "accounts": [
+   "SB6893443926"
+  ],
+  "candidates": 18,
+  "text": "Current time: 2026-07-02 11:02 IST. If customer CUST_BCB9DBC8 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB6893443926, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   4417000.61,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   4442000.61,
+   1.0
+  ]
+ },
+ {
+  "id": 7,
+  "day": 1,
+  "slot": 2,
+  "t": 5520,
+  "sim_time": "2026-07-02 13:52",
+  "kind": "changed",
+  "template": "cust_total",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_DF7C394F",
+  "accounts": [
+   "CA3974756360",
+   "SB7630374756"
+  ],
+  "candidates": 119,
+  "text": "Current time: 2026-07-02 13:52 IST. What is the total available balance across all of customer CUST_DF7C394F's accounts right now?",
+  "answer": [
+   "money",
+   2067450.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   2070450.0,
+   1.0
+  ]
+ },
+ {
+  "id": 8,
+  "day": 1,
+  "slot": 3,
+  "t": 6270,
+  "sim_time": "2026-07-02 16:41",
+  "kind": "changed",
+  "template": "cust_debits",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_AA80B2B9",
+  "accounts": [
+   "CA2375897607",
+   "SB2269124876"
+  ],
+  "candidates": 143,
+  "text": "Current time: 2026-07-02 16:41 IST. What is the total amount debited today across all of customer CUST_AA80B2B9's accounts?",
+  "answer": [
+   "money",
+   1500.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   0,
+   1.0
+  ]
+ },
+ {
+  "id": 9,
+  "day": 1,
+  "slot": 4,
+  "t": 7020,
+  "sim_time": "2026-07-02 19:30",
+  "kind": "portfolio",
+  "template": "savings_below",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": 100000,
+  "text": "Current time: 2026-07-02 19:30 IST. How many savings accounts have an available balance below ₹100,000 right now?",
+  "answer": [
+   "count",
+   114
+  ],
+  "warehouse_answer": [
+   "count",
+   112
+  ]
+ },
+ {
+  "id": 10,
+  "day": 2,
+  "slot": 0,
+  "t": 7860,
+  "sim_time": "2026-07-03 08:13",
+  "kind": "control",
+  "template": "cust_total",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_7D3D21E0",
+  "accounts": [
+   "CA1107073863",
+   "SB6423462505"
+  ],
+  "candidates": 313,
+  "text": "Current time: 2026-07-03 08:13 IST. What is the total available balance across all of customer CUST_7D3D21E0's accounts right now?",
+  "answer": [
+   "money",
+   3158000.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   3158000.0,
+   1.0
+  ]
+ },
+ {
+  "id": 11,
+  "day": 2,
+  "slot": 1,
+  "t": 8610,
+  "sim_time": "2026-07-03 11:02",
+  "kind": "changed",
+  "template": "balance",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_EB7F9E98",
+  "accounts": [
+   "SB7976773201"
+  ],
+  "candidates": 74,
+  "text": "Current time: 2026-07-03 11:02 IST. What is the available balance of account SB7976773201 right now?",
+  "answer": [
+   "money",
+   756300.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   801300.0,
+   1.0
+  ]
+ },
+ {
+  "id": 12,
+  "day": 2,
+  "slot": 2,
+  "t": 9360,
+  "sim_time": "2026-07-03 13:52",
+  "kind": "changed",
+  "template": "last_txn",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_30689DF4",
+  "accounts": [
+   "SB5485032001"
+  ],
+  "candidates": 139,
+  "text": "Current time: 2026-07-03 13:52 IST. What is the reference id of the most recent transaction on account SB5485032001?",
+  "answer": [
+   "ids",
+   [
+    "TXN6357291692"
+   ]
+  ],
+  "warehouse_answer": [
+   "ids",
+   [
+    "TXN3124882492"
+   ]
+  ]
+ },
+ {
+  "id": 13,
+  "day": 2,
+  "slot": 3,
+  "t": 10110,
+  "sim_time": "2026-07-03 16:41",
+  "kind": "changed",
+  "template": "emi",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_6F969BE4",
+  "accounts": [
+   "SB5758306466"
+  ],
+  "candidates": 112,
+  "text": "Current time: 2026-07-03 16:41 IST. If customer CUST_6F969BE4 paid one EMI on each of their loans from savings account SB5758306466, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   136960.88,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   139460.88,
+   1.0
+  ]
+ },
+ {
+  "id": 14,
+  "day": 2,
+  "slot": 4,
+  "t": 10860,
+  "sim_time": "2026-07-03 19:30",
+  "kind": "changed",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_8E3C686D",
+  "accounts": [
+   "SB9191228734"
+  ],
+  "candidates": 51,
+  "text": "Current time: 2026-07-03 19:30 IST. If customer CUST_8E3C686D paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB9191228734, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   528339.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   570339.0,
+   1.0
+  ]
+ },
+ {
+  "id": 15,
+  "day": 3,
+  "slot": 0,
+  "t": 11700,
+  "sim_time": "2026-07-04 08:13",
+  "kind": "control",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_32F18A29",
+  "accounts": [
+   "SB7245427885"
+  ],
+  "candidates": 147,
+  "text": "Current time: 2026-07-04 08:13 IST. If customer CUST_32F18A29 paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB7245427885, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   80153.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   80153.0,
+   1.0
+  ]
+ },
+ {
+  "id": 16,
+  "day": 3,
+  "slot": 1,
+  "t": 12450,
+  "sim_time": "2026-07-04 11:02",
+  "kind": "changed",
+  "template": "cust_total",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_1ED630F6",
+  "accounts": [
+   "CA2799697102",
+   "SB3877032070"
+  ],
+  "candidates": 41,
+  "text": "Current time: 2026-07-04 11:02 IST. What is the total available balance across all of customer CUST_1ED630F6's accounts right now?",
+  "answer": [
+   "money",
+   835150.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   834151.0,
+   1.0
+  ]
+ },
+ {
+  "id": 17,
+  "day": 3,
+  "slot": 2,
+  "t": 13200,
+  "sim_time": "2026-07-04 13:52",
+  "kind": "changed",
+  "template": "cust_debits",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_56175C3A",
+  "accounts": [
+   "CA1069556254",
+   "SB6516744304"
+  ],
+  "candidates": 64,
+  "text": "Current time: 2026-07-04 13:52 IST. What is the total amount debited today across all of customer CUST_56175C3A's accounts?",
+  "answer": [
+   "money",
+   2500.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   0,
+   1.0
+  ]
+ },
+ {
+  "id": 18,
+  "day": 3,
+  "slot": 3,
+  "t": 13950,
+  "sim_time": "2026-07-04 16:41",
+  "kind": "changed",
+  "template": "balance",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_E2825A5F",
+  "accounts": [
+   "SB2888459069"
+  ],
+  "candidates": 191,
+  "text": "Current time: 2026-07-04 16:41 IST. What is the available balance of account SB2888459069 right now?",
+  "answer": [
+   "money",
+   310000.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   312500.0,
+   1.0
+  ]
+ },
+ {
+  "id": 19,
+  "day": 3,
+  "slot": 4,
+  "t": 14700,
+  "sim_time": "2026-07-04 19:30",
+  "kind": "portfolio",
+  "template": "hni_total",
+  "systems": [
+   "core_banking",
+   "crm"
+  ],
+  "customer_id": null,
+  "accounts": null,
+  "limit": null,
+  "text": "Current time: 2026-07-04 19:30 IST. What is the total available balance right now across all accounts of customers in the HNI segment?",
+  "answer": [
+   "money",
+   485201126.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   484227713.0,
+   1.0
+  ]
+ },
+ {
+  "id": 20,
+  "day": 4,
+  "slot": 0,
+  "t": 15540,
+  "sim_time": "2026-07-05 08:13",
+  "kind": "control",
+  "template": "balance",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_F087AAC2",
+  "accounts": [
+   "SB4296331449"
+  ],
+  "candidates": 882,
+  "text": "Current time: 2026-07-05 08:13 IST. What is the available balance of account SB4296331449 right now?",
+  "answer": [
+   "money",
+   2320000.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   2320000.0,
+   1.0
+  ]
+ },
+ {
+  "id": 21,
+  "day": 4,
+  "slot": 1,
+  "t": 16290,
+  "sim_time": "2026-07-05 11:02",
+  "kind": "changed",
+  "template": "last_txn",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_FE003B63",
+  "accounts": [
+   "SB4264623376"
+  ],
+  "candidates": 46,
+  "text": "Current time: 2026-07-05 11:02 IST. What is the reference id of the most recent transaction on account SB4264623376?",
+  "answer": [
+   "ids",
+   [
+    "TXN9109712686"
+   ]
+  ],
+  "warehouse_answer": [
+   "ids",
+   [
+    "TXN5547412679"
+   ]
+  ]
+ },
+ {
+  "id": 22,
+  "day": 4,
+  "slot": 2,
+  "t": 17040,
+  "sim_time": "2026-07-05 13:52",
+  "kind": "changed",
+  "template": "emi",
+  "systems": [
+   "core_banking",
+   "lending"
+  ],
+  "customer_id": "CUST_5EADA1BF",
+  "accounts": [
+   "SB8898036836"
+  ],
+  "candidates": 36,
+  "text": "Current time: 2026-07-05 13:52 IST. If customer CUST_5EADA1BF paid one EMI on each of their loans from savings account SB8898036836, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   140454.43,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   152454.43,
+   1.0
+  ]
+ },
+ {
+  "id": 23,
+  "day": 4,
+  "slot": 3,
+  "t": 17790,
+  "sim_time": "2026-07-05 16:41",
+  "kind": "changed",
+  "template": "emi_premium",
+  "systems": [
+   "core_banking",
+   "lending",
+   "insurance"
+  ],
+  "customer_id": "CUST_4EE77D9E",
+  "accounts": [
+   "SB4424348037"
+  ],
+  "candidates": 19,
+  "text": "Current time: 2026-07-05 16:41 IST. If customer CUST_4EE77D9E paid one EMI on each of their loans and one premium on each of their insurance policies from savings account SB4424348037, what would that account's available balance be afterwards?",
+  "answer": [
+   "money",
+   430557.41,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   435557.41,
+   1.0
+  ]
+ },
+ {
+  "id": 24,
+  "day": 4,
+  "slot": 4,
+  "t": 18540,
+  "sim_time": "2026-07-05 19:30",
+  "kind": "control",
+  "template": "cust_total",
+  "systems": [
+   "core_banking"
+  ],
+  "customer_id": "CUST_78CA155D",
+  "accounts": [
+   "CA3773631445",
+   "SB5905694592"
+  ],
+  "candidates": 215,
+  "text": "Current time: 2026-07-05 19:30 IST. What is the total available balance across all of customer CUST_78CA155D's accounts right now?",
+  "answer": [
+   "money",
+   1932499.0,
+   1.0
+  ],
+  "warehouse_answer": [
+   "money",
+   1932499.0,
+   1.0
+  ]
+ }
+]

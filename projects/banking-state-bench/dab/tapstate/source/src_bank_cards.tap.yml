@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_bank_cards
+connector: postgres
+config: { host: postgres, port: 5432, database: banksrc, schema: cards, user: postgres, password: secret }
+mode: cdc
+tables: [ cards, card_controls ]

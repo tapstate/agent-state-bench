@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_bank_insurance
+connector: postgres
+config: { host: postgres, port: 5432, database: banksrc, schema: insurance, user: postgres, password: secret }
+mode: cdc
+tables: [ policies ]
