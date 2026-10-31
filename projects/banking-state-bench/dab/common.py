@@ -5,6 +5,7 @@ functions are what split_sources.py writes; the inverse functions are what the c
 (build_consolidated.py, and the Tapstate pipelines) applies to bring them back to canonical keys.
 """
 import json
+import os
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -19,8 +20,10 @@ CBS_DB = "bank_cbs"          # Postgres
 CRM_DB = "bank_crm"          # MongoDB
 STATE_DB = "bank_state"      # MongoDB, setup C
 
-PG = dict(host="127.0.0.1", port=55432, user="postgres", password="secret")
-MONGO_URI = "mongodb://127.0.0.1:27017/?directConnection=true"
+# Connection settings: the same environment variables, and defaults, as the harness (run_arms.env).
+PG = dict(host=os.environ.get("PG_HOST", "127.0.0.1"), port=int(os.environ.get("PG_PORT", "55432")),
+          user=os.environ.get("PG_USER", "postgres"), password=os.environ.get("PG_PASSWORD", "secret"))
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017/?directConnection=true")
 
 
 def load_customers(path=DB_JSON):

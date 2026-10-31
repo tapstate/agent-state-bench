@@ -112,10 +112,15 @@ the pipeline uses no joins.
   "[object Object]". The Tapstate source copy (`banksrc`) therefore stores those six columns as
   ISO text; the values are unchanged, and the agents' databases keep their DATE types. This is
   worth reporting upstream.
-- **Status:** applied on server 0.6.0 and run to a complete snapshot. All 944 documents equal the
-  upstream records field for field (`dab/verify_tapstate.py`). That output is installed as setup
-  C (MongoDB `bank_state`). `dab/build_consolidated.py`, the Python build of the same mappings,
-  agrees with it and remains as a cross-check.
+- **Status:** applied on a 0.6.0 development build (v0.6.0-174-g9af4288fc, included in release
+  0.7.0) and run to a complete snapshot. All 944 documents equal the upstream records field for
+  field (`dab/verify_tapstate.py`). That output is installed as setup C (MongoDB `bank_state`).
+  `dab/build_consolidated.py`, the Python build of the same mappings, agrees with it and remains
+  as a cross-check.
+- **Release 0.7.0 (2026-10-30):** the same workspace, applied from scratch on Tapstate Community
+  0.7.0 (the published server image and CLI, connectors registered from the release), gives
+  944 of 944 documents equal to upstream, and a setup C dump document-for-document identical to
+  the published one. The reproduction guide ([README.md](README.md)) pins 0.7.0.
 
 **Acceptance check for setup C:** every document built from the six sources equals the upstream
 `db.json` record after the map-to-array change, field for field. The Python build passes: 944 of
@@ -248,3 +253,35 @@ the 360 recorded answers were rescored. The only verdicts that changed are the 2
 ones, all from fail to pass; none changed from pass to fail. Before the correction, pass@1 was
 A 0.917, B 0.900 and C 0.950 ([`dab/results/opus_scores_validator_v1.csv`](dab/results/opus_scores_validator_v1.csv)). The token figures are
 unaffected.
+
+## 10. Rerun: Claude Opus 5.5, 2026-10-30
+
+To check that the pilot's result is stable, the same 360 runs were made a second time: 24
+questions × 3 setups × 5 runs, recorded as runs 5 to 9 so the pilot's runs 0 to 4 are untouched.
+The harness, model, prompts, data and validators were the pilot's: all 72 question and setup
+pairs got a system prompt byte-identical to the pilot's, every database was first restored from
+the frozen dataset files (`dab/reset_dbs.py`), and the model-free dry run passed. 360 of 360 runs
+completed, with no usage limits hit. Full tables, for the rerun alone and pooled with the pilot,
+are in [`dab/RERUN_RESULTS_opus.md`](dab/RERUN_RESULTS_opus.md); raw scores are in
+[`dab/results/opus_scores_rerun.csv`](dab/results/opus_scores_rerun.csv).
+
+| Setup | pass@1, pilot | pass@1, rerun | pass@1, pooled (95% CI) | Median tokens, pilot | Median tokens, rerun | Median tokens, pooled |
+|---|---:|---:|---|---:|---:|---:|
+| A: six sources, no hints | 1.000 | 0.983 | 0.992 (0.98–1.00) | 79,358 | 74,418 | 77,184 |
+| B: six sources, key hints | 0.992 | 0.975 | 0.983 (0.96–1.00) | 74,508 | 73,876 | 73,956 |
+| C: consolidated state | 0.992 | 0.992 | 0.992 (0.98–1.00) | 22,074 | 22,552 | 22,184 |
+
+- **The token result reproduced.** Setups A and B used 3.3× the median tokens of setup C in the
+  rerun (3.4–3.6× in the pilot; 3.5× pooled), with about 7 turns against 4. By category: 3.2–4.2×
+  on two-source and three-or-more-source questions, 2.6–3.0× on portfolio totals, and none on the
+  single-source controls, as in the pilot. API-equivalent cost per correct answer was $0.046 in
+  setup C against $0.150–0.165 in A and B.
+- **No wrong answers in either batch.** The rerun's six failures (A on questions 18 and 22, B on
+  questions 7, 14 and 23, C on question 8) are all protocol misses: the agent's final text has the
+  correct answer, but it never called `return_answer`. The pilot had two of the same kind. Six in
+  360 against two in 360 is too few to read anything into; the Claude Code release driving the
+  agent (2.1.314 for the rerun) may also differ from the pilot's, which was not recorded.
+- **Database state matters.** Before this rerun, Postgres `bank_cbs` still held the freshness
+  extension's version of core banking (dates as text, replayed July transactions), so it no longer
+  matched the frozen `cbs.sql`. It was restored before the batch. `dab/reset_dbs.py` now does this
+  for every server-side database and checks the result; run it before every batch.

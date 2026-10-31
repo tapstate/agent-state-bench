@@ -40,16 +40,19 @@ from a question-clustered bootstrap.
 
 ## Setup
 
+The setup of the DAB datasets below (crmarenapro, cve, bookreview, music_brainz_20k, yelp,
+googlelocal, agnews). The bank benchmark has its own pinned, tested setup in
+[`projects/banking-state-bench/README.md`](projects/banking-state-bench/README.md).
+
 1. **Tapstate** v0.5.0 quickstart stack, with `stack/compose.diff` applied: Mongo published on
    `127.0.0.1:27017`, Postgres on `127.0.0.1:55432`, and Postgres `max_wal_senders` /
    `max_replication_slots` raised (one replication slot per pipeline and source; 100 was used).
 2. **DAB** at commit `0290945c2b38`: clone it, fetch each dataset's files as DAB describes, then
    `git apply harness/dab.patch`. DAB's repository carries no license file, so this kit ships
    only its own code and the patch, not DAB's code or data. Build the Python sandbox image DAB's
-   exec tool uses (`python-data:3.12`, from `python:3.12-slim` with pandas and pyarrow). On
+   exec tool uses: `docker build -t python-data:3.12 -f stack/python-data.Dockerfile stack`. On
    Docker Desktop set `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock`.
-3. **Python 3.12** virtual environment with DAB's requirements plus `mcp` (2.x), `rapidfuzz`,
-   `pymongo`, `psycopg2-binary`, `duckdb`.
+3. **Python 3.12** virtual environment: `pip install -r requirements.txt`.
 4. **Sources and pipelines**, per dataset:
    - crmarenapro: `load_crm_to_postgres.py`, `gen_crm_pipelines.py`, start the pipelines,
      `verify_crm_views.py`, `make_consolidated_dataset.py`.
@@ -68,8 +71,9 @@ python harness/run_claude_arms.py <dab-root> --dataset crmarenapro --model claud
 python harness/score.py <dab-root> --csv results.csv
 ```
 
-With an API key, `harness/run_arms.py` runs DAB's own agent loop instead. Both runners are
-resumable. A usage limit pauses a batch and a re-run retries it; an expired login stops the
+With an API key, `harness/run_arms.py` runs DAB's own agent loop instead, for any model behind
+an OpenAI-compatible endpoint: set `DAB_LLM_BASE_URL` and `DAB_LLM_API_KEY` and pass the
+provider's model name. Both runners are resumable. A usage limit pauses a batch and a re-run retries it; an expired login stops the
 batch, because waiting cannot fix it.
 
 ## Changes to DAB's harness (`harness/dab.patch`)
@@ -80,6 +84,9 @@ batch, because waiting cannot fix it.
 | Mongo `query_db` returns every matching document unless a `limit` is given | all setups | the stock default silently returned 5 documents, unlike SQL, which returns every row |
 | `DAB_PERSISTENT_DBS=1`: load a server-side database once and keep it | all setups | the stock harness drops and reloads per run, so parallel runs of one dataset collide |
 | `harness/bin/psql`, `harness/bin/mongorestore` run the clients inside containers | all setups | no database clients on the host |
+| `DAB_LLM_BASE_URL` and `DAB_LLM_API_KEY` select any OpenAI-compatible endpoint | `run_arms.py` | the stock harness reaches only four hard-coded providers |
+| a model-neutral tool-call instruction for models outside DAB's four families | `run_arms.py` | the stock prompt builder refuses any other model name |
+| `bank` and `bank_consolidated` are known datasets | the bank project | DAB's runner accepts only listed datasets |
 
 ## Known limits
 

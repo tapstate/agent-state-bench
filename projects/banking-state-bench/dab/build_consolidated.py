@@ -3,7 +3,7 @@
 Reads only the sources setups A/B query (Postgres bank_cbs, MongoDB bank_crm, and the SQLite and
 DuckDB files of query_bank), maps each system's key back to the canonical customer or account id
 (common.py), and nests everything under the customer. This is the same logic as the Tapstate
-pipelines (gen_bank_pipelines.py); it is the disclosed fallback while those cannot be applied.
+pipeline (tapstate/); setup C comes from Tapstate, and this build is kept as an independent check.
 
 Then checks the result against the upstream record (common.consolidated_doc), document for
 document and field for field, and refuses to write anything that differs or is unattached.
@@ -242,13 +242,19 @@ def main():
         raise SystemExit(f"{len(problems)} differences from upstream, e.g.:\n" + "\n".join(problems[:10]))
     print(f"verified: {len(built)} customer documents equal the upstream records field for field")
 
+    install(dab, built)
+
+
+def install(dab, built):
+    """Make verified documents setup C: MongoDB bank_state.customer, its dump, and the dataset's
+    db_config.yaml and db_description.txt. Used by this build and by verify_tapstate.py --install."""
+    rows = [{"_id": cid, **d} for cid, d in built.items()]
     m = MongoClient(MONGO_URI)
     m.drop_database(STATE_DB)
-    m[STATE_DB]["customer"].insert_many([{"_id": cid, **d} for cid, d in built.items()])
+    m[STATE_DB]["customer"].insert_many(rows)
     m[STATE_DB]["customer"].create_index("profile.segment")
     base = dab / f"query_{CONSOLIDATED}"
-    write_mongo_dump(base / "query_dataset" / f"{STATE_DB}_dump", STATE_DB,
-                     {"customer": [{"_id": cid, **d} for cid, d in built.items()]})
+    write_mongo_dump(base / "query_dataset" / f"{STATE_DB}_dump", STATE_DB, {"customer": rows})
     (base / "db_config.yaml").write_text(
         f"db_clients:\n  bank_state:\n    db_type: mongo\n    db_name: {STATE_DB}\n"
         f"    dump_folder: query_dataset/{STATE_DB}_dump\n")

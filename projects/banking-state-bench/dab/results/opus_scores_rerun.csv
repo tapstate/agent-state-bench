@@ -1,0 +1,743 @@
+dataset,arm,model,run,query,valid,strict,input_tokens,output_tokens,cached_tokens,llm_calls,duration_s,cost_usd,terminate,answer
+bank,A,cc-claude-opus-5-5,5,query1,True,True,22559,480,16375,4,19.9,0.06231,return_answer,53
+bank,A,cc-claude-opus-5-5,6,query1,True,False,41943,671,33516,4,13.5,0.08751,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. This count includes RDs of every status, as long as the maturity date falls in that range."
+bank,A,cc-claude-opus-5-5,7,query1,True,False,54763,685,46128,5,20.4,0.09197,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. This comes from the deposits table in core_banking, out of 531 RDs in total, all of which are active."
+bank,A,cc-claude-opus-5-5,8,query1,True,False,55185,907,46365,5,16.5,0.09793,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. None mature in October, because the earliest RD maturity date in the data is 2026-11-09. All maturity date"
+bank,A,cc-claude-opus-5-5,9,query1,True,False,42086,629,33531,4,17.3,0.08769,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. This count covers all statuses, since no filter on status was applied. Out of 531 RDs in total, the earlie"
+bank,B,cc-claude-opus-5-5,5,query1,True,True,32891,655,25654,5,27.1,0.07609,return_answer,53
+bank,B,cc-claude-opus-5-5,6,query1,True,True,22210,564,21149,4,18.4,0.02397,return_answer,53
+bank,B,cc-claude-opus-5-5,7,query1,True,False,32613,888,30010,6,36.2,0.04455,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. I counted each deposit by its deposit ID together with its payout account, since deposit IDs alone can rep"
+bank,B,cc-claude-opus-5-5,8,query1,True,True,33337,677,30769,5,21.0,0.0402,return_answer,53
+bank,B,cc-claude-opus-5-5,9,query1,True,False,30279,773,28306,5,14.9,0.03687,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. Each one is a different deposit; I checked for duplicates using the deposit ID together with the payout ac"
+bank,A,cc-claude-opus-5-5,5,query10,True,False,109671,1632,88817,7,22.6,0.21719,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+To get this, I matched insurance policyholders to bank customers by ID. Policyholder IDs are written as ""OURB:XXXXXXXX"" and customer I"
+bank,A,cc-claude-opus-5-5,6,query10,True,False,109679,1473,90608,7,21.0,0.2001,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+To get this, I matched each policy's holder reference (for example ""OURB:1C756DE2"") to the customer ID with the same code (""CUST_1C756"
+bank,A,cc-claude-opus-5-5,7,query10,True,False,85542,1215,69035,6,34.2,0.17012,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+The insurance feed has 334 policies, all in force, held by 332 different customers. Every policyholder reference matched a customer in"
+bank,A,cc-claude-opus-5-5,8,query10,True,False,109414,1377,90500,7,22.4,0.1969,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+Policy records refer to customers as ""OURB:XXXXXXXX"", and these match core banking customer IDs ""CUST_XXXXXXXX"". All 334 policies are "
+bank,A,cc-claude-opus-5-5,9,query10,True,False,109183,1307,90377,7,20.4,0.19462,return_answer,"105 senior-citizen customers hold at least one insurance policy. I matched each policy's policyholder reference (OURB:XXXXXXXX) to a customer ID (CUST_XXXXXXXX). Every policy matched a customer, and a"
+bank,B,cc-claude-opus-5-5,5,query10,True,False,86099,1436,67797,6,31.0,0.18866,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+I matched each policyholder reference in the insurance feed to a customer ID in core banking, using the ID format given in the hints. "
+bank,B,cc-claude-opus-5-5,6,query10,True,True,85440,1209,69696,6,26.0,0.16403,return_answer,105
+bank,B,cc-claude-opus-5-5,7,query10,True,False,66346,999,50221,5,16.9,0.15899,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+I checked all 944 customers in the core banking system. 313 of them are senior citizens. In every record the senior-citizen flag match"
+bank,B,cc-claude-opus-5-5,8,query10,True,True,77768,970,62349,6,16.3,0.15518,return_answer,105
+bank,B,cc-claude-opus-5-5,9,query10,True,False,64938,1037,49289,5,20.1,0.15576,return_answer,"105 senior-citizen customers hold at least one insurance policy.
+
+There are 944 customers in core banking, and 313 of them are senior citizens. The senior-citizen flag and the ""age 60 or over"" rule pi"
+bank,A,cc-claude-opus-5-5,5,query11,True,False,85368,1416,68365,8,34.0,0.17797,return_answer,"New Delhi Main Branch has the most frozen cards: 30 of them, linked to accounts held at that branch.
+
+The cards system has 342 frozen cards, and every one matched an account in core banking. A card's "
+bank,A,cc-claude-opus-5-5,6,query11,True,False,64007,1194,49809,7,31.8,0.14739,return_answer,"New Delhi Main Branch has the most frozen cards: 30. Mysuru Main Branch is next with 21, then Gurugram Main Branch with 20.
+
+The card system lists account numbers as digits only (e.g. 5291570216), whi"
+bank,A,cc-claude-opus-5-5,7,query11,True,False,69264,984,55357,6,19.8,0.14197,return_answer,New Delhi Main Branch has the most frozen cards: 30 cards linked to accounts held there. Next are Mysuru Main Branch with 21 and Gurugram Main Branch with 20. Card account numbers were matched to acco
+bank,A,cc-claude-opus-5-5,8,query11,True,False,89873,1316,74829,7,29.9,0.16159,return_answer,"New Delhi Main Branch has the most frozen cards: 30 of them are linked to accounts held at that branch.
+
+Mysuru Main Branch is next with 21, followed by Gurugram Main Branch with 20.
+
+The card system'"
+bank,A,cc-claude-opus-5-5,9,query11,True,False,64928,1124,50468,7,19.5,0.14821,return_answer,"New Delhi Main Branch has the most frozen cards, with 30.
+
+The two systems store account numbers differently. Card records use digits only, while core banking adds an SB or CA prefix, so I matched the"
+bank,B,cc-claude-opus-5-5,5,query11,True,False,92327,1242,75281,7,22.2,0.17622,return_answer,"New Delhi Main Branch has the most frozen cards, with 30. To get this, I matched every frozen card in the cards system (342 in total) to its account in core banking by account number, then counted the"
+bank,B,cc-claude-opus-5-5,6,query11,True,False,71910,990,57912,6,37.4,0.14333,return_answer,"New Delhi Main Branch has the most frozen cards linked to accounts held there: 30. The next highest is Mysuru Main Branch with 21.
+
+There are 342 frozen cards in total. Each one was matched to its acc"
+bank,B,cc-claude-opus-5-5,7,query11,True,False,92066,1329,77203,7,37.7,0.16088,return_answer,"New Delhi Main Branch has the most frozen cards: 30 of them are linked to accounts held at that branch.
+
+The cards system holds 342 frozen cards, and each one matched an account in core banking, so no"
+bank,B,cc-claude-opus-5-5,8,query11,True,False,72343,1100,58136,6,19.9,0.14724,return_answer,"New Delhi Main Branch has the most frozen cards: 30.
+
+To get this, I matched each of the 342 frozen cards to its account using the account number without the SB/CA prefix. Every card matched an accoun"
+bank,B,cc-claude-opus-5-5,9,query11,True,False,72518,1042,58256,6,31.2,0.14655,return_answer,"New Delhi Main Branch has the most frozen cards: 30. Mysuru Main Branch is next with 21.
+
+To get this, I matched each of the 342 frozen cards to its account by account number and counted them by the a"
+bank,A,cc-claude-opus-5-5,5,query12,True,False,78936,1282,58231,8,18.5,0.20289,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90.
+
+This covers 71 personal loans, all of them active. I linked the loans to MASS customers by matching each loan's borrower"
+bank,A,cc-claude-opus-5-5,6,query12,True,False,117116,1815,95967,12,28.8,0.22463,return_answer,"The average EMI of personal loans held by MASS-segment customers is ₹5,208.90.
+
+This is the average of 71 personal loans, out of 153 personal loans in total. All 71 are active. To find them, I took th"
+bank,A,cc-claude-opus-5-5,7,query12,True,False,108878,1338,90078,7,21.2,0.19513,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90, across 71 loans.
+
+The loan system has 153 personal loans, all active. I linked each loan to its customer by matching the "
+bank,A,cc-claude-opus-5-5,8,query12,True,False,72033,1320,55371,8,30.4,0.17073,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90.
+
+This comes from 71 of the 153 active personal loans that belong to MASS customers. I matched each loan's borrower refere"
+bank,A,cc-claude-opus-5-5,9,query12,True,False,127229,1774,107504,9,29.3,0.21472,return_answer,"The average EMI of personal loans held by MASS-segment customers is ₹5,208.90.
+
+There are 71 such loans, all active, with EMIs adding up to ₹369,831.91. To get the segment, I matched each loan's borro"
+bank,B,cc-claude-opus-5-5,5,query12,True,False,94904,1167,73969,8,19.6,0.20557,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90. This is the plain average across 71 personal loans. All 153 personal loans in the lending system are active, and these 71"
+bank,B,cc-claude-opus-5-5,6,query12,True,False,79512,988,61145,7,17.3,0.17888,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90, across 71 loans. This average uses each loan's EMI as recorded in the lending system, and every one of the bank's 153 per"
+bank,B,cc-claude-opus-5-5,7,query12,True,False,79512,1045,61071,7,15.8,0.1806,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90. That figure covers 71 of the bank's 153 active personal loans. I took the MASS customers from the CRM records and matched"
+bank,B,cc-claude-opus-5-5,8,query12,True,False,79555,865,61321,7,15.5,0.1754,return_answer,"₹5,208.90"
+bank,B,cc-claude-opus-5-5,9,query12,True,False,95176,1219,76214,8,22.7,0.19127,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90.
+
+This covers 71 personal loans. I matched each loan's borrower to the customer's segment in the CRM system. The data had "
+bank,A,cc-claude-opus-5-5,5,query13,True,False,105866,1917,78697,13,23.4,0.27138,return_answer,"18 HNI customers hold a home loan and also have at least one paused mandate.
+
+The four systems label customers in different ways, so I matched them on the 8-character code in each customer ID:
+
+- **HN"
+bank,A,cc-claude-opus-5-5,6,query13,True,False,116172,1971,91639,11,24.3,0.25396,return_answer,"18 customers are in the HNI segment, hold a home loan and have at least one paused mandate.
+
+Out of 157 HNI customers, 49 have a home loan, and 18 of those have at least one paused mandate. Customer I"
+bank,A,cc-claude-opus-5-5,7,query13,True,False,104619,2073,79414,12,25.8,0.25893,return_answer,"18 customers in the HNI segment hold a home loan and have at least one paused mandate.
+
+I worked this out by linking customer records across the CRM, lending, payments and core banking systems. Each s"
+bank,A,cc-claude-opus-5-5,8,query13,True,True,118287,2093,88694,13,25.5,0.29629,return_answer,18
+bank,A,cc-claude-opus-5-5,9,query13,True,False,116533,2308,91455,11,26.1,0.26503,return_answer,"18 HNI customers hold a home loan and have at least one paused mandate.
+
+I matched records across systems using the customer ID's 8-character code. The customer and loan systems write it in different "
+bank,B,cc-claude-opus-5-5,5,query13,True,True,94281,1346,69000,10,19.4,0.24293,return_answer,18
+bank,B,cc-claude-opus-5-5,6,query13,True,False,112225,1658,88595,11,49.1,0.23987,return_answer,"18 customers are in the HNI segment, hold a home loan and have at least one paused mandate.
+
+Of the 157 HNI customers, 49 hold a home loan. Of those 49, 18 have at least one paused mandate. All home l"
+bank,B,cc-claude-opus-5-5,7,query13,True,False,120445,1658,96456,11,23.0,0.24432,return_answer,"18 HNI customers hold a home loan and have at least one paused mandate.
+
+Of the 157 customers marked HNI in the CRM, 49 have a home loan. 18 of those 49 also have at least one paused mandate on one of"
+bank,B,cc-claude-opus-5-5,8,query13,True,False,93626,1575,70391,10,21.1,0.23142,return_answer,"18 customers are in the HNI segment, hold a home loan and have at least one paused mandate.
+
+I matched three lists using the customer IDs from the core banking system:
+- **HNI customers:** 157 custome"
+bank,B,cc-claude-opus-5-5,9,query13,True,False,94380,1451,71136,10,23.3,0.22916,return_answer,18 HNI customers hold a home loan and have at least one paused mandate.
+bank,A,cc-claude-opus-5-5,5,query14,True,False,59776,2524,51142,14,39.4,0.12972,return_answer,"Results for customer CUST_08796420 (Rajan Kiritbhai Patel):
+
+(a) Total available balance: ₹575,000.00. This is the savings account SB2019616752 (₹500,000.00) plus the current account CA6721715603 (₹75"
+bank,A,cc-claude-opus-5-5,6,query14,True,False,27501,1584,23146,8,20.0,0.07112,return_answer,"Customer CUST_08796420 (Rajan Kiritbhai Patel):
+(a) Total available balance: ₹575,000.00 across 2 accounts (₹500,000.00 in savings account SB2019616752 and ₹75,000.00 in current account CA6721715603)."
+bank,A,cc-claude-opus-5-5,7,query14,True,False,33310,1853,29181,10,34.0,0.07589,return_answer,"Customer CUST_08796420 (Rajan Kiritbhai Patel):
+(a) Total available balance: ₹575,000.00. This is ₹500,000.00 in savings account SB2019616752 plus ₹75,000.00 in current account CA6721715603.
+(b) Cards"
+bank,A,cc-claude-opus-5-5,8,query14,True,False,30684,1647,27519,8,21.7,0.06372,return_answer,"Customer CUST_08796420:
+(a) Total available balance across all accounts: ₹575,000.00. This is ₹500,000.00 in savings account SB2019616752 plus ₹75,000.00 in current account CA6721715603.
+(b) Cards tha"
+bank,A,cc-claude-opus-5-5,9,query14,True,False,25340,1617,21792,8,19.1,0.06505,return_answer,"Customer CUST_08796420 (Rajan Kiritbhai Patel):
+(a) Total available balance: ₹575,000.00. This is ₹500,000.00 in savings account SB2019616752 plus ₹75,000.00 in current account CA6721715603.
+(b) Cards"
+bank,B,cc-claude-opus-5-5,5,query14,True,False,32640,1168,27660,7,16.2,0.06869,return_answer,"Customer CUST_08796420:
+(a) Total available balance: ₹575,000.00 (SB2019616752: ₹500,000.00; CA6721715603: ₹75,000.00).
+(b) Cards that are not frozen: 1 (CARD14431, an active debit card. CARD87029, a "
+bank,B,cc-claude-opus-5-5,6,query14,True,False,32329,1173,29627,7,16.2,0.05096,return_answer,"Customer CUST_08796420:
+(a) Total available balance: ₹575,000.00 across two accounts, SB2019616752 (₹500,000.00) and CA6721715603 (₹75,000.00).
+(b) Cards not frozen: 1. The debit card CARD14431 is act"
+bank,B,cc-claude-opus-5-5,7,query14,False,False,17769,872,15946,5,16.7,0.03519,success,
+bank,B,cc-claude-opus-5-5,8,query14,True,False,32573,1202,29741,7,17.7,0.0526,return_answer,"Results for customer CUST_08796420:
+
+(a) Total available balance: ₹575,000.00. This covers two active accounts: SB2019616752 with ₹500,000.00 and CA6721715603 with ₹75,000.00.
+
+(b) Cards not frozen: 1"
+bank,B,cc-claude-opus-5-5,9,query14,True,False,24998,1102,22579,6,15.2,0.04588,return_answer,"Customer CUST_08796420:
+(a) Total available balance: ₹575,000.00. This is ₹500,000.00 in SB2019616752 plus ₹75,000.00 in CA6721715603. Both accounts are active and have no holds.
+(b) Cards not frozen:"
+bank,A,cc-claude-opus-5-5,5,query15,True,False,113937,1472,88371,7,20.8,0.2516,return_answer,"11 customers whose communication address is in Maharashtra hold both a home loan and at least one insurance policy.
+
+To match customers across systems, I used the 8-character code at the end of each c"
+bank,A,cc-claude-opus-5-5,6,query15,True,False,114111,1466,90232,7,19.7,0.23836,return_answer,"11 customers whose communication address is in Maharashtra hold both a home loan and at least one insurance policy.
+
+I matched customers across three systems: 130 customers in core banking have Mahara"
+bank,A,cc-claude-opus-5-5,7,query15,True,False,141860,1595,117702,8,20.7,0.24866,return_answer,"11 customers whose communication address is in Maharashtra hold both a home loan and at least one insurance policy.
+
+The three systems store the customer ID differently, so I matched them on the 8-cha"
+bank,A,cc-claude-opus-5-5,8,query15,True,False,109923,1642,86868,8,23.9,0.23461,return_answer,"11 customers with a communication address in Maharashtra hold both a home loan and at least one insurance policy.
+
+- **Maharashtra:** 130 customers have Maharashtra as their communication state. Only "
+bank,A,cc-claude-opus-5-5,9,query15,True,False,113641,1538,89771,7,21.7,0.23963,return_answer,"11 customers with a communication address in Maharashtra hold both a home loan and at least one insurance policy.
+
+1. **Maharashtra customers:** 130 customers in core banking have Maharashtra as their"
+bank,B,cc-claude-opus-5-5,5,query15,True,False,77863,1470,57879,9,23.5,0.20081,return_answer,11 customers with a communication address in Maharashtra have both a home loan and at least one insurance policy. I found the 130 customers whose communication state is Maharashtra and checked their I
+bank,B,cc-claude-opus-5-5,6,query15,True,True,77200,1242,59939,9,17.9,0.17488,return_answer,11
+bank,B,cc-claude-opus-5-5,7,query15,True,True,77432,1374,60026,9,19.0,0.17869,return_answer,11
+bank,B,cc-claude-opus-5-5,8,query15,True,False,78032,1623,60021,9,20.8,0.18851,return_answer,"11 customers with a communication address in Maharashtra hold both a home loan and at least one insurance policy.
+
+1. **Maharashtra customers:** 130 customers in the core banking system have Maharasht"
+bank,B,cc-claude-opus-5-5,9,query15,True,False,77933,1473,60078,9,19.4,0.18428,return_answer,"11 customers with a communication address in Maharashtra hold both a home loan and at least one insurance policy. Of the 130 Maharashtra customers, 27 have a home loan and 46 have a policy. Every loan"
+bank,A,cc-claude-opus-5-5,5,query16,True,True,87275,1379,64150,9,18.7,0.22537,return_answer,80
+bank,A,cc-claude-opus-5-5,6,query16,True,False,87941,1632,65996,9,21.9,0.22136,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate that debits them.
+
+The three systems store account numbers differently, so I matched them on the 10-digit n"
+bank,A,cc-claude-opus-5-5,7,query16,True,False,87271,1686,65430,9,20.9,0.22149,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them.
+
+The three systems store account numbers in different formats, so I matched them on the 10-d"
+bank,A,cc-claude-opus-5-5,8,query16,True,False,132021,1798,103786,10,24.0,0.28255,return_answer,"80 savings accounts have both a frozen card and an active UPI_AUTOPAY mandate debiting them. Card numbers were matched to account IDs after dropping the ""SB"" prefix, and each IFSC on a mandate matched"
+bank,A,cc-claude-opus-5-5,9,query16,True,True,86849,1568,65461,9,21.1,0.21552,return_answer,80
+bank,B,cc-claude-opus-5-5,5,query16,True,False,85699,1684,62805,8,24.4,0.22935,return_answer,"80 savings accounts have both a frozen card and an active UPI_AUTOPAY mandate debiting them.
+
+To get this, I took every account with at least one card marked ""frozen"" (342 frozen cards, 321 distinct a"
+bank,B,cc-claude-opus-5-5,6,query16,True,True,86821,1364,66062,8,20.6,0.20652,return_answer,80
+bank,B,cc-claude-opus-5-5,7,query16,True,False,86566,1504,65553,8,21.5,0.21125,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them.
+
+I matched three sets on account number:
+- **Active UPI_AUTOPAY mandates:** there are 239, e"
+bank,B,cc-claude-opus-5-5,8,query16,True,False,87250,1669,65958,8,41.3,0.21687,return_answer,"80 savings accounts have both a frozen card and an active UPI_AUTOPAY mandate.
+
+1. **Frozen cards:** I took the distinct account numbers that have at least one card with status ""frozen"" in the card sy"
+bank,B,cc-claude-opus-5-5,9,query16,True,False,87329,1648,66048,8,33.4,0.21638,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them.
+
+To get this, I took the accounts with at least one frozen card (342 frozen cards) and match"
+bank,A,cc-claude-opus-5-5,5,query17,True,False,115978,2341,86007,13,28.0,0.30374,return_answer,"6 customers in the Information Technology sector made at least one ATM debit transaction between 2026-06-15 and 2026-06-30 and also hold a frozen debit card.
+
+How I got this:
+1. **ATM debits:** 305 cu"
+bank,A,cc-claude-opus-5-5,6,query17,True,False,112827,2340,85405,12,27.4,0.28321,return_answer,"6 customers meet all three conditions.
+
+1. They're in the Information Technology sector in the CRM records.
+2. They made at least one ATM cash withdrawal from 2026-06-15 to 2026-06-30, inclusive.
+3. T"
+bank,A,cc-claude-opus-5-5,7,query17,True,True,130013,1906,102556,10,24.6,0.27824,return_answer,6
+bank,A,cc-claude-opus-5-5,8,query17,True,True,121385,1750,96160,10,22.9,0.25598,return_answer,6
+bank,A,cc-claude-opus-5-5,9,query17,True,False,112986,2202,85697,13,42.8,0.27944,return_answer,"6 customers in the Information Technology sector match both conditions.
+
+- **Sector:** 169 customers are tagged Information Technology in the CRM.
+- **ATM withdrawals:** 46 of them made at least one A"
+bank,B,cc-claude-opus-5-5,5,query17,True,False,104001,1666,75583,10,21.2,0.27574,return_answer,"6 customers in the Information Technology sector made at least one ATM debit transaction between 2026-06-15 and 2026-06-30 (inclusive) and also hold a frozen debit card.
+
+They are:
+- CUST_0A00FD1B
+- C"
+bank,B,cc-claude-opus-5-5,6,query17,True,False,101771,1742,76366,10,33.9,0.25331,return_answer,"6 customers. These are customers in the Information Technology sector (from the CRM) who made at least one ATM debit between 2026-06-15 and 2026-06-30 and also hold a debit card with status ""frozen"". "
+bank,B,cc-claude-opus-5-5,7,query17,True,True,103526,1483,77768,10,31.2,0.25124,return_answer,6
+bank,B,cc-claude-opus-5-5,8,query17,True,True,101514,1634,76354,10,25.5,0.24919,return_answer,6
+bank,B,cc-claude-opus-5-5,9,query17,True,True,103524,1585,77721,10,40.6,0.25363,return_answer,6
+bank,A,cc-claude-opus-5-5,5,query18,True,False,74388,1096,57238,6,18.2,0.17053,return_answer,"Maharashtra has the highest total outstanding gold-loan amount: ₹4,070,000.00 (₹40,70,000.00 in Indian notation).
+
+All 108 gold loans are active, and every one was linked to a customer and their commu"
+bank,A,cc-claude-opus-5-5,6,query18,True,False,74384,1458,58831,6,21.2,0.16531,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, at ₹4,070,000.00 (₹40.70 lakh), based on customers' communication address. Uttar Pradesh is second with ₹2,682,499.99, followed by Keral"
+bank,A,cc-claude-opus-5-5,7,query18,False,False,46383,1133,32496,6,22.8,0.14022,success,
+bank,A,cc-claude-opus-5-5,8,query18,True,False,69082,1077,55560,6,18.3,0.14079,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, at ₹4,070,000.00 (₹40.70 lakh).
+
+The bank has 108 gold loans, all active, with ₹22,821,458.34 outstanding in total. I linked each borrow"
+bank,A,cc-claude-opus-5-5,9,query18,True,False,69275,1176,55616,6,22.8,0.14388,return_answer,"Maharashtra has the highest total outstanding gold-loan amount: ₹4,070,000.00 (₹40,70,000.00 in Indian notation), spread across 17 gold loans.
+
+All 108 gold loans are active. Each loan's borrower refe"
+bank,B,cc-claude-opus-5-5,5,query18,True,False,79873,1148,61346,6,19.4,0.18341,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, at ₹4,070,000.00.
+
+I matched all 108 gold loans (all active) to customers by their communication-address state. Every loan matched a cus"
+bank,B,cc-claude-opus-5-5,6,query18,True,False,66003,1074,52295,7,20.8,0.14156,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, at ₹4,070,000.00 (₹40,70,000.00)."
+bank,B,cc-claude-opus-5-5,7,query18,True,False,76391,1323,60999,6,19.4,0.16176,return_answer,"Maharashtra has the highest total outstanding gold-loan amount: ₹4,070,000.00 (₹40.70 lakh), going by customers' communication address. This sums 108 active gold loans, each matched to its customer's "
+bank,B,cc-claude-opus-5-5,8,query18,True,False,71435,1165,55771,7,17.5,0.15973,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, at ₹4,070,000.00.
+
+To get this, I matched all 108 gold loans to the communication-address state of the customer who holds each one. Ever"
+bank,B,cc-claude-opus-5-5,9,query18,True,False,76238,1220,60974,6,18.5,0.15867,return_answer,"Maharashtra has the highest total outstanding on gold loans, by customers' communication address. The total is ₹4,070,000.00 (40,70,000.00 in Indian notation).
+
+All 108 active gold loans matched a cus"
+bank,A,cc-claude-opus-5-5,5,query19,True,False,101798,1817,73690,9,23.8,0.2759,return_answer,"The total sum assured is ₹79,250,000.00 (₹7.925 crore), across 35 policies.
+
+These are all the policies held by customers who are both senior citizens and in the AFFLUENT segment. All 35 policies are "
+bank,A,cc-claude-opus-5-5,6,query19,True,False,115259,1462,91212,7,32.8,0.23982,return_answer,"The total sum assured is ₹79,250,000.00 (₹7.925 crore). This covers 35 policies held by 35 customers who are both senior citizens and in the AFFLUENT segment. All 334 policies in the insurance data ma"
+bank,A,cc-claude-opus-5-5,7,query19,True,False,101737,1775,75390,9,24.1,0.26131,return_answer,"The total sum assured is ₹79,250,000.00 (₹7.925 crore), across 35 policies held by senior-citizen customers in the AFFLUENT segment.
+
+I matched customer IDs across the core banking, CRM and insurance "
+bank,A,cc-claude-opus-5-5,8,query19,True,False,101823,1903,75310,9,24.1,0.26519,return_answer,"The total sum assured is ₹79,250,000.00 (₹7.925 crore), across 35 policies held by senior-citizen customers in the AFFLUENT segment.
+
+1. **Senior citizens:** these were the customers flagged as senior"
+bank,A,cc-claude-opus-5-5,9,query19,True,False,132032,1961,105423,10,40.3,0.27313,return_answer,"The total sum assured is ₹79,250,000.00 (₹7,92,50,000.00 in Indian digit grouping). This covers 35 policies held by 35 customers who are both senior citizens and in the AFFLUENT segment.
+
+I linked the"
+bank,B,cc-claude-opus-5-5,5,query19,True,False,97824,1432,71302,9,31.3,0.25504,return_answer,"₹79,250,000.00"
+bank,B,cc-claude-opus-5-5,6,query19,True,False,99951,1404,74735,8,22.9,0.24471,return_answer,"₹79,250,000.00"
+bank,B,cc-claude-opus-5-5,7,query19,True,True,147434,1607,123111,8,23.0,0.2513,return_answer,79250000.00
+bank,B,cc-claude-opus-5-5,8,query19,True,False,147483,1578,122961,8,22.7,0.25228,return_answer,"The total sum assured is ₹79,250,000.00 (7.925 crore), across 35 insurance policies held by senior-citizen customers in the AFFLUENT segment.
+
+To get this, I took the 313 customers marked as senior ci"
+bank,B,cc-claude-opus-5-5,9,query19,True,False,99851,1533,74619,9,20.3,0.2474,return_answer,"The total sum assured is ₹79,250,000.00 (₹7,92,50,000.00 in Indian digit grouping). It comes from 35 insurance policies held by the 108 customers who are both senior citizens and in the AFFLUENT segme"
+bank,A,cc-claude-opus-5-5,5,query2,True,False,14674,238,12227,3,11.0,0.02676,return_answer,102 credit cards are currently frozen.
+bank,A,cc-claude-opus-5-5,6,query2,True,False,14788,327,13846,3,13.7,0.01682,return_answer,102 credit cards are currently frozen. This is a count of the cards table in the cards database where card_type is CREDIT and status is frozen. The other 345 credit cards are active.
+bank,A,cc-claude-opus-5-5,7,query2,True,True,14652,268,13847,3,8.3,0.01455,return_answer,102
+bank,A,cc-claude-opus-5-5,8,query2,True,True,14726,332,13869,3,20.8,0.01625,return_answer,102
+bank,A,cc-claude-opus-5-5,9,query2,True,True,14652,254,13847,3,9.0,0.01427,return_answer,102
+bank,B,cc-claude-opus-5-5,5,query2,True,True,22091,464,18915,4,20.4,0.03844,return_answer,102
+bank,B,cc-claude-opus-5-5,6,query2,True,False,22261,515,21037,4,13.5,0.02427,return_answer,"102 credit cards are currently frozen. I counted cards in the cards database with card type CREDIT and status frozen. Each of the 102 is a different card, identified by its card ID and account number "
+bank,B,cc-claude-opus-5-5,7,query2,True,True,16157,320,15325,3,10.0,0.0161,return_answer,102
+bank,B,cc-claude-opus-5-5,8,query2,True,True,22185,455,21074,4,13.7,0.02217,return_answer,102
+bank,B,cc-claude-opus-5-5,9,query2,True,True,16177,297,15325,3,9.4,0.0158,return_answer,102
+bank,A,cc-claude-opus-5-5,5,query20,True,False,42762,1828,34391,11,30.8,0.11037,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,A,cc-claude-opus-5-5,6,query20,True,False,37741,2053,32391,12,22.5,0.0903,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,A,cc-claude-opus-5-5,7,query20,True,False,36497,1834,31411,11,25.7,0.08361,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,A,cc-claude-opus-5-5,8,query20,True,False,60301,2225,53251,13,27.1,0.11149,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,A,cc-claude-opus-5-5,9,query20,True,False,25463,1807,22102,9,19.9,0.06742,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,B,cc-claude-opus-5-5,5,query20,True,False,33188,1356,28296,9,27.2,0.07188,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,B,cc-claude-opus-5-5,6,query20,True,False,25829,1180,23408,8,24.8,0.04762,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,B,cc-claude-opus-5-5,7,query20,True,False,25374,1103,23050,8,14.5,0.04523,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,B,cc-claude-opus-5-5,8,query20,True,False,33128,1284,30447,9,17.3,0.05318,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,B,cc-claude-opus-5-5,9,query20,True,False,33158,1318,30462,9,16.3,0.05398,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,A,cc-claude-opus-5-5,5,query21,True,False,80806,1441,59688,7,22.8,0.20966,return_answer,"Total outstanding loan amount by customer segment:
+
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+These totals cover all 445 loans in the lending system, and all of them a"
+bank,A,cc-claude-opus-5-5,6,query21,True,False,87812,1243,70535,6,20.7,0.17714,return_answer,"Total outstanding loan amount by customer segment:
+
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+All 445 loans are active, and each one was matched to a customer's segmen"
+bank,A,cc-claude-opus-5-5,7,query21,True,False,92520,1456,74048,6,26.3,0.19167,return_answer,"Total outstanding loan amount by customer segment:
+
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+I linked each loan to a customer by matching the borrower reference to th"
+bank,A,cc-claude-opus-5-5,8,query21,True,False,103980,1589,84406,8,38.2,0.20521,return_answer,"Total outstanding loan amount by customer segment:
+
+- HNI: ₹279,643,333.35 (80 loans)
+- AFFLUENT: ₹179,140,416.68 (182 loans)
+- MASS: ₹65,770,833.34 (183 loans)
+
+All 445 loans in the lending system ar"
+bank,A,cc-claude-opus-5-5,9,query21,True,False,82813,1371,62781,7,27.0,0.20019,return_answer,"Total outstanding loan amount by customer segment:
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+I linked each loan to its customer by matching the loan's borrower referen"
+bank,B,cc-claude-opus-5-5,5,query21,True,False,70208,1174,50638,5,16.8,0.19014,return_answer,"Total outstanding loan amount by customer segment:
+
+- **HNI:** ₹279,643,333.35
+- **AFFLUENT:** ₹179,140,416.68
+- **MASS:** ₹65,770,833.34
+
+Every loan matched a customer with a segment, and none had a "
+bank,B,cc-claude-opus-5-5,6,query21,True,False,69486,1198,52269,5,22.4,0.17212,return_answer,"Total outstanding loan amount by customer segment, in INR:
+
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+All 445 loans (every one has ACTIVE status) were matched to a cus"
+bank,B,cc-claude-opus-5-5,7,query21,True,False,69359,1174,52184,5,32.9,0.17128,return_answer,"Total outstanding loan amount by customer segment (INR):
+
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+These figures cover all 445 loans in the lending system. Every loan"
+bank,B,cc-claude-opus-5-5,8,query21,True,False,90826,1325,73522,6,25.8,0.1796,return_answer,"Total outstanding on loans, by customer segment:
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+This covers all 445 loans in the lending system. Every loan is active, and e"
+bank,B,cc-claude-opus-5-5,9,query21,True,False,89628,1330,72697,6,20.1,0.17655,return_answer,"Total outstanding loan amount by customer segment:
+- HNI: ₹279,643,333.35
+- AFFLUENT: ₹179,140,416.68
+- MASS: ₹65,770,833.34
+
+All 445 loans are ACTIVE, and every loan matched a customer with a segment"
+bank,A,cc-claude-opus-5-5,5,query22,True,False,157756,2890,122736,12,50.4,0.36246,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card. A customer counts if they have the product in any status. If frozen credit cards are l"
+bank,A,cc-claude-opus-5-5,6,query22,True,False,187230,3130,149924,17,37.7,0.39098,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+The four systems identify customers differently, so I matched them to the core bankin"
+bank,A,cc-claude-opus-5-5,7,query22,True,False,127805,2633,94714,13,38.1,0.33628,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+The databases use different IDs for the same customer, so I matched them as follows. "
+bank,A,cc-claude-opus-5-5,8,query22,True,False,188466,3017,147041,17,35.1,0.4211,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+The four systems each identify customers differently, so I matched them like this:
+- "
+bank,A,cc-claude-opus-5-5,9,query22,False,False,97222,2273,58275,11,30.7,0.36866,success,
+bank,B,cc-claude-opus-5-5,5,query22,True,False,140405,2327,99424,13,37.5,0.39423,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+How I counted:
+- **IDs:** I converted each system's customer reference into the core "
+bank,B,cc-claude-opus-5-5,6,query22,True,True,173003,1800,135306,9,27.7,0.3646,return_answer,59
+bank,B,cc-claude-opus-5-5,7,query22,True,False,181319,2153,142915,13,31.0,0.37883,return_answer,"59 customers hold all four products.
+
+I matched customers across the four systems using the core_banking customer ID:
+- **Deposits (FD or RD):** 726 customers, found through each deposit's payout acco"
+bank,B,cc-claude-opus-5-5,8,query22,True,False,135457,2296,98326,12,28.8,0.36259,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+I matched customers across the systems by converting each system's customer or accoun"
+bank,B,cc-claude-opus-5-5,9,query22,True,False,215365,3077,176676,10,41.6,0.40634,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+I matched each system's customer and account references to the core banking customer "
+bank,A,cc-claude-opus-5-5,5,query23,True,False,136550,2976,113840,13,36.5,0.2639,return_answer,"₹437,785.37 — monthly loan EMIs ₹351,601.37 (23 active loans) + active monthly mandates ₹86,184.00 (42 mandates), for the 41 customers whose communication address is in Kerala."
+bank,A,cc-claude-opus-5-5,6,query23,True,False,105505,2083,82687,12,33.4,0.24069,return_answer,"₹437,785.37 in total for customers with a Kerala communication address. This is ₹351,601.37 in monthly EMIs on 23 loans plus ₹86,184.00 from 42 active monthly mandates."
+bank,A,cc-claude-opus-5-5,7,query23,True,False,106566,1755,82557,11,31.4,0.24364,return_answer,"₹437,785.37 per month (EMIs ₹351,601.37 + active monthly mandates ₹86,184.00)"
+bank,A,cc-claude-opus-5-5,8,query23,True,False,138648,2244,113618,13,45.0,0.26779,return_answer,"₹437,785.37"
+bank,A,cc-claude-opus-5-5,9,query23,True,False,108299,2141,83187,12,30.4,0.26031,return_answer,"The total for Kerala customers is ₹437,785.37 a month.
+
+- **Loan EMIs:** ₹351,601.37 from 23 loans. Every loan in the system is active.
+- **Active monthly mandates:** ₹86,184.00 from 42 mandates. Paus"
+bank,B,cc-claude-opus-5-5,5,query23,True,False,84453,1630,62447,9,28.7,0.2211,return_answer,"₹437,785.37"
+bank,B,cc-claude-opus-5-5,6,query23,False,False,72463,1730,52053,9,25.0,0.20825,success,
+bank,B,cc-claude-opus-5-5,7,query23,True,False,89405,1665,68932,7,27.2,0.21083,return_answer,"₹437,785.37. This is ₹351,601.37 in monthly EMIs plus ₹86,184.00 in active monthly mandates. I took the customers whose communication state is Kerala, added up the EMIs on their 23 loans (all of them "
+bank,B,cc-claude-opus-5-5,8,query23,True,False,110284,2032,86283,11,27.6,0.24986,return_answer,"The total is ₹437,785.37 for customers whose communication address is in Kerala.
+
+- **Loan EMIs:** ₹351,601.37 from 23 loans. Every loan in the lending system is marked active.
+- **Active monthly mand"
+bank,B,cc-claude-opus-5-5,9,query23,True,False,99561,2001,78412,10,28.0,0.22485,return_answer,"₹437,785.37 (₹351,601.37 in EMIs on 23 loans + ₹86,184.00 in 42 active monthly mandates, for the 41 customers with a Kerala communication address)"
+bank,A,cc-claude-opus-5-5,5,query24,True,True,89670,1716,72090,9,29.3,0.18933,return_answer,56
+bank,A,cc-claude-opus-5-5,6,query24,True,False,70444,1997,54043,7,30.9,0.18192,return_answer,"56 customers meet both conditions.
+
+1. Credit cards: I kept the 447 credit cards (debit cards were excluded) whose available limit is below half of their credit limit.
+2. Linking cards to customers: e"
+bank,A,cc-claude-opus-5-5,7,query24,True,True,84598,1904,66714,9,29.4,0.19445,return_answer,56
+bank,A,cc-claude-opus-5-5,8,query24,True,True,90466,1804,74263,8,28.6,0.18051,return_answer,56
+bank,A,cc-claude-opus-5-5,9,query24,True,False,71217,1735,54732,7,29.5,0.17749,return_answer,"56 customers meet both conditions.
+
+1. **Credit card check:** 137 credit cards have an available limit below half their credit limit. Each belongs to a different customer, so that's 137 customers.
+2. "
+bank,B,cc-claude-opus-5-5,5,query24,True,False,79904,1554,62989,6,31.2,0.17896,return_answer,"56 customers have both a credit card using more than half its limit and a savings account with more than ₹5,00,000 available.
+
+1. **Credit cards:** There are 447 credit cards, and every one matched an"
+bank,B,cc-claude-opus-5-5,6,query24,True,False,69559,1444,54406,7,23.6,0.16095,return_answer,"56 customers meet both conditions. Each has a credit card whose available limit is below half of its credit limit, and also a savings account whose available balance is above ₹500,000.
+
+To link the tw"
+bank,B,cc-claude-opus-5-5,7,query24,True,True,61173,1159,46930,5,26.3,0.14648,return_answer,56
+bank,B,cc-claude-opus-5-5,8,query24,True,True,61862,1210,47411,5,20.1,0.14926,return_answer,56
+bank,B,cc-claude-opus-5-5,9,query24,True,False,82279,1819,66831,6,27.3,0.17329,return_answer,"56 customers have both a credit card with an available limit below half its credit limit and a savings account with an available balance above ₹500,000.
+
+How I got there:
+- **Credit cards:** Of the 44"
+bank,A,cc-claude-opus-5-5,5,query3,True,False,15015,369,12314,3,12.5,0.03143,return_answer,"The total outstanding across all home loans is ₹462,482,291.67.
+
+This is the sum of the outstanding amount on all 184 home loans in the lending system. All of them have the status ACTIVE."
+bank,A,cc-claude-opus-5-5,6,query3,True,False,15121,338,14043,3,9.1,0.01817,return_answer,"The total outstanding amount across all home loans is ₹462,482,291.67. This covers all 184 home loans, and every one of them is active."
+bank,A,cc-claude-opus-5-5,7,query3,True,False,15140,331,14061,3,13.8,0.01804,return_answer,"₹462,482,291.67 — the total outstanding across all 184 home loans (all ACTIVE)."
+bank,A,cc-claude-opus-5-5,8,query3,True,False,20725,503,19345,4,11.2,0.02494,return_answer,"The total outstanding amount across all home loans is ₹462,482,291.67.
+
+This is the sum over 184 home loans in the lending database. They are all active and each has a unique loan ID. None are missing"
+bank,A,cc-claude-opus-5-5,9,query3,True,False,14874,287,13951,3,8.7,0.01589,return_answer,"₹462,482,291.67"
+bank,B,cc-claude-opus-5-5,5,query3,True,False,22895,500,19398,4,11.2,0.04182,return_answer,"₹462,482,291.67"
+bank,B,cc-claude-opus-5-5,6,query3,True,False,22876,471,21517,4,12.4,0.02456,return_answer,"₹462,482,291.67"
+bank,B,cc-claude-opus-5-5,7,query3,True,False,22910,497,21549,4,11.0,0.02511,return_answer,"₹462,482,291.67"
+bank,B,cc-claude-opus-5-5,8,query3,True,False,22664,478,21365,4,15.4,0.02419,return_answer,"₹462,482,291.67"
+bank,B,cc-claude-opus-5-5,9,query3,True,False,22692,486,21379,4,14.6,0.02447,return_answer,"₹462,482,291.67"
+bank,A,cc-claude-opus-5-5,5,query4,True,False,20170,546,17355,4,14.6,0.03688,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is close behind with 87."
+bank,A,cc-claude-opus-5-5,6,query4,True,False,20208,626,18995,4,13.5,0.02599,return_answer,NovaTel Postpaid has the most paused mandates: 88 of them. Electricity Autopay is a close second with 87. There are 402 paused mandates in total.
+bank,A,cc-claude-opus-5-5,7,query4,True,False,20154,526,18989,4,16.7,0.02361,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is a close second with 87."
+bank,A,cc-claude-opus-5-5,8,query4,True,False,20120,532,18988,4,13.9,0.02346,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is close behind with 87."
+bank,A,cc-claude-opus-5-5,9,query4,True,False,20140,469,18992,4,12.2,0.02233,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is a close second with 87 paused mandates."
+bank,B,cc-claude-opus-5-5,5,query4,True,False,29198,736,25177,5,17.3,0.05188,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. It only just leads Electricity Autopay, which has 87. Next come SIP - Mutual Fund with 81, StreamFlix with 77 and Sentinel Life Premium with 69,"
+bank,B,cc-claude-opus-5-5,6,query4,True,False,28906,688,27164,5,16.2,0.03309,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is a close second with 87. The other counts are SIP - Mutual Fund 81, StreamFlix 77 and Sentinel Life Premium 69, for 402 pa"
+bank,B,cc-claude-opus-5-5,7,query4,True,False,22135,555,20958,4,13.3,0.02468,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is a close second with 87."
+bank,B,cc-claude-opus-5-5,8,query4,True,False,28766,657,27164,5,19.0,0.03135,return_answer,"NovaTel Postpaid has the most paused mandates, with 88."
+bank,B,cc-claude-opus-5-5,9,query4,True,False,22086,510,20959,4,12.9,0.02338,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is second with 87."
+bank,A,cc-claude-opus-5-5,5,query5,True,False,27056,893,23560,6,17.5,0.0505,return_answer,"Customer CUST_0FE6E9CD has two frozen cards. Both are linked to account SB7029842045:
+- CARD60216 → SB7029842045
+- CARD35862 → SB7029842045
+
+The card system stores the account number without its ""SB"" "
+bank,A,cc-claude-opus-5-5,6,query5,True,False,53311,949,44884,6,22.0,0.09533,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to the savings account SB7029842045:
+- CARD60216 (debit card), linked to SB7029842045
+- CARD35862 (credit card), linked to SB7029842045"
+bank,A,cc-claude-opus-5-5,7,query5,True,False,27003,881,25201,6,29.7,0.03704,return_answer,"Customer CUST_0FE6E9CD has 2 frozen cards, and both are linked to savings account SB7029842045:
+- CARD60216 → SB7029842045
+- CARD35862 → SB7029842045
+
+The card system stores the account number without"
+bank,A,cc-claude-opus-5-5,8,query5,True,False,40035,1002,34900,6,19.9,0.06806,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to their savings account SB7029842045:
+- CARD60216 (debit card) is linked to SB7029842045.
+- CARD35862 (credit card) is linked to SB702"
+bank,A,cc-claude-opus-5-5,9,query5,True,False,20707,729,19218,4,22.1,0.0303,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to savings account SB7029842045:
+- CARD60216 (debit card) → SB7029842045
+- CARD35862 (credit card) → SB7029842045
+
+The cards system sto"
+bank,B,cc-claude-opus-5-5,5,query5,True,False,28633,803,24891,5,16.8,0.05093,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to savings account SB7029842045:
+- CARD60216 (debit card) → SB7029842045
+- CARD35862 (credit card) → SB7029842045
+
+The customer's other"
+bank,B,cc-claude-opus-5-5,6,query5,True,False,22252,566,21013,4,18.2,0.0254,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to the same bank account:
+- Card CARD60216, linked to account SB7029842045
+- Card CARD35862, linked to account SB7029842045
+
+The custom"
+bank,B,cc-claude-opus-5-5,7,query5,True,False,22222,574,20979,4,17.8,0.02559,return_answer,"Customer CUST_0FE6E9CD has two accounts, SB7029842045 and CA1291297546. Two cards are frozen, and both are linked to savings account SB7029842045:
+- CARD60216 → SB7029842045
+- CARD35862 → SB7029842045"
+bank,B,cc-claude-opus-5-5,8,query5,True,False,22032,520,20979,4,17.5,0.02299,return_answer,CARD60216 -> SB7029842045; CARD35862 -> SB7029842045
+bank,B,cc-claude-opus-5-5,9,query5,True,False,28451,785,26927,5,16.2,0.03324,return_answer,"Customer CUST_0FE6E9CD has 2 frozen cards, both linked to savings account SB7029842045:
+- CARD60216 -> SB7029842045
+- CARD35862 -> SB7029842045
+The customer's other account, CA1291297546, has no cards"
+bank,A,cc-claude-opus-5-5,5,query6,True,False,83041,1338,65396,6,20.3,0.18096,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+To get this, I linked each loan's borrower reference to a customer ID by adding the ""CUST_"" prefix and converting to upper case (for example, "
+bank,A,cc-claude-opus-5-5,6,query6,True,False,63405,1149,47500,5,18.6,0.15969,return_answer,"27 senior-citizen customers hold at least one gold loan. I matched gold-loan borrowers in the lending system to the core banking customer list by adding the ""CUST_"" prefix to each borrower reference. "
+bank,A,cc-claude-opus-5-5,7,query6,True,False,67095,1522,54128,9,23.8,0.14495,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+There are 108 active gold loans, each held by a different borrower. To link the two systems, I took each lending borrower reference and matche"
+bank,A,cc-claude-opus-5-5,8,query6,True,False,83929,1291,67595,6,20.7,0.16997,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+There are 108 gold loans, each belonging to a different customer, and every one matches a customer in the core banking records. A loan's borro"
+bank,A,cc-claude-opus-5-5,9,query6,True,True,66062,1148,54325,8,23.9,0.12767,return_answer,27
+bank,B,cc-claude-opus-5-5,5,query6,True,False,59406,1002,45531,7,15.8,0.14011,return_answer,"27 senior-citizen customers hold at least one gold loan. All 108 gold loans in the lending system are active, and each belongs to a different borrower. Of those 108 borrowers, 27 are marked as senior "
+bank,B,cc-claude-opus-5-5,6,query6,True,False,59516,1046,47678,7,17.2,0.12512,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+The lending system has 108 gold loans, all active, and each belongs to a different borrower. The core banking system lists 313 customers flagg"
+bank,B,cc-claude-opus-5-5,7,query6,True,False,76352,1119,64333,8,21.8,0.13135,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+There are 313 senior citizens (all aged 60 to 78) and 108 gold loans, each with a different borrower. All the gold loans are active. I counted"
+bank,B,cc-claude-opus-5-5,8,query6,True,False,75776,1053,63940,8,18.7,0.12849,return_answer,"27 senior-citizen customers hold at least one gold loan. There are 108 gold loans, all active, held by 108 different borrowers. 27 of those borrowers are among the 313 customers marked as senior citiz"
+bank,B,cc-claude-opus-5-5,9,query6,True,False,59259,944,47550,7,15.7,0.12202,return_answer,"27 senior-citizen customers hold at least one gold loan.
+
+The bank has 313 customers flagged as senior citizens, all aged 60 to 78. The lending system has 108 different gold-loan borrowers. I matched "
+bank,A,cc-claude-opus-5-5,5,query7,True,False,64888,1220,50969,8,22.9,0.1459,return_answer,"₹421,214,400.00"
+bank,A,cc-claude-opus-5-5,6,query7,True,False,60437,1158,47452,7,17.3,0.13649,return_answer,"The HNI segment holds a total of ₹421,214,400.00 in available balance across its savings accounts.
+
+All 157 HNI customers have one savings account each, so 157 accounts are counted. The two systems wr"
+bank,A,cc-claude-opus-5-5,7,query7,True,False,71186,1318,58423,9,19.4,0.1401,return_answer,"₹421,214,400.00"
+bank,A,cc-claude-opus-5-5,8,query7,True,False,61318,1317,48053,7,25.0,0.14203,return_answer,"The total available balance across savings accounts held by HNI customers is ₹421,214,400.00 (₹42,12,14,400.00).
+
+This covers 157 savings accounts, one for each of the 157 customers marked HNI in the "
+bank,A,cc-claude-opus-5-5,9,query7,True,False,60323,1171,47551,7,17.1,0.13507,return_answer,"₹421,214,400.00"
+bank,B,cc-claude-opus-5-5,5,query7,True,False,78026,1147,63197,8,22.0,0.15416,return_answer,"The 157 HNI customers hold ₹421,214,400.00 in total available balance across their savings accounts. Each has one savings account, so 157 accounts are counted. The customer list came from the HNI segm"
+bank,B,cc-claude-opus-5-5,6,query7,True,False,70080,1016,57886,7,27.6,0.1294,return_answer,"The 157 HNI customers hold 157 savings accounts between them, with a total available balance of ₹421,214,400.00 (₹42,12,14,400.00)."
+bank,B,cc-claude-opus-5-5,7,query7,False,False,58761,1321,46976,6,21.8,0.13006,success,
+bank,B,cc-claude-opus-5-5,8,query7,True,False,75845,1437,63646,7,23.2,0.13901,return_answer,"The total available balance across savings accounts held by HNI customers is ₹421,214,400.00.
+
+I found the 157 HNI customers in the CRM system and matched them to savings accounts in the core banking "
+bank,B,cc-claude-opus-5-5,9,query7,True,False,66543,1262,54367,8,28.5,0.13347,return_answer,"₹421,214,400.00 (₹42.12 crore) is the total available balance in savings accounts held by HNI-segment customers.
+
+The CRM system lists 157 customers in the HNI segment. I matched them to the core bank"
+bank,A,cc-claude-opus-5-5,5,query8,True,False,21919,954,18110,5,16.0,0.05314,return_answer,"Customer CUST_04B8D21C (Priya Ramesh Chaudhary) has 1 savings account, SB3968813086. Two active mandates debit it:
+- MND29967257: NovaTel Postpaid, ₹399 per month (ENACH)
+- MND19809350: SIP - Mutual F"
+bank,A,cc-claude-opus-5-5,6,query8,True,False,27215,893,25207,5,17.1,0.03893,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086. Two active mandates debit that account, for a total of ₹5,399 per month:
+- MND29967257: NovaTel Postpaid, ENACH, ₹399 monthly
+- MND1980935"
+bank,A,cc-claude-opus-5-5,7,query8,True,False,27547,1017,25321,5,23.1,0.04317,return_answer,"Customer CUST_04B8D21C (Priya Ramesh Chaudhary) has one savings account, SB3968813086. In the payments system it appears as OURB0104713/SB3968813086 (the branch code followed by the account number).
+
+"
+bank,A,cc-claude-opus-5-5,8,query8,True,False,27383,989,25231,5,16.9,0.042,return_answer,"Customer CUST_04B8D21C (Priya Ramesh Chaudhary) has one savings account, SB3968813086. In the payments system, mandates store it as ""OURB0104713/SB3968813086"".
+
+Two mandates on that account are active"
+bank,A,cc-claude-opus-5-5,9,query8,True,False,21883,927,19757,5,30.8,0.03947,return_answer,"Customer CUST_04B8D21C (Priya Ramesh Chaudhary) has one savings account, SB3968813086. Three mandates debit it, and two of them are active:
+- MND29967257: NovaTel Postpaid, ₹399 monthly (ENACH)
+- MND1"
+bank,B,cc-claude-opus-5-5,5,query8,True,False,25850,834,21097,5,14.8,0.05889,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086 (IFSC OURB0104713). Two active mandates debit that account: MND29967257 (NovaTel Postpaid, INR 399/month) and MND19809350 (SIP - Mutual Fun"
+bank,B,cc-claude-opus-5-5,6,query8,True,False,23030,671,21370,4,13.9,0.03094,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086 (OURB0104713/SB3968813086). Two active mandates debit it: MND29967257 (NovaTel Postpaid, ENACH, INR 399 monthly) and MND19809350 (SIP - Mut"
+bank,B,cc-claude-opus-5-5,7,query8,True,False,23129,745,21370,4,14.9,0.03321,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086 (IFSC OURB0104713). Two active mandates debit it:
+- MND29967257: NovaTel Postpaid, ₹399 per month (ENACH)
+- MND19809350: SIP - Mutual Fund,"
+bank,B,cc-claude-opus-5-5,8,query8,True,False,23204,833,21422,4,15.9,0.03517,return_answer,"Customer CUST_04B8D21C has two active mandates on its only savings account, SB3968813086. Together they come to ₹5,399 a month.
+- MND29967257: NovaTel Postpaid, ₹399 a month (ENACH)
+- MND19809350: SIP"
+bank,B,cc-claude-opus-5-5,9,query8,True,False,23067,745,21370,4,20.8,0.03272,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086 (IFSC OURB0104713). Two active mandates debit it: MND29967257 (NovaTel Postpaid, ₹399 a month) and MND19809350 (SIP - Mutual Fund, ₹5,000 a"
+bank,A,cc-claude-opus-5-5,5,query9,True,False,83607,1173,67218,7,21.8,0.16797,return_answer,"318 open service requests belong to customers aged 60 or over. All 957 service requests in the CRM system are open, and every one matched an account and its customer's age in the core banking system."
+bank,A,cc-claude-opus-5-5,6,query9,True,False,69409,1086,53730,7,17.5,0.15786,return_answer,"318 open service requests belong to customers aged 60 or over. All 957 service requests in the CRM system have status OPEN, and each one is linked to an account in core banking. I matched each request"
+bank,A,cc-claude-opus-5-5,7,query9,True,False,70160,1165,54035,7,21.8,0.16307,return_answer,"318 open service requests belong to customers aged 60 or over.
+
+I worked this out by matching the account on each service request in the CRM to its owner's age in the core banking records. Every servi"
+bank,A,cc-claude-opus-5-5,8,query9,True,True,92451,1274,75885,8,20.3,0.17314,return_answer,318
+bank,A,cc-claude-opus-5-5,9,query9,True,False,69541,1176,53763,7,18.7,0.16046,return_answer,"318 open service requests belong to customers aged 60 or over, out of 957 open requests in total. Every service request in the CRM has the status OPEN. I linked each request's account to its owner in "
+bank,B,cc-claude-opus-5-5,5,query9,True,True,71664,1144,53888,7,35.1,0.17583,return_answer,318
+bank,B,cc-claude-opus-5-5,6,query9,True,True,74990,931,60293,6,16.9,0.14821,return_answer,318
+bank,B,cc-claude-opus-5-5,7,query9,True,False,91541,1528,75569,8,26.4,0.1734,return_answer,"318 open service requests belong to customers aged 60 or over.
+
+All 957 service requests in the CRM system have status OPEN. I matched each request to its customer through its account number in the co"
+bank,B,cc-claude-opus-5-5,8,query9,True,False,75230,1021,60347,6,31.7,0.15151,return_answer,"318 open service requests belong to customers aged 60 or over.
+
+All 957 service requests in the CRM system have status OPEN. I linked each request to its customer through the account it was raised on,"
+bank,B,cc-claude-opus-5-5,9,query9,True,False,134467,1182,112753,8,19.1,0.21985,return_answer,"318 open service requests belong to customers aged 60 or over.
+
+I found these by linking each service request's account to its owner in the core banking customer records and keeping owners aged 60 or "
+bank,C,cc-claude-opus-5-5,5,query1,True,True,20121,618,14734,4,14.1,0.05837,return_answer,53
+bank,C,cc-claude-opus-5-5,6,query1,True,False,20351,711,18892,4,12.6,0.02964,return_answer,"53 recurring deposits (RD) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. This is out of 531 RDs in total. Every RD has a maturity date in the same YYYY-MM-DD format, so none were "
+bank,C,cc-claude-opus-5-5,7,query1,True,False,20693,853,19035,5,13.8,0.0341,return_answer,"53 recurring deposits (RDs) have a maturity date between 2026-10-01 and 2026-12-31, inclusive. All 53 are currently active.
+
+I counted every RD across all customer records (531 RDs in total) and kept "
+bank,C,cc-claude-opus-5-5,8,query1,True,True,20980,478,16820,3,11.0,0.04618,return_answer,53
+bank,C,cc-claude-opus-5-5,9,query1,True,False,25916,887,24298,5,22.9,0.0355,return_answer,"53 recurring deposits mature between 2026-10-01 and 2026-12-31, counting both end dates. All 53 have status ACTIVE. Every maturity date in the data uses the YYYY-MM-DD format, so the date range check "
+bank,C,cc-claude-opus-5-5,5,query10,True,False,21077,792,17774,4,13.4,0.04579,return_answer,"105 senior-citizen customers hold at least one insurance policy. Every customer flagged as a senior citizen is 60 or older, and no customer aged 60 or older is missing the flag, so the count is the sa"
+bank,C,cc-claude-opus-5-5,6,query10,True,False,27270,979,25163,5,32.3,0.04143,return_answer,105 senior-citizen customers hold at least one insurance policy. They make up about a third of the 313 senior citizens in the bank's records; the other 208 have none. Each of the 105 holds exactly one
+bank,C,cc-claude-opus-5-5,7,query10,True,False,20773,787,19245,4,16.6,0.03178,return_answer,105 senior-citizen customers hold at least one insurance policy. Every one of their policies is currently in force.
+bank,C,cc-claude-opus-5-5,8,query10,True,True,33213,964,31170,6,16.7,0.0418,return_answer,105
+bank,C,cc-claude-opus-5-5,9,query10,True,False,27265,937,25151,5,15.5,0.04064,return_answer,"105 senior-citizen customers hold at least one insurance policy. Each of them has exactly one policy, and all 105 policies are in force. In total there are 313 senior citizens, so the other 208 have n"
+bank,C,cc-claude-opus-5-5,5,query11,True,False,21730,880,17904,4,14.0,0.05176,return_answer,"New Delhi Main Branch has the most frozen cards, with 30 cards linked to accounts held there. Mysuru Main Branch is next with 21, then Gurugram Main Branch with 20. All 342 frozen cards in the bank li"
+bank,C,cc-claude-opus-5-5,6,query11,True,False,21808,895,19457,4,18.6,0.04057,return_answer,New Delhi Main Branch has the most frozen cards: 30 of them are linked to accounts held at that branch. Mysuru Main Branch is second with 21 and Gurugram Main Branch third with 20. I matched each froz
+bank,C,cc-claude-opus-5-5,7,query11,True,False,21825,884,19465,4,20.3,0.04042,return_answer,"New Delhi Main Branch has the most frozen cards: 30 frozen cards are linked to accounts held there.
+
+The next highest is Mysuru Main Branch with 21, followed by Gurugram Main Branch with 20.
+
+All 342 "
+bank,C,cc-claude-opus-5-5,8,query11,True,False,22604,935,19875,4,14.7,0.04448,return_answer,"New Delhi Main Branch has the most frozen cards: 30.
+
+I matched each frozen card to the account it is linked to, then counted by that account's home branch. All 342 frozen cards matched an account. My"
+bank,C,cc-claude-opus-5-5,9,query11,True,False,22464,941,19781,4,14.5,0.04421,return_answer,"New Delhi Main Branch has the most frozen cards: 30. I counted every card with status ""frozen"" (342 in total) and assigned each one to the home branch of the account it is linked to. Every frozen card"
+bank,C,cc-claude-opus-5-5,5,query12,True,False,22262,779,18662,4,21.5,0.04808,return_answer,"The average EMI of personal loans held by MASS-segment customers is ₹5,208.90, across 71 personal loans, all active. Every EMI is stored as a number and the segment and loan-type labels have no varian"
+bank,C,cc-claude-opus-5-5,6,query12,True,False,22040,642,20111,4,21.1,0.03226,return_answer,"₹5,208.90"
+bank,C,cc-claude-opus-5-5,7,query12,True,False,23003,737,20640,4,15.4,0.03774,return_answer,"The average EMI of personal loans held by customers in the MASS segment is ₹5,208.90. This covers 71 personal loans, all active, with EMIs adding up to ₹369,831.91. The smallest EMI is ₹1,063.20 and t"
+bank,C,cc-claude-opus-5-5,8,query12,True,False,21922,585,20072,4,11.6,0.03048,return_answer,"₹5,208.90"
+bank,C,cc-claude-opus-5-5,9,query12,True,False,39976,1012,32280,5,23.7,0.08822,return_answer,"The average EMI on personal loans held by MASS-segment customers is ₹5,208.90.
+
+This covers 71 personal loans, all active. I checked the data first: the segment names and loan types are spelled consis"
+bank,C,cc-claude-opus-5-5,5,query13,True,True,20499,646,17661,4,12.2,0.03912,return_answer,18
+bank,C,cc-claude-opus-5-5,6,query13,True,True,20490,660,19151,4,17.9,0.02771,return_answer,18
+bank,C,cc-claude-opus-5-5,7,query13,True,True,20499,652,19157,4,12.6,0.02758,return_answer,18
+bank,C,cc-claude-opus-5-5,8,query13,True,True,20499,679,19157,4,11.8,0.02812,return_answer,18
+bank,C,cc-claude-opus-5-5,9,query13,True,True,20499,652,19157,4,15.8,0.02758,return_answer,18
+bank,C,cc-claude-opus-5-5,5,query14,True,False,19751,644,14527,3,11.2,0.05755,return_answer,"Customer CUST_08796420 (Rajan Kiritbhai Patel):
+
+(a) Total available balance across all accounts: ₹575,000.00. This is ₹75,000.00 in current account CA6721715603 plus ₹500,000.00 in savings account SB"
+bank,C,cc-claude-opus-5-5,6,query14,True,False,17236,702,14828,3,11.6,0.03625,return_answer,"For customer CUST_08796420:
+(a) The total available balance is ₹575000.00. This is ₹75000.00 in current account CA6721715603 plus ₹500000.00 in savings account SB2019616752. Both accounts are active a"
+bank,C,cc-claude-opus-5-5,7,query14,True,False,16843,650,14646,3,12.6,0.03348,return_answer,"For customer CUST_08796420:
+(a) The total available balance across all accounts is ₹575,000.00. This is ₹75,000.00 in current account CA6721715603 plus ₹500,000.00 in savings account SB2019616752.
+(b)"
+bank,C,cc-claude-opus-5-5,8,query14,True,False,16927,668,14686,3,11.9,0.0342,return_answer,"Results for customer CUST_08796420:
+(a) Total available balance: ₹575,000.00. This is ₹75,000.00 in current account CA6721715603 plus ₹500,000.00 in savings account SB2019616752. Neither account has a"
+bank,C,cc-claude-opus-5-5,9,query14,True,False,16829,624,14644,3,10.8,0.03286,return_answer,"Customer CUST_08796420:
+(a) Total available balance across all accounts: ₹575,000.00. This is ₹75,000.00 in current account CA6721715603 plus ₹500,000.00 in savings account SB2019616752.
+(b) Cards tha"
+bank,C,cc-claude-opus-5-5,5,query15,True,True,28940,957,24842,7,16.2,0.05685,return_answer,11
+bank,C,cc-claude-opus-5-5,6,query15,True,True,35912,1130,33252,7,18.3,0.05048,return_answer,11
+bank,C,cc-claude-opus-5-5,7,query15,True,True,29005,914,26488,7,15.3,0.04367,return_answer,11
+bank,C,cc-claude-opus-5-5,8,query15,True,True,28290,796,26016,6,13.7,0.03928,return_answer,11
+bank,C,cc-claude-opus-5-5,9,query15,True,True,29017,973,26497,7,19.1,0.04488,return_answer,11
+bank,C,cc-claude-opus-5-5,5,query16,True,False,45285,1190,33789,4,23.5,0.12249,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them. I checked all 944 customer records. An account was counted when it is a savings account, at "
+bank,C,cc-claude-opus-5-5,6,query16,True,False,22540,1252,20272,4,17.9,0.04721,return_answer,"80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate that debits them. I counted each savings account once. A card counted if its status was ""frozen"" and its li"
+bank,C,cc-claude-opus-5-5,7,query16,True,True,52322,1295,41841,5,23.2,0.11808,return_answer,80
+bank,C,cc-claude-opus-5-5,8,query16,True,False,50900,1568,41027,5,34.4,0.11851,return_answer,80 savings accounts have both a frozen card linked to them and an active UPI_AUTOPAY mandate debiting them. Each one belongs to a different customer. I checked that the frozen card and the active UPI_
+bank,C,cc-claude-opus-5-5,9,query16,True,True,22484,1482,20335,4,19.9,0.05087,return_answer,80
+bank,C,cc-claude-opus-5-5,5,query17,True,True,32260,1529,27465,5,25.6,0.07439,return_answer,6
+bank,C,cc-claude-opus-5-5,6,query17,True,True,24422,1138,21627,5,23.2,0.04941,return_answer,6
+bank,C,cc-claude-opus-5-5,7,query17,True,False,30815,1210,27867,5,25.5,0.05332,return_answer,6 customers in the Information Technology sector made at least one ATM debit transaction between 2026-06-15 and 2026-06-30 and also hold a frozen debit card. The ATM transaction can be on any of the c
+bank,C,cc-claude-opus-5-5,8,query17,True,False,31938,1358,28624,5,16.9,0.05936,return_answer,"6 customers in the Information Technology sector made at least one ATM debit transaction between 2026-06-15 and 2026-06-30 (inclusive) and also hold a frozen debit card: CUST_9DAFA6A9, CUST_A93465FD, "
+bank,C,cc-claude-opus-5-5,9,query17,True,False,25351,1188,21807,4,16.4,0.05644,return_answer,"6 customers in the Information Technology sector meet both conditions: at least one ATM debit transaction between 2026-06-15 and 2026-06-30 (inclusive), and at least one frozen debit card.
+
+- CUST_72D"
+bank,C,cc-claude-opus-5-5,5,query18,True,False,30420,1051,26199,6,19.6,0.05998,return_answer,"Maharashtra has the highest total outstanding gold-loan amount by communication address: ₹4,070,000.00 across 17 gold loans. Uttar Pradesh is next at ₹2,682,499.99 (11 loans), followed by Kerala at ₹2"
+bank,C,cc-claude-opus-5-5,6,query18,True,False,24384,854,21318,5,26.3,0.04584,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, based on customers' communication addresses. The total is ₹4,070,000.00 across 17 gold loans, all of them active.
+
+Uttar Pradesh is seco"
+bank,C,cc-claude-opus-5-5,7,query18,True,False,24336,833,21360,5,12.7,0.04471,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, ₹4,070,000.00 (₹40.70 lakh), across 17 gold loans.
+
+This is grouped by the state in each customer's communication address. All gold loan"
+bank,C,cc-claude-opus-5-5,8,query18,True,False,21540,669,19588,4,12.2,0.03288,return_answer,"Maharashtra has the highest total outstanding gold-loan amount: ₹4,070,000.00 across 17 gold loans."
+bank,C,cc-claude-opus-5-5,9,query18,True,False,22275,757,19894,4,12.9,0.03813,return_answer,"Maharashtra has the highest total outstanding gold-loan amount, based on customers' communication address. Its total is ₹4,070,000.00 across 17 gold loans. Uttar Pradesh is second at ₹2,682,499.99. Al"
+bank,C,cc-claude-opus-5-5,5,query19,True,False,21206,769,18059,4,13.6,0.04414,return_answer,"₹79,250,000.00"
+bank,C,cc-claude-opus-5-5,6,query19,True,True,34424,936,32127,6,33.7,0.04347,return_answer,79250000.00
+bank,C,cc-claude-opus-5-5,7,query19,True,False,28092,945,25722,5,28.2,0.04296,return_answer,"₹79,250,000.00 — total sum assured of the 35 insurance policies held by senior-citizen customers in the AFFLUENT segment (108 such customers; all policies are IN_FORCE)."
+bank,C,cc-claude-opus-5-5,8,query19,True,False,27536,945,25279,5,15.9,0.04197,return_answer,"The total sum assured is ₹79,250,000.00 (₹7.925 crore), across 35 policies held by senior-citizen customers in the AFFLUENT segment. All 35 policies are in force. Every one of these customers is flagg"
+bank,C,cc-claude-opus-5-5,9,query19,True,False,27857,853,25595,5,16.1,0.04024,return_answer,"Senior-citizen customers in the AFFLUENT segment hold insurance policies with a total sum assured of ₹79,250,000.00 (7.925 crore). This covers 35 policies, all currently in force, held across the 108 "
+bank,C,cc-claude-opus-5-5,5,query2,True,True,14470,435,12048,3,10.5,0.03046,return_answer,102
+bank,C,cc-claude-opus-5-5,6,query2,True,True,14409,344,13521,3,10.3,0.01666,return_answer,102
+bank,C,cc-claude-opus-5-5,7,query2,True,False,14445,397,13527,3,12.9,0.01797,return_answer,102 credit cards are currently frozen.
+bank,C,cc-claude-opus-5-5,8,query2,True,False,14623,447,13529,3,11.9,0.02037,return_answer,102 credit cards are currently frozen. I counted every card across all customers by type and status. The data has only two card types (debit and credit) and two statuses (active and frozen). Of the 44
+bank,C,cc-claude-opus-5-5,9,query2,True,False,14488,425,13538,3,12.4,0.01878,return_answer,102 credit cards are currently frozen.
+bank,C,cc-claude-opus-5-5,5,query20,True,False,15662,807,12646,3,16.6,0.04277,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,C,cc-claude-opus-5-5,6,query20,True,False,15925,842,14343,3,12.5,0.03234,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,C,cc-claude-opus-5-5,7,query20,True,False,15579,801,14171,3,12.5,0.03009,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,C,cc-claude-opus-5-5,8,query20,True,False,15594,822,14177,3,14.5,0.03059,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,C,cc-claude-opus-5-5,9,query20,True,False,16181,809,14493,3,13.3,0.03256,return_answer,"accounts: 2, cards: 1, deposits: 1, loans: 1, insurance policies: 1, mandates: 3"
+bank,C,cc-claude-opus-5-5,5,query21,True,False,21144,705,17913,4,21.8,0.0435,return_answer,"Total outstanding loan amount by customer segment (all 445 loans are active):
+- HNI: ₹279,643,333.35 (80 loans)
+- AFFLUENT: ₹179,140,416.68 (182 loans)
+- MASS: ₹65,770,833.34 (183 loans)"
+bank,C,cc-claude-opus-5-5,6,query21,True,False,15395,631,13980,3,11.2,0.02671,return_answer,"HNI: ₹279,643,333.35; AFFLUENT: ₹179,140,416.68; MASS: ₹65,770,833.34"
+bank,C,cc-claude-opus-5-5,7,query21,True,False,21291,745,19482,4,13.5,0.03324,return_answer,"Total outstanding loan amount by customer segment:
+- HNI: ₹279,643,333.35 across 80 loans
+- AFFLUENT: ₹179,140,416.68 across 182 loans
+- MASS: ₹65,770,833.34 across 183 loans
+
+All 445 loans are active"
+bank,C,cc-claude-opus-5-5,8,query21,True,False,21156,778,19430,4,16.9,0.03322,return_answer,"Total outstanding loan amount by customer segment (all loans are ACTIVE):
+- HNI: ₹279,643,333.35 (80 loans)
+- AFFLUENT: ₹179,140,416.68 (182 loans)
+- MASS: ₹65,770,833.34 (183 loans)"
+bank,C,cc-claude-opus-5-5,9,query21,True,False,21691,907,19916,4,13.8,0.03628,return_answer,"Total outstanding loan amount by segment:
+- HNI: ₹279,643,333.35 (80 loans)
+- AFFLUENT: ₹179,140,416.68 (182 loans)
+- MASS: ₹65,770,833.34 (183 loans)"
+bank,C,cc-claude-opus-5-5,5,query22,True,False,28320,1507,24305,5,24.2,0.06708,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card. All of their deposits, loans and policies are active. Of the 59, 49 have at least one "
+bank,C,cc-claude-opus-5-5,6,query22,True,True,21850,832,20049,4,13.2,0.03503,return_answer,59
+bank,C,cc-claude-opus-5-5,7,query22,True,False,54229,997,43044,5,16.4,0.11799,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card. This is out of 944 customers in the bank's records.
+
+Every deposit, loan and insurance"
+bank,C,cc-claude-opus-5-5,8,query22,True,False,35504,1359,32631,8,34.6,0.05664,return_answer,"59 customers hold all four products: at least one fixed or recurring deposit, a loan, an insurance policy and a credit card. All deposits and loans are active and all insurance policies are in force. "
+bank,C,cc-claude-opus-5-5,9,query22,True,False,36238,1570,33248,6,20.8,0.06192,return_answer,"59 customers hold all four products: a fixed or recurring deposit, a loan, an insurance policy and a credit card.
+
+All deposits and loans are active, and all insurance policies are in force. Some cred"
+bank,C,cc-claude-opus-5-5,5,query23,True,False,56795,1428,45521,8,19.5,0.12781,return_answer,"₹437,785.37 (loan EMIs ₹351,601.37 + active monthly mandates ₹86,184.00, across the 41 customers whose communication address is in Kerala)"
+bank,C,cc-claude-opus-5-5,6,query23,True,False,30268,1405,27011,7,31.0,0.05952,return_answer,"The total is ₹4,37,785.37 (437,785.37 rupees) across the 41 customers whose communication address is in Kerala.
+
+- **Loan EMIs:** ₹3,51,601.37. Every loan in the database is marked active, so all of t"
+bank,C,cc-claude-opus-5-5,7,query23,True,False,57578,1538,47333,8,32.1,0.12214,return_answer,"The total is ₹437,785.37 a month. This covers the 41 customers whose communication address is in Kerala.
+
+- **Loan EMIs:** ₹351,601.37. Every loan in the database is marked active, so all of them are "
+bank,C,cc-claude-opus-5-5,8,query23,True,False,41480,1705,37206,8,23.2,0.07569,return_answer,"The total is ₹437,785.37 for the 41 customers whose communication address is in Kerala.
+
+- **Loan EMIs:** ₹351,601.37 across their 23 loans, all of which are active.
+- **Active monthly mandates:** ₹86"
+bank,C,cc-claude-opus-5-5,9,query23,True,False,30300,1386,27208,7,26.6,0.05786,return_answer,"₹437,785.37 (loan EMIs ₹351,601.37 + active monthly mandates ₹86,184.00, across 41 customers with a Kerala communication address)"
+bank,C,cc-claude-opus-5-5,5,query24,True,True,29284,1516,25253,5,27.5,0.06758,return_answer,56
+bank,C,cc-claude-opus-5-5,6,query24,True,False,52824,1146,42088,5,21.5,0.11719,return_answer,"56 customers have both a credit card with an available limit below half of its credit limit and a savings account with an available balance above ₹500,000.
+
+I counted all cards and accounts whatever t"
+bank,C,cc-claude-opus-5-5,7,query24,True,False,40078,1910,35975,7,36.5,0.07817,return_answer,"56 customers meet both conditions.
+
+1. **Credit card condition:** 137 customers have at least one credit card whose available limit is less than half of its credit limit.
+2. **Savings condition:** of "
+bank,C,cc-claude-opus-5-5,8,query24,True,False,58592,1258,46397,5,20.9,0.13196,return_answer,"56 customers have at least one credit card whose available limit is below half of its credit limit, and also at least one savings account with an available balance above ₹500,000. I counted across all"
+bank,C,cc-claude-opus-5-5,9,query24,True,False,46397,1144,37816,5,21.8,0.09905,return_answer,"56 customers meet both conditions: they have a credit card whose available limit is below half its credit limit, and a savings account with an available balance above ₹5,00,000. I checked every credit"
+bank,C,cc-claude-opus-5-5,5,query3,True,False,15198,524,12397,3,14.1,0.03534,return_answer,"₹462,482,291.67"
+bank,C,cc-claude-opus-5-5,6,query3,True,False,15217,513,13898,3,20.4,0.02357,return_answer,"₹462,482,291.67"
+bank,C,cc-claude-opus-5-5,7,query3,True,False,15250,520,13898,3,14.5,0.02397,return_answer,"₹462,482,291.67"
+bank,C,cc-claude-opus-5-5,8,query3,True,False,15241,543,13910,3,10.7,0.02427,return_answer,"₹462,482,291.67"
+bank,C,cc-claude-opus-5-5,9,query3,True,False,21773,865,19820,5,16.9,0.03686,return_answer,"₹462,482,291.67 (total outstanding across all 184 home loans)"
+bank,C,cc-claude-opus-5-5,5,query4,True,False,19961,690,17084,4,14.3,0.0402,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. The bank has 402 paused mandates in total, and the runner-up is close behind: Electricity Autopay has 87. The others are SIP - Mutual Fund with "
+bank,C,cc-claude-opus-5-5,6,query4,True,False,19949,712,18569,4,16.8,0.02896,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. The bank has 402 paused mandates across five payees. Electricity Autopay is a close second with 87, followed by SIP - Mutual Fund (81), StreamFl"
+bank,C,cc-claude-opus-5-5,7,query4,True,False,19888,633,18589,4,18.2,0.02674,return_answer,NovaTel Postpaid has the most paused mandates: 88. Electricity Autopay is close behind with 87. These counts come from all 402 paused mandates across the bank's customers.
+bank,C,cc-claude-opus-5-5,8,query4,True,False,26626,882,24477,5,14.5,0.03969,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. Electricity Autopay is close behind with 87. Next come SIP - Mutual Fund with 81, StreamFlix with 77 and Sentinel Life Premium with 69. Across a"
+bank,C,cc-claude-opus-5-5,9,query4,True,False,19967,694,18571,4,12.2,0.02873,return_answer,"NovaTel Postpaid has the most paused mandates, with 88. It is only one ahead of Electricity Autopay, which has 87. The other payees with paused mandates are SIP - Mutual Fund (81), StreamFlix (77) and"
+bank,C,cc-claude-opus-5-5,5,query5,True,False,16026,409,12773,3,11.0,0.03673,return_answer,"Customer CUST_0FE6E9CD has two frozen cards. Both are linked to the same savings account, SB7029842045:
+- CARD35862 (Mastercard credit card) → SB7029842045
+- CARD60216 (RuPay debit card) → SB702984204"
+bank,C,cc-claude-opus-5-5,6,query5,True,False,16020,437,14297,3,15.8,0.02536,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to savings account SB7029842045:
+- CARD35862 (Mastercard credit card) → SB7029842045
+- CARD60216 (RuPay debit card) → SB7029842045"
+bank,C,cc-claude-opus-5-5,7,query5,True,False,16034,415,14297,3,13.8,0.02503,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to savings account SB7029842045:
+- CARD35862 (credit card, Mastercard) is linked to account SB7029842045.
+- CARD60216 (debit card, RuPa"
+bank,C,cc-claude-opus-5-5,8,query5,True,False,16024,421,14297,3,11.0,0.02507,return_answer,"Customer CUST_0FE6E9CD has 2 frozen cards, and both are linked to savings account SB7029842045:
+- CARD35862 (Mastercard credit card) → SB7029842045
+- CARD60216 (RuPay debit card) → SB7029842045"
+bank,C,cc-claude-opus-5-5,9,query5,True,False,16020,417,14297,3,11.2,0.02496,return_answer,"Customer CUST_0FE6E9CD has two frozen cards, and both are linked to savings account SB7029842045:
+- CARD35862 (Mastercard credit card) → SB7029842045
+- CARD60216 (RuPay debit card) → SB7029842045"
+bank,C,cc-claude-opus-5-5,5,query6,True,True,20710,630,17749,4,13.1,0.03981,return_answer,27
+bank,C,cc-claude-opus-5-5,6,query6,True,True,20855,720,19386,5,17.6,0.03,return_answer,27
+bank,C,cc-claude-opus-5-5,7,query6,True,False,20941,738,19246,4,14.1,0.03214,return_answer,"27 senior-citizen customers hold at least one gold loan. Every one of those gold loans is active, and each of these customers has exactly one. The senior-citizen flag matched age 60 or over for every "
+bank,C,cc-claude-opus-5-5,8,query6,True,False,20962,739,19309,4,13.3,0.03183,return_answer,"27 senior-citizen customers hold at least one gold loan. All 27 are flagged as senior citizens and are also aged 60 or over. Each of them holds exactly one gold loan, and every one of those loans is a"
+bank,C,cc-claude-opus-5-5,9,query6,True,True,27446,856,25361,5,13.8,0.03883,return_answer,27
+bank,C,cc-claude-opus-5-5,5,query7,True,False,31773,1233,26232,5,23.7,0.07419,return_answer,"₹421,214,400.00 is the total available balance across the 157 savings accounts held by HNI customers."
+bank,C,cc-claude-opus-5-5,6,query7,True,False,30233,995,26908,5,25.5,0.05184,return_answer,"₹421,214,400.00. This is the sum of available balances across 157 savings accounts held by HNI-segment customers, all of them active."
+bank,C,cc-claude-opus-5-5,7,query7,True,False,21771,849,19754,4,15.1,0.03703,return_answer,"₹421,214,400.00 is the total available balance across all 157 savings accounts held by customers in the HNI segment."
+bank,C,cc-claude-opus-5-5,8,query7,True,False,33173,1114,28119,5,22.0,0.0683,return_answer,"The total available balance across all savings accounts held by HNI customers is ₹421,214,400.00.
+
+This sum covers 157 savings accounts, all of them active. Every account in the database is either sav"
+bank,C,cc-claude-opus-5-5,9,query7,True,False,28788,1204,26218,5,18.4,0.04984,return_answer,"₹421,214,400.00 (₹42,12,14,400.00). This is the total available balance across all 157 savings accounts held by HNI-segment customers. All of these accounts are active and in INR."
+bank,C,cc-claude-opus-5-5,5,query8,True,False,15614,817,12407,3,13.6,0.04445,return_answer,"Active mandates debiting the customer's savings account SB3968813086: MND19809350 (SIP - Mutual Fund, ₹5,000 monthly) and MND29967257 (NovaTel Postpaid, ₹399 monthly). Total monthly amount: ₹5,399. MN"
+bank,C,cc-claude-opus-5-5,6,query8,True,False,15678,593,14029,3,16.0,0.02783,return_answer,"Customer CUST_04B8D21C has two active mandates that debit a savings account. Both debit SB3968813086, which is the customer's only account:
+- MND19809350: SIP - Mutual Fund, INR 5,000 per month
+- MND2"
+bank,C,cc-claude-opus-5-5,7,query8,True,False,15831,929,13929,3,13.4,0.03656,return_answer,"For customer CUST_04B8D21C, two active mandates debit their savings account, for a total of ₹5,399 per month.
+
+The customer has one savings account, SB3968813086, and all three of their mandates debit"
+bank,C,cc-claude-opus-5-5,8,query8,False,False,9753,483,8706,2,9.3,0.01976,success,
+bank,C,cc-claude-opus-5-5,9,query8,True,False,15505,634,13929,3,12.0,0.02805,return_answer,"Customer CUST_04B8D21C has one savings account, SB3968813086. Two active mandates debit it:
+
+- MND19809350: SIP - Mutual Fund, ₹5,000 a month (ENACH)
+- MND29967257: NovaTel Postpaid, ₹399 a month (ENA"
+bank,C,cc-claude-opus-5-5,5,query9,True,True,14366,389,12000,3,10.3,0.02908,return_answer,318
+bank,C,cc-claude-opus-5-5,6,query9,True,True,19630,604,18523,4,23.7,0.02461,return_answer,318
+bank,C,cc-claude-opus-5-5,7,query9,True,True,14379,398,13486,3,9.4,0.01778,return_answer,318
+bank,C,cc-claude-opus-5-5,8,query9,True,True,14377,402,13485,3,9.8,0.01785,return_answer,318
+bank,C,cc-claude-opus-5-5,9,query9,True,True,14403,474,13490,3,10.5,0.01946,return_answer,318
