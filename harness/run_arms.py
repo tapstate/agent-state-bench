@@ -8,11 +8,16 @@ Arms (same harness, tools, iteration cap and model; only data and description di
 Each run writes query_<dataset>/queryN/logs/data_agent/<arm>_<model>_r<k>/ in the DAB
 checkout; a run whose final_agent.json exists is skipped, so re-running resumes.
 
+Any model behind an OpenAI-compatible endpoint can run here: set DAB_LLM_BASE_URL (and
+DAB_LLM_API_KEY) and pass the provider's model name, e.g. --model moonshotai/kimi-k2. Without
+DAB_LLM_BASE_URL, DAB's own routing by model name applies (gpt, gemini, kimi, claude).
+
 Usage: python run_arms.py <dab-root> --model claude-sonnet-5 [--arms A,B,C] [--runs 5]
                           [--queries 1-13] [--workers 6]
 """
 import argparse
 import os
+import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -68,9 +73,15 @@ def warm(dab, datasets):
                        cwd=dab, env=env(), check=True)
 
 
+def run_label(model):
+    """The model name as it appears in run directory names: provider paths such as
+    "moonshotai/kimi-k2" become "moonshotai-kimi-k2"."""
+    return re.sub(r"[^A-Za-z0-9.\-]+", "-", model)
+
+
 def run_one(dab, arm, model, q, k, iterations, arms=ARMS):
     ds, hints = arms[arm]
-    root = f"{arm}_{model}_r{k}"
+    root = f"{arm}_{run_label(model)}_r{k}"
     out = dab / f"query_{ds}" / f"query{q}" / "logs" / "data_agent" / root
     if (out / "final_agent.json").exists():
         return f"skip {root} q{q}"

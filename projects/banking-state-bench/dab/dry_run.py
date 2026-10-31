@@ -21,8 +21,9 @@ from pathlib import Path
 
 DAB = Path(sys.argv[1]).resolve()
 HARNESS = Path(sys.argv[2]).resolve()
-os.environ.update({"DAB_PERSISTENT_DBS": "1", "PG_HOST": "127.0.0.1", "PG_PORT": "55432", "PG_USER": "postgres",
-                   "PG_PASSWORD": "secret", "MONGO_URI": "mongodb://127.0.0.1:27017/?directConnection=true"})
+for k, v in {"DAB_PERSISTENT_DBS": "1", "PG_HOST": "127.0.0.1", "PG_PORT": "55432", "PG_USER": "postgres",
+             "PG_PASSWORD": "secret", "MONGO_URI": "mongodb://127.0.0.1:27017/?directConnection=true"}.items():
+    os.environ.setdefault(k, v)  # defaults; the environment overrides them
 os.environ["PATH"] = f"{HARNESS / 'bin'}:{os.environ['PATH']}"
 os.chdir(DAB)
 sys.path[:0] = [str(DAB), str(HARNESS)]

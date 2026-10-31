@@ -1,0 +1,90 @@
+# The bank benchmark's stack: Tapstate Community 0.7.0, its MongoDB store (which also holds the
+# MongoDB-backed source and setup C), and Postgres 16 for the Postgres-backed sources.
+#
+# Derived from Tapstate's own quickstart (deploy/quickstart/docker-compose.yml at v0.7.0), with
+# these changes: the server image is pinned to 0.7.0; the demo MySQL service is removed; MongoDB
+# and Postgres are published on the loopback interface so the agents' tools reach them; and
+# Postgres allows more replication slots, since the bank pipeline captures six source schemas.
+#
+# Ports can be moved with MONGO_PORT, PG_PORT and TAPSTATE_PORT (see ../env.sh).
+name: bank-bench
+
+services:
+  mongo:
+    image: mongo:7.0
+    # A single-member replica set: Tapstate's store uses transactions, which need one.
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports: ["127.0.0.1:${MONGO_PORT:-27017}:27017"]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) };
+         if (!db.hello().isWritablePrimary) { quit(1) }"
+      interval: 3s
+      timeout: 10s
+      retries: 40
+      start_period: 20s
+    volumes:
+      - mongo-data:/data/db
+
+  postgres:
+    image: postgres:16
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=20"
+      - "-c"
+      - "max_replication_slots=20"
+    ports: ["127.0.0.1:${PG_PORT:-55432}:5432"]
+    environment:
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 3s
+      timeout: 10s
+      retries: 40
+      start_period: 30s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  server:
+    image: ghcr.io/tapstate/tapstate:0.7.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      TAPSTATE_STORE_MONGO_URI: mongodb://mongo:27017/tapstate?directConnection=true
+      TAPSTATE_STORE_MONGO_OPERATOR_STATE_DATABASE: tapstate_nest
+    ports: ["127.0.0.1:${TAPSTATE_PORT:-8080}:8080"]
+    stop_grace_period: 30s
+
+  # Creates the first administrator, then exits (as in Tapstate's quickstart).
+  bootstrap:
+    image: curlimages/curl:8.11.1
+    depends_on:
+      server:
+        condition: service_healthy
+    network_mode: "service:server"
+    restart: "no"
+    environment:
+      TAPSTATE_ADMIN_USER: admin
+      TAPSTATE_ADMIN_PASSWORD: ${TAPSTATE_PASSWORD:-admin}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        code=$$(curl -s -o /dev/null -w '%{http_code}' \
+          -X POST http://127.0.0.1:8080/auth/bootstrap \
+          -H 'Content-Type: application/json' \
+          -d "{\"username\":\"$${TAPSTATE_ADMIN_USER}\",\"password\":\"$${TAPSTATE_ADMIN_PASSWORD}\"}")
+        case "$$code" in
+          204) echo "bootstrap: first admin created" ;;
+          409) echo "bootstrap: an admin already exists, nothing to do" ;;
+          *)   echo "bootstrap: failed with HTTP $$code" >&2; exit 1 ;;
+        esac
+
+volumes:
+  mongo-data:
+  postgres-data:
