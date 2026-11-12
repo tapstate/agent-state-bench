@@ -159,13 +159,15 @@ diff --git a/run_agent.py b/run_agent.py
 index a840b82da..78f502d85 100644
 --- a/run_agent.py
 +++ b/run_agent.py
-@@ -10,6 +10,9 @@ from datetime import datetime
+@@ -10,6 +10,11 @@ from datetime import datetime
  DATASET_LIST = [
      "bookreview",
      "crmarenapro",
 +    "crmarenapro_consolidated",
 +    "bank",
 +    "bank_consolidated",
++    "manufacturing",
++    "manufacturing_consolidated",
      "DEPS_DEV_V1",
      "GITHUB_REPOS",
      "googlelocal",

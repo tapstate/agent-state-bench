@@ -1,0 +1,569 @@
+[
+ {
+  "id": 1,
+  "category": "single-source control",
+  "systems": [
+   "mes"
+  ],
+  "text": "How many work orders that started in 2024 scrapped at least one unit?",
+  "answer": [
+   "count",
+   301
+  ]
+ },
+ {
+  "id": 2,
+  "category": "single-source control",
+  "systems": [
+   "erp"
+  ],
+  "text": "Which sales territory had the highest total order subtotal (before tax and freight) on sales orders placed in 2024, and what was that total? Give the amount in US dollars to two decimals.",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "Southwest"
+    ],
+    [
+     "money",
+     9121931.65,
+     1.0
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 3,
+  "category": "single-source control",
+  "systems": [
+   "wms"
+  ],
+  "text": "Which location holds the largest total quantity of stock, and how many units is that?",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "Subassembly"
+    ],
+    [
+     "count",
+     95477
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 4,
+  "category": "single-source control",
+  "systems": [
+   "procurement"
+  ],
+  "text": "What is the total freight on purchase orders placed in 2024 that use the ship method 'OVERSEAS - DELUXE'? Give the amount in US dollars to two decimals.",
+  "answer": [
+   "money",
+   43387.08,
+   1.0
+  ]
+ },
+ {
+  "id": 5,
+  "category": "two sources",
+  "systems": [
+   "mes",
+   "plm"
+  ],
+  "text": "How many units in total were scrapped by work orders that started in 2024 for products in the 'Wheels' subcategory?",
+  "answer": [
+   "count",
+   265
+  ]
+ },
+ {
+  "id": 6,
+  "category": "two sources",
+  "systems": [
+   "erp",
+   "plm"
+  ],
+  "text": "How many units of products of the 'Mountain-200' model were sold on sales orders placed in 2024?",
+  "answer": [
+   "count",
+   6978
+  ]
+ },
+ {
+  "id": 7,
+  "category": "two sources",
+  "systems": [
+   "wms",
+   "plm"
+  ],
+  "text": "How many units of Silver-colored products are in stock at the 'Finished Goods Storage' location?",
+  "answer": [
+   "count",
+   1318
+  ]
+ },
+ {
+  "id": 8,
+  "category": "two sources",
+  "systems": [
+   "procurement",
+   "plm"
+  ],
+  "text": "Across all vendor offers (one per vendor and product) for products in the 'Tires and Tubes' subcategory, what is the mean average lead time in days? Give it to two decimals.",
+  "answer": [
+   "money",
+   20.44,
+   0.01
+  ]
+ },
+ {
+  "id": 9,
+  "category": "two sources",
+  "systems": [
+   "mes",
+   "costing"
+  ],
+  "text": "What is the value of all units scrapped by work orders that started in the fourth quarter of 2024 (October to December), valued at each product's current standard cost? Give the amount in US dollars to two decimals.",
+  "answer": [
+   "money",
+   43693.01,
+   1.0
+  ]
+ },
+ {
+  "id": 10,
+  "category": "two sources",
+  "systems": [
+   "procurement",
+   "wms"
+  ],
+  "text": "What is the total quantity on hand, across all locations, of the items that the vendor 'Bergeron Off-Roads' supplies?",
+  "answer": [
+   "count",
+   38789
+  ]
+ },
+ {
+  "id": 11,
+  "category": "three or more sources",
+  "systems": [
+   "mes",
+   "plm",
+   "wms"
+  ],
+  "text": "Which product in the 'Wheels' subcategory had the most units scrapped by work orders that started in 2024, and how many units of that product are currently on hand across all locations?",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "Touring Rear Wheel"
+    ],
+    [
+     "count",
+     741
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 12,
+  "category": "three or more sources",
+  "systems": [
+   "erp",
+   "plm",
+   "costing"
+  ],
+  "text": "What was the gross margin on sales of 'Mountain-200' model products on sales orders placed in the first quarter of 2025 (January to March), computed as the sum of line totals minus quantity times each product's current standard cost? Give the amount in US dollars to two decimals.",
+  "answer": [
+   "money",
+   831507.97,
+   1.0
+  ]
+ },
+ {
+  "id": 13,
+  "category": "three or more sources",
+  "systems": [
+   "erp",
+   "procurement",
+   "plm"
+  ],
+  "text": "For products in the Clothing category: how many units were sold on sales orders placed in 2024, and how many units were received on purchase orders placed in 2024? Answer in the form 'sold: N, received: N'.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "sold",
+     [
+      "count",
+      37208
+     ]
+    ],
+    [
+     "received",
+     [
+      "count",
+      17200
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 14,
+  "category": "three or more sources",
+  "systems": [
+   "plm",
+   "wms",
+   "procurement"
+  ],
+  "text": "Which purchased products (make_flag 0) in the Components category have a total quantity on hand, across all locations, below their safety stock level? For each, give its product number and the shortest average lead time, in days, among the vendors that supply it.",
+  "answer": [
+   "all",
+   [
+    [
+     "ids",
+     [
+      "PD-R347",
+      "PD-R563",
+      "SE-M798",
+      "SE-M940",
+      "SE-R995",
+      "SE-T762"
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "PD-R347",
+        "LL Road Pedal"
+       ],
+       [
+        "count",
+        16
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "PD-R563",
+        "ML Road Pedal"
+       ],
+       [
+        "count",
+        16
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "SE-M798",
+        "ML Mountain Seat/Saddle"
+       ],
+       [
+        "count",
+        15
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "SE-M940",
+        "HL Mountain Seat/Saddle"
+       ],
+       [
+        "count",
+        17
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "SE-R995",
+        "HL Road Seat/Saddle"
+       ],
+       [
+        "count",
+        15
+       ]
+      ]
+     ]
+    ],
+    [
+     "labeled",
+     [
+      [
+       [
+        "SE-T762",
+        "ML Touring Seat/Saddle"
+       ],
+       [
+        "count",
+        15
+       ]
+      ]
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 15,
+  "category": "three or more sources",
+  "systems": [
+   "erp",
+   "plm",
+   "wms"
+  ],
+  "text": "Which product in the Bikes category sold the most units on sales orders placed in the fourth quarter of 2024 (October to December), and how many units of it are currently on hand across all locations?",
+  "answer": [
+   "all",
+   [
+    [
+     "text",
+     "Road-350-W Yellow, 48"
+    ],
+    [
+     "count",
+     227
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 16,
+  "category": "three or more sources",
+  "systems": [
+   "erp",
+   "mes",
+   "plm"
+  ],
+  "text": "For products in the 'Road Bikes' subcategory: how many units were sold on sales orders placed in 2024, and how many units were stocked by work orders that ended in 2024? Answer in the form 'sold: N, stocked: N'.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "sold",
+     [
+      "count",
+      16711
+     ]
+    ],
+    [
+     "stocked",
+     [
+      "count",
+      17407
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 17,
+  "category": "portfolio",
+  "systems": [
+   "mes",
+   "plm"
+  ],
+  "text": "For each of the product categories Bikes and Components, how many units were scrapped by work orders that started in 2024?",
+  "answer": [
+   "labeled",
+   [
+    [
+     "Bikes",
+     [
+      "count",
+      58
+     ]
+    ],
+    [
+     "Components",
+     [
+      "count",
+      886
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 18,
+  "category": "portfolio",
+  "systems": [
+   "erp",
+   "plm"
+  ],
+  "text": "For each sales territory, what was the revenue (sum of sales order line totals) from products in the Bikes category on sales orders placed in 2024? Give amounts in US dollars to two decimals.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "Northwest",
+     [
+      "money",
+      4920530.33,
+      1.0
+     ]
+    ],
+    [
+     "Northeast",
+     [
+      "money",
+      2067189.89,
+      1.0
+     ]
+    ],
+    [
+     "Central",
+     [
+      "money",
+      2475045.18,
+      1.0
+     ]
+    ],
+    [
+     "Southwest",
+     [
+      "money",
+      7596427.39,
+      1.0
+     ]
+    ],
+    [
+     "Southeast",
+     [
+      "money",
+      1928935.57,
+      1.0
+     ]
+    ],
+    [
+     "Canada",
+     [
+      "money",
+      4924929.56,
+      1.0
+     ]
+    ],
+    [
+     "France",
+     [
+      "money",
+      3144529.29,
+      1.0
+     ]
+    ],
+    [
+     "Germany",
+     [
+      "money",
+      2189737.99,
+      1.0
+     ]
+    ],
+    [
+     "Australia",
+     [
+      "money",
+      3960786.44,
+      1.0
+     ]
+    ],
+    [
+     "United Kingdom",
+     [
+      "money",
+      3105460.83,
+      1.0
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 19,
+  "category": "portfolio",
+  "systems": [
+   "wms",
+   "plm",
+   "costing"
+  ],
+  "text": "What is the value of the stock on hand, at each product's current standard cost, for each product category (Bikes, Components, Clothing, Accessories)? Give amounts in US dollars to two decimals.",
+  "answer": [
+   "labeled",
+   [
+    [
+     "Bikes",
+     [
+      "money",
+      14623652.53,
+      1.0
+     ]
+    ],
+    [
+     "Components",
+     [
+      "money",
+      4375836.81,
+      1.0
+     ]
+    ],
+    [
+     "Clothing",
+     [
+      "money",
+      138132.93,
+      1.0
+     ]
+    ],
+    [
+     "Accessories",
+     [
+      "money",
+      88211.76,
+      1.0
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": 20,
+  "category": "portfolio",
+  "systems": [
+   "erp",
+   "plm",
+   "costing"
+  ],
+  "text": "What was the gross margin on Bikes-category products sold on sales orders placed in 2023, computed as the sum of line totals minus quantity times the product's standard cost in effect on the order date (from the standard cost history)? Give the amount in US dollars to two decimals.",
+  "answer": [
+   "money",
+   2343792.06,
+   1.0
+  ]
+ }
+]
