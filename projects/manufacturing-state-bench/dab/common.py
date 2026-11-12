@@ -10,6 +10,7 @@ reference_state() builds setup C's target documents straight from the raw Advent
 by their integer ids, without the split sources: it is what both the Python build and Tapstate's
 output are checked against.
 """
+import datetime
 import json
 import math
 import os
@@ -21,16 +22,22 @@ HERE = aw.HERE
 DATASET = "manufacturing"                       # setup A: DataAgentBench/query_manufacturing
 CONSOLIDATED = "manufacturing_consolidated"     # setup C: DataAgentBench/query_manufacturing_consolidated
 
-# Server-side database names (DAB loads these once and keeps them, DAB_PERSISTENT_DBS=1).
-ERP_DB = "mfg_erp"          # Postgres
-COSTING_DB = "mfg_costing"  # Postgres
-WMS_DB = "mfg_wms"          # MongoDB
-STATE_DB = "mfg_state"      # MongoDB, setup C
-SRC_DB = "mfgsrc"           # Postgres, the six systems as Tapstate's sources
+# The six source databases, on three engines (stack/docker-compose.yml). Tapstate reads these same
+# databases; DAB loads them once and keeps them (DAB_PERSISTENT_DBS=1).
+ERP_DB = "mfg_erp"            # Postgres
+PLM_DB = "mfg_plm"            # Postgres
+COSTING_DB = "mfg_costing"    # Postgres
+MES_DB = "mfg_mes"            # MySQL
+PROC_DB = "mfg_procurement"   # MySQL
+WMS_DB = "mfg_wms"            # MongoDB (mongo-sources, its own server)
+STATE_DB = "mfg_state"        # MongoDB (Tapstate's store), setup C
 
 PG = dict(host=os.environ.get("PG_HOST", "127.0.0.1"), port=int(os.environ.get("PG_PORT", "55432")),
           user=os.environ.get("PG_USER", "postgres"), password=os.environ.get("PG_PASSWORD", "secret"))
+MYSQL = dict(host=os.environ.get("MYSQL_HOST", "127.0.0.1"), port=int(os.environ.get("MYSQL_PORT", "33306")),
+             user=os.environ.get("MYSQL_USER", "root"), password=os.environ.get("MYSQL_PASSWORD", "secret"))
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017/?directConnection=true")
+MONGO_SOURCES_URI = os.environ.get("MONGO_SOURCES_URI", "mongodb://127.0.0.1:27018/?directConnection=true")
 
 
 # --- key formats -----------------------------------------------------------------------------
@@ -300,6 +307,38 @@ def verify(built, reference):
                 if d:
                     problems.append(d)
     return problems
+
+
+# --- dates -------------------------------------------------------------------------------------
+# Every date field of setup C is named *date (start_date, order_date, sell_end_date, ...), and only those.
+def is_date_field(name):
+    return isinstance(name, str) and name.endswith("date")
+
+
+def iso_dates(x):
+    """Dates (datetime/date) anywhere in x as 'YYYY-MM-DD' text: how the reference states them."""
+    if isinstance(x, dict):
+        return {k: iso_dates(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [iso_dates(v) for v in x]
+    if isinstance(x, datetime.datetime):
+        assert x.time() == datetime.time(0), x   # SQL DATEs: midnight UTC
+        return x.date().isoformat()
+    if isinstance(x, datetime.date):
+        return x.isoformat()
+    return x
+
+
+def bson_dates(x, key=None):
+    """'YYYY-MM-DD' text in date fields as datetimes (midnight UTC), stored as BSON dates: the form
+    Tapstate gives a source's SQL DATE in setup C."""
+    if isinstance(x, dict):
+        return {k: bson_dates(v, k) for k, v in x.items()}
+    if isinstance(x, list):
+        return [bson_dates(v, key) for v in x]
+    if is_date_field(key) and isinstance(x, str):
+        return datetime.datetime.fromisoformat(x)
+    return x
 
 
 def dumps(x):

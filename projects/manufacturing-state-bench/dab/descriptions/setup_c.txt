@@ -6,7 +6,7 @@ Guarantees:
 - Every product is identified by its product number (e.g. BK-R93R-62), the same in every collection; `product_number` is also the `_id` of a products document.
 - Each work order, sales order and purchase order is one document, identified by its id (also its `_id`); its lines or routing operations are embedded in it and in no other document.
 - Wherever a document names a product (`product` in work orders and in order lines), it carries the product's number, name, subcategory name and category name as they are in the products collection. Products outside any subcategory have subcategory and category null.
-- Dates are ISO-8601 strings (YYYY-MM-DD). A null end_date in a history means the period is still in effect.
+- Dates are BSON dates (midnight UTC; results show them as e.g. 2025-04-01T00:00:00). In a query, write a date in MongoDB Extended JSON: {"$date": "2025-04-01T00:00:00Z"}. A null end_date in a history means the period is still in effect.
 
 Collections in mfg_state:
 - products: one document per product (sold products, and the components and materials they are built from)

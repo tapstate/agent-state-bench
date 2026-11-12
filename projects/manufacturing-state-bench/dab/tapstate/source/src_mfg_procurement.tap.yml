@@ -1,7 +1,8 @@
 version: tapstate/v1
 kind: source
 id: src_mfg_procurement
-connector: postgres
-config: { host: postgres, port: 5432, database: mfgsrc, schema: procurement, user: postgres, password: secret }
+# Procurement: MySQL mfg_procurement, the database setup A's agent queries (read from the ROW binlog).
+connector: mysql
+config: { host: mysql, port: 3306, database: mfg_procurement, username: root, password: secret }
 mode: cdc
 tables: [ vendors, vendor_items, purchase_orders, po_lines, ship_methods ]

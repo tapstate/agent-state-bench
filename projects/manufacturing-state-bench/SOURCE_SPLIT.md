@@ -40,15 +40,16 @@ The OLTP install script's CSV files (release `adventureworks`, archive sha256
 
 ## 2. Source systems
 
-Six systems, laid out the way a manufacturer commonly separates them, on DAB's engine mix:
+Six systems, laid out the way a manufacturer commonly separates them, on three engines (one server
+per engine, `stack/docker-compose.yml`):
 
 | System | Engine (setup A) | Tables / collections | Product key, as that system writes it |
 |---|---|---|---|
 | **ERP sales** | Postgres `mfg_erp` | `territories`, `stores`, `customers`, `sales_orders`, `sales_order_lines` | `sku` = `BK-R93R-62` (canonical) |
-| **PLM** | SQLite `plm.db` | `products` (attributes, safety stock, reorder point, make/finished flags, subcategory, model, sell dates), `subcategories`, `categories`, `models`, `bom` | `product_number` (canonical); `bom.assembly_number`, `component_number` |
-| **MES** | DuckDB `mes.duckdb` | `work_orders`, `routings`, `work_centers`, `scrap_reasons` | `part_no` = `bk-r93r-62` (lower case) |
-| **WMS** | MongoDB `mfg_wms` | `stock` (location, shelf, bin, quantity), `locations` | `item` = `AW:BK-R93R-62` |
-| **Procurement** | DuckDB `procurement.duckdb` | `vendors`, `vendor_items`, `purchase_orders`, `po_lines`, `ship_methods` | `part_ref` = `BK_R93R_62` (`-` replaced by `_`) |
+| **PLM** | Postgres `mfg_plm` | `products` (attributes, safety stock, reorder point, make/finished flags, subcategory, model, sell dates), `subcategories`, `categories`, `models`, `bom` | `product_number` (canonical); `bom.assembly_number`, `component_number` |
+| **MES** | MySQL 8 `mfg_mes` | `work_orders`, `routings`, `work_centers`, `scrap_reasons` | `part_no` = `bk-r93r-62` (lower case) |
+| **WMS** | MongoDB `mfg_wms` (its own server, not Tapstate's store) | `stock` (location, shelf, bin, quantity), `locations` | `item` = `AW:BK-R93R-62` |
+| **Procurement** | MySQL 8 `mfg_procurement` | `vendors`, `vendor_items`, `purchase_orders`, `po_lines`, `ship_methods` | `part_ref` = `BK_R93R_62` (`-` replaced by `_`) |
 | **Costing** | Postgres `mfg_costing` | `standard_cost_history`, `list_price_history`, `item_prices` (current standard cost and list price) | `product_number` (canonical) |
 
 ```
@@ -58,6 +59,10 @@ PLM products ─┼── WMS item ('AW:') ── stock ── locations
  (canonical)  ├── procurement part_ref ('_') ── vendor_items, po_lines ── vendors, purchase_orders
               └── costing product_number ── cost and price history, current prices
 ```
+
+Dates are SQL `DATE`s in every SQL system. MySQL uses the binary collation `utf8mb4_0900_bin`, so
+text compares case- and accent-sensitively as in Postgres: the MES's lower-case `part_no` does not
+match a canonical product number by accident.
 
 Product names, subcategories and categories live only in the PLM, so any question that names a
 product, model, subcategory or category needs the PLM plus the system holding the facts.
@@ -94,9 +99,11 @@ The shape follows AdventureWorks' own entities; no field was designed around a q
 product reference carried by orders and work orders (number, name, subcategory, category) is
 what a consolidated order or production record normally embeds.
 
-**Building setup C with Tapstate.** `dab/load_mfg_to_postgres.py` loads the six systems, values
-and key formats unchanged, into Postgres `mfgsrc` (one schema per system; dates as ISO text, see
-below). The workspace `dab/tapstate/` holds ten pipelines; `dab/run_tapstate.sh` applies and
+**Building setup C with Tapstate.** Tapstate reads the six databases the agent in setup A queries,
+with no copy in between: Postgres `mfg_erp`, `mfg_plm` and `mfg_costing` through logical
+replication, MySQL `mfg_mes` and `mfg_procurement` through the ROW binlog (the MySQL connector is
+registered from Tapstate's published connectors, `tapstate register mysql`), and MongoDB `mfg_wms`
+through change streams (`dab/tapstate/source/`). The workspace `dab/tapstate/` holds ten pipelines; `dab/run_tapstate.sh` applies and
 starts them in dependency order:
 
 | Pipeline | Kind | Output (MongoDB `views`) |
@@ -128,8 +135,19 @@ Three Tapstate 0.7.0 behaviours shaped this layout, all found while building it:
    and so did a join across a Postgres and a MongoDB source feeding a nest. Joins here therefore
    read one source and feed a nest directly.
 
-Also, as on 0.6.0 for the bank, a SQL `DATE` is unreadable in a `js` step, so `mfgsrc` stores dates
-as ISO text (the agents' databases keep their `DATE` types). An array element's key must not be the
+**Dates.** On 0.7.0 a SQL `DATE` cannot be turned into text by any step: in a `js` step a snapshot
+row's date is an opaque `java.time.LocalDateTime` (`String()` gives `[object Object]`, no method is
+callable), and a `map` step refuses a CEL expression on a `DATE` column
+(`dsl.row-expression-type-unsupported`). Passed through untouched, a date reaches MongoDB as a BSON
+date (midnight UTC), so setup C stores dates as BSON dates and its description tells the agent to
+write them in Extended JSON (`{"$date": "2025-04-01T00:00:00Z"}`, which DAB's patched Mongo tool
+parses). The pipelines only pass dates through. Two date defects appear only when a source row
+changes after the initial load, which the benchmark never does: a MySQL change event carries a
+`DATE` as epoch milliseconds and a `DATETIME` as epoch seconds, which land in MongoDB as numbers;
+and a Postgres update to a history row keyed by a date (`start_date` in `standard_cost_history`,
+`list_price_history`) adds a second array element instead of replacing the one the snapshot
+loaded. An earlier layout loaded a Postgres copy of the six systems with dates as text (`mfgsrc`);
+it is retired. An array element's key must not be the
 field a nested lookup joins on (the level then partitions by it), and the default nest memory
 budget (4,000 entries per level, the rest served from MongoDB) made the 121,317-line staging
 pipeline run at about 40 rows a second; `entries_in_memory: 250000` on the large nests made it
@@ -137,7 +155,8 @@ several times faster.
 
 **Acceptance check for setup C.** `dab/common.py` builds the four collections straight from the
 raw AdventureWorks tables, joined on their integer ids (`reference_state`). Tapstate's views must
-equal it, document for document and field for field (`dab/verify_tapstate.py`), before they are
+equal it, document for document and field for field (`dab/verify_tapstate.py`; dates compared as
+`YYYY-MM-DD`), before they are
 installed as setup C. `dab/build_consolidated.py` is the Python port of the pipelines' logic: it
 reads the six source systems (not the raw tables), maps the key formats, and is checked against the
 same reference. A test confirms the check fails when one source value or key is changed. Level-0
@@ -183,6 +202,7 @@ All under `dab/`; [`dab/README.md`](dab/README.md) has the file list and the pro
 - The source split and key formats are our construction, following common manufacturing system
   boundaries and DAB's ill-formatted-key pattern; AdventureWorks itself is one database.
 - The questions are ours. The data and its licence (MIT) are Microsoft's.
+- The engines (Postgres, MySQL, MongoDB) are our choice; AdventureWorks itself is SQL Server.
 - Setup C was built by Tapstate, but its layout (staging pipelines, a reference view read back as a
   source) is shaped by the three 0.7.0 limits in §3; the documents it produces are the intended
   shape and are verified exactly.

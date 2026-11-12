@@ -1,7 +1,10 @@
 #!/bin/sh
 # Apply the Tapstate workspace and start its ten pipelines in dependency order, from scratch.
 #
-#   1. sources; discover the six Postgres sources (mfgsrc); apply
+#   0. stop any of the ten pipelines already running, clearing their state, and empty their views;
+#      register the MySQL connector if the server does not have it
+#   1. sources; discover the six source databases (Postgres mfg_erp, mfg_plm, mfg_costing; MySQL
+#      mfg_mes, mfg_procurement; MongoDB mfg_wms); apply
 #   2. mfg_product_ref and the three staging pipelines that read only Postgres sources
 #   3. once views.mfg_product_ref is complete: discover src_mfg_ref; the two staging pipelines that
 #      attach a product to a line (mfg_sales_line, mfg_po_line)
@@ -29,6 +32,15 @@ wait_for() {   # wait until views.<collection> holds <n> documents and the pipel
   done
   echo "views.$coll: $(count "$coll") documents"
 }
+
+PIPELINES="mfg_product_ref mfg_stock mfg_offer mfg_routing mfg_sales_line mfg_po_line mfg_products mfg_work_orders mfg_sales_orders mfg_purchase_orders"
+for p in $PIPELINES; do $T stop "$p" -y >/dev/null 2>&1 || true; done
+python -c "
+import sys; from pymongo import MongoClient
+v = MongoClient(sys.argv[1])['views']
+for c in v.list_collection_names():
+    if c.startswith('mfg_'): v[c].drop()" "$MONGO"
+$T connectors | grep -q ' mysql ' || $T register mysql
 
 $T apply "$WS/source"
 for s in erp plm mes wms procurement costing; do $T discover-schema "src_mfg_$s" >/dev/null; done

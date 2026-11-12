@@ -1,7 +1,8 @@
 version: tapstate/v1
 kind: source
 id: src_mfg_erp
+# ERP sales: Postgres mfg_erp, the database setup A's agent queries.
 connector: postgres
-config: { host: postgres, port: 5432, database: mfgsrc, schema: erp, user: postgres, password: secret }
+config: { host: postgres, port: 5432, database: mfg_erp, schema: public, user: postgres, password: secret }
 mode: cdc
 tables: [ territories, stores, customers, sales_orders, sales_order_lines ]
