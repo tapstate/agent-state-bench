@@ -209,8 +209,81 @@ All under `dab/`; [`dab/README.md`](dab/README.md) has the file list and the pro
 
 ## 8. Changes from the design brief
 
-RESULTS_PLACEHOLDER_8
+- **Tapstate layout: ten pipelines, not four.** The brief planned one nest pipeline per collection,
+  with location, vendor and product as referenced embeds inside arrays, and a `js` step per system
+  mapping its key. Tapstate 0.7.0's three limits in §3 made that impossible: lookups inside arrays
+  are resolved on the roots of five staging pipelines, and `mfg_product_ref` (read back as a source)
+  supplies the product reference. The MES `part_no` and procurement `part_ref` on purchase lines
+  are matched against the formats `mfg_product_ref` carries, rather than mapped in a `js` step; the
+  WMS item and procurement offers are mapped in `js` steps as planned. The documents are the
+  planned shape.
+- **Level-0 BOM rows are not in setup C** (§3).
+- **Question 14** (components below safety stock, with vendor lead times) is in the three-or-more
+  category, not the portfolio one; the portfolio questions are scrap by category, Bikes revenue by
+  territory, stock value by category, and margin at the order-date cost. Question 15 first asked
+  about Q1 2025, where two bikes tie for most units sold; it was moved to Q4 2024 before the
+  questions were frozen.
+- **The validator was corrected after the first scoring** (§9), as in the bank benchmark.
+- **Setup C's integers are stored as 64-bit and its fields in alphabetical order** (Tapstate's
+  output); values equal the Python build's exactly. The agent's query tool returns every value as
+  a string in both setups.
 
 ## 9. Results: Claude Opus 5.5
 
-RESULTS_PLACEHOLDER_9
+Measured on the first layout (PLM in SQLite, MES and procurement in DuckDB, Tapstate reading a
+Postgres copy of the six systems), before the move to three engines; see the project README.
+
+200 of 200 runs completed on 2026-11-12: 20 questions × 2 setups × 5 runs, Claude Code 2.1.322,
+3 workers, 19 minutes, no usage limits hit. Full tables, by category and per question:
+[`dab/RESULTS_opus.md`](dab/RESULTS_opus.md); raw scores:
+[`dab/results/opus_scores.csv`](dab/results/opus_scores.csv).
+
+| Setup | pass@1 (95% CI) | Median tokens per run | Mean tokens per run | Median turns | API-equivalent $ per correct answer |
+|---|---|---:|---:|---:|---:|
+| A: six source systems | 0.980 (0.95–1.00) | 63,818 | 74,800 | 6 | 0.150 |
+| C: consolidated state | 0.980 (0.95–1.00) | 28,432 | 34,515 | 5 | 0.067 |
+
+| Category | A median tokens | C median tokens | A / C | A pass@1 | C pass@1 |
+|---|---:|---:|---:|---:|---:|
+| Single-source controls (4) | 28,288 | 24,776 | 1.1× | 0.95 | 1.00 |
+| Two sources (6) | 57,487 | 25,158 | 2.3× | 1.00 | 1.00 |
+| Three or more sources (6) | 69,564 | 30,368 | 2.3× | 0.97 | 0.97 |
+| Portfolio aggregates (4) | 133,462 | 42,047 | 3.2× | 1.00 | 0.95 |
+
+- **Tokens:** setup C used 2.2× fewer tokens than A (median and mean), about one turn fewer, and
+  45% of A's API-equivalent cost per correct answer. As designed, the single-source controls show
+  no gap. The gap grows with the rows the agent must move between databases: largest on portfolio
+  aggregates, where A pulls whole tables from three systems into Python (question 19, stock value
+  by category: 162k tokens in A, 49k in C).
+- **Accuracy:** no difference. All four failures (two per setup) are protocol misses: a correct
+  final text without a `return_answer` call. Opus 5.5 is at the ceiling in both setups, so this run
+  supports a token and cost claim, not an accuracy claim.
+- **Smaller gap than the bank's 3.5×,** most likely for two reasons. Several systems hold
+  their own joins (the PLM has products, subcategories and categories in one database; the ERP
+  has orders and lines in one Postgres database), so those run in SQL and only the joins between
+  systems go through the agent; and the key formats are easy to discover (one sample row shows each).
+  Setup C, in turn, still needs a cross-collection step when a question combines order lines with
+  product costs (questions 12 and 20), because the product reference in a line carries no cost.
+- **Validator correction, disclosed.** The bank's checker (version 2) failed 7 correct answers to
+  question 17 that put the number before its label ("58 Bikes units and 886 Components units").
+  Version 3 also accepts the last number before the label on the same line, identically for both
+  setups. Rescoring changed only those 7 verdicts, all from fail to pass. Before: A 0.930, C 0.960
+  ([`dab/results/opus_scores_validator_v2.csv`](dab/results/opus_scores_validator_v2.csv)).
+
+**Would splitting AdventureWorks into more databases widen the gap?** Probably, if the split adds
+cross-database hops to the questions rather than just more databases. Setup A's tokens track the
+hops and the rows moved per question (1.1× for one system, 2.5× for two, 2.6× for three, 3.2× for
+portfolio questions), while setup C's documents, and so its cost, stay the same whatever the
+sources look like. Two realistic splits would add hops to the most common paths:
+
+1. **By region or site (horizontal):** an ERP instance per sales region (North America, Europe,
+   Pacific, as AdventureWorks' territory groups suggest) and an MES per plant. Every portfolio
+   question then has to union three databases first: the category with the largest gap already.
+2. **Product master apart from the catalog (vertical):** a separate product-catalog system holding
+   subcategories, categories and models, with the PLM keeping only engineering data, and costing
+   split into standard cost and pricing. Nearly every multi-source question passes through product
+   → category, so this adds a hop to most of them.
+
+Splitting tables that are always queried together (orders from their lines, say) would only add
+noise. Either variant can be measured as a new setup A against the same setup C, since setup C does
+not change.
