@@ -1,0 +1,27 @@
+version: tapstate/v1
+kind: pipeline
+id: product_state
+# A simplified dab/tapstate/pipeline/mfg_products.tap.yml, as shown on the demo slide: one live
+# document per product, from four systems on three engines. It validates against the workspace's
+# sources (tapstate validate); the full pipeline adds number conversions, the category join, the
+# cost history, the model and a final shaping step. Inventory and vendors come from the staging views
+# mfg_stock and mfg_offer, which map the WMS item ('AW:' + number) and the procurement part_ref
+# ('_' for '-') back to the product number.
+source: [ src_mfg_plm, src_mfg_costing, src_mfg_stage ]   # PLM, costing (Postgres); staging: WMS (MongoDB), procurement (MySQL)
+settings: { read_mode: snapshot_and_cdc }                 # initial load, then every change
+transforms:
+  - id: product
+    type: nest
+    from: { p: products, sc: subcategories, ip: item_prices, ph: list_price_history,
+            bo: bom, st: mfg_stock, vi: mfg_offer }
+    root:
+      from: p                                             # PLM product master
+      key: [ product_number ]
+      embed:
+        - { from: sc, on: { subcategory_id: subcategory_id }, as: object, path: subcategory, key: [ subcategory_id ] }
+        - { from: ip, on: { product_number: product_number }, as: object, path: prices, key: [ product_number ] }
+        - { from: ph, on: { product_number: product_number }, as: array, path: price_history, arrayKey: [ start_date ] }
+        - { from: bo, on: { assembly_number: product_number }, as: array, path: bom, arrayKey: [ bom_id ] }
+        - { from: st, on: { product_number: product_number }, as: array, path: inventory, arrayKey: [ stock_id ] }
+        - { from: vi, on: { product_number: product_number }, as: array, path: vendors, arrayKey: [ offer_id ] }
+view: { id: product_state, from: product, primary_key: product_number }
