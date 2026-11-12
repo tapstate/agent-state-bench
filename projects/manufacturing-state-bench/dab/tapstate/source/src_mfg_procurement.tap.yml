@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_procurement
+connector: postgres
+config: { host: postgres, port: 5432, database: mfgsrc, schema: procurement, user: postgres, password: secret }
+mode: cdc
+tables: [ vendors, vendor_items, purchase_orders, po_lines, ship_methods ]

@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_mes
+connector: postgres
+config: { host: postgres, port: 5432, database: mfgsrc, schema: mes, user: postgres, password: secret }
+mode: cdc
+tables: [ work_orders, routings, work_centers, scrap_reasons ]

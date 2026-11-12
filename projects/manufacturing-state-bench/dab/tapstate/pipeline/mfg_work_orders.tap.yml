@@ -1,0 +1,45 @@
+version: tapstate/v1
+kind: pipeline
+id: mfg_work_orders
+# One document per MES work order: the product it makes (number, name, subcategory, category),
+# its scrap reason, and its routing operations with their work centers. The MES writes the product
+# as a lower-case part_no; mfg_product_ref carries that format, so the referenced product matches on
+# it. Routings come from the staging view mfg_routing (SOURCE_SPLIT.md §3).
+source: [ src_mfg_mes, src_mfg_ref, src_mfg_stage ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: assemble
+    type: nest
+    # the default keeps 4,000 entries per level in memory and serves the rest from MongoDB, which is
+    # several times slower at this size; 250,000 holds every level of this dataset
+    entries_in_memory: 250000
+    from: { wo: work_orders, pr: mfg_product_ref, sr: scrap_reasons, rt: mfg_routing }
+    root:
+      from: wo
+      key: [ work_order_id ]
+      embed:
+        - { from: pr, on: { mes_part_no: part_no }, as: object, path: product, key: [ mes_part_no ] }
+        - { from: sr, on: { scrap_reason_id: scrap_reason_id }, as: object, path: scrap_reason, key: [ scrap_reason_id ] }
+        - { from: rt, on: { work_order_id: work_order_id }, as: array, path: routings, arrayKey: [ routing_id ] }
+  - id: shape
+    from: [ assemble ]
+    type: js
+    script: |
+      function only(r, keys) { var o = {}; keys.forEach(function (k) { o[k] = r[k] == null ? null : r[k]; }); return o; }
+      function process(record, ctx) {
+        var r = record.after;
+        if (r == null) return record;
+        var p = r.product, s = r.scrap_reason;
+        var doc = { work_order_id: r.work_order_id,
+                    product: p == null ? null : only(p, ['product_number', 'name', 'subcategory', 'category']) };
+        ['order_qty', 'stocked_qty', 'scrapped_qty', 'start_date', 'end_date', 'due_date'].forEach(function (k) {
+          doc[k] = r[k] == null ? null : r[k]; });
+        doc.scrap_reason = s == null ? null : { scrap_reason_id: s.scrap_reason_id, name: s.name };
+        doc.routings = (r.routings || []).map(function (x) {
+          return only(x, ['operation_sequence', 'work_center', 'scheduled_start_date', 'scheduled_end_date',
+                          'actual_start_date', 'actual_end_date', 'actual_resource_hrs', 'planned_cost',
+                          'actual_cost']); });
+        record.after = doc;
+        return record;
+      }
+view: { id: mfg_work_order, from: shape, primary_key: work_order_id }

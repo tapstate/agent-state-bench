@@ -87,6 +87,7 @@ batch, because waiting cannot fix it.
 | `DAB_LLM_BASE_URL` and `DAB_LLM_API_KEY` select any OpenAI-compatible endpoint | `run_arms.py` | the stock harness reaches only four hard-coded providers |
 | a model-neutral tool-call instruction for models outside DAB's four families | `run_arms.py` | the stock prompt builder refuses any other model name |
 | `bank` and `bank_consolidated` are known datasets | the bank project | DAB's runner accepts only listed datasets |
+| `manufacturing` and `manufacturing_consolidated` are known datasets | the manufacturing project | the same |
 
 ## Known limits
 
@@ -114,3 +115,4 @@ Apache License 2.0, see `LICENSE`. DAB and its datasets are not included and kee
 ## Projects
 
 - [`projects/banking-state-bench/`](projects/banking-state-bench/README.md): the bank benchmark. Six source systems versus Tapstate-consolidated state ([`SOURCE_SPLIT.md`](projects/banking-state-bench/SOURCE_SPLIT.md)), and the freshness extension comparing continuously updated state with a nightly warehouse ([`FRESHNESS.md`](projects/banking-state-bench/FRESHNESS.md)).
+- [`projects/manufacturing-state-bench/`](projects/manufacturing-state-bench/README.md): the manufacturing benchmark. Microsoft's AdventureWorks split into six source systems (ERP, PLM, MES, WMS, procurement, costing) versus Tapstate-consolidated state ([`SOURCE_SPLIT.md`](projects/manufacturing-state-bench/SOURCE_SPLIT.md)).

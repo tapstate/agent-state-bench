@@ -1,0 +1,33 @@
+You are working with one database, mfg_state, stored in MongoDB. Amounts are in US dollars.
+
+mfg_state holds the consolidated current state of one bicycle manufacturer, Adventure Works Cycles, maintained continuously from the company's ERP sales, product lifecycle management (PLM), manufacturing execution (MES), warehouse management (WMS), procurement and costing systems.
+
+Guarantees:
+- Every product is identified by its product number (e.g. BK-R93R-62), the same in every collection; `product_number` is also the `_id` of a products document.
+- Each work order, sales order and purchase order is one document, identified by its id (also its `_id`); its lines or routing operations are embedded in it and in no other document.
+- Wherever a document names a product (`product` in work orders and in order lines), it carries the product's number, name, subcategory name and category name as they are in the products collection. Products outside any subcategory have subcategory and category null.
+- Dates are ISO-8601 strings (YYYY-MM-DD). A null end_date in a history means the period is still in effect.
+
+Collections in mfg_state:
+- products: one document per product (sold products, and the components and materials they are built from)
+  Fields: _id, product_number, name, make_flag, finished_goods_flag, color, safety_stock_level, reorder_point, size, size_unit_measure_code, weight_unit_measure_code, weight, days_to_manufacture, product_line, class, style, sell_start_date, sell_end_date, discontinued_date, standard_cost (current), list_price (current)
+  - subcategory: object with subcategory_id, name, and category (object with category_id, name); null if none
+  - model: object with model_id, name; null if none
+  - standard_cost_history: array; fields start_date, end_date, standard_cost
+  - list_price_history: array; fields start_date, end_date, list_price
+  - bom: array of the product's components (bill of materials); fields component_number, start_date, end_date, unit_measure_code, bom_level, per_assembly_qty
+  - inventory: array, one per stock location; fields location (object with location_id, name), shelf, bin, quantity
+  - vendors: array of the vendors that supply the product; fields vendor (object with vendor_id, account_number, name, credit_rating, preferred_vendor_status, active_flag), average_lead_time, standard_price, last_receipt_cost, last_receipt_date, min_order_qty, max_order_qty, on_order_qty, unit_measure_code
+- work_orders: one document per production work order
+  Fields: _id, work_order_id, product (object with product_number, name, subcategory, category), order_qty, stocked_qty, scrapped_qty, start_date, end_date, due_date, scrap_reason (object with scrap_reason_id, name; null if none)
+  - routings: array of the work order's operations; fields operation_sequence, work_center (object with work_center_id, name), scheduled_start_date, scheduled_end_date, actual_start_date, actual_end_date, actual_resource_hrs, planned_cost, actual_cost
+- sales_orders: one document per sales order
+  Fields: _id, sales_order_id, revision_number, order_date, due_date, ship_date, status, online_order_flag, sales_order_number, purchase_order_number, account_number, sales_person_id, ship_method_id, sub_total, tax_amt, freight, total_due
+  - customer: object with customer_id, account_number, store (object with store_id, name; null for an individual buyer)
+  - territory: object with territory_id, name, country_region_code, group
+  - lines: array; fields line_id, product (object with product_number, name, subcategory, category), carrier_tracking_number, order_qty, special_offer_id, unit_price, unit_price_discount, line_total
+- purchase_orders: one document per purchase order
+  Fields: _id, purchase_order_id, revision_number, status, employee_id, order_date, ship_date, sub_total, tax_amt, freight, total_due
+  - vendor: object with vendor_id, account_number, name, credit_rating, preferred_vendor_status, active_flag
+  - ship_method: object with ship_method_id, name
+  - lines: array; fields po_line_id, product (object with product_number, name, subcategory, category), due_date, order_qty, unit_price, line_total, received_qty, rejected_qty, stocked_qty

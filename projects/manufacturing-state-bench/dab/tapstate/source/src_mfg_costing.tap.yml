@@ -1,0 +1,7 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_costing
+connector: postgres
+config: { host: postgres, port: 5432, database: mfgsrc, schema: costing, user: postgres, password: secret }
+mode: cdc
+tables: [ standard_cost_history, list_price_history, item_prices ]

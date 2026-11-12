@@ -1,0 +1,58 @@
+version: tapstate/v1
+kind: pipeline
+id: mfg_product_ref
+# One flat row per product: its number, name, subcategory and category, and its key as each other
+# system writes it (MES part_no, WMS item, procurement part_ref). The other four pipelines join
+# their rows to it (SOURCE_SPLIT.md §3): on Tapstate 0.7.0 a join is the way to bring a shared row
+# into array elements, and a join can only read source tables, so this view is read back as one
+# (source src_mfg_ref). Subcategory and category reach the product by a join of the PLM's
+# subcategories and categories, embedded as a referenced row.
+source: [ src_mfg_plm ]
+settings: { read_mode: snapshot_and_cdc }
+transforms:
+  - id: t_subcat
+    type: join
+    from: { s: subcategories, c: categories }
+    engine: builtin
+    sql: |
+      SELECT s.subcategory_id AS subcategory_id, s.name AS subcategory_name, c.name AS category_name
+      FROM s LEFT JOIN c ON s.category_id = c.category_id
+  - id: t_prod
+    from: [ products ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        if (record.before != null) fix(record.before);
+        fix(record.after);
+        return record;
+      }
+      function fix(r) {
+        if (r != null) {
+          r.mes_part_no = r.product_number.toLowerCase();                // MES
+          r.wms_item = 'AW:' + r.product_number;                        // WMS
+          r.procurement_ref = r.product_number.split('-').join('_');    // procurement
+        }
+      }
+  - id: assemble
+    type: nest
+    from: { p: t_prod, sc: t_subcat }
+    root:
+      from: p
+      key: [ product_number ]
+      embed:
+        - { from: sc, on: { subcategory_id: subcategory_id }, as: object, path: subcategory, key: [ subcategory_id ] }
+  - id: shape
+    from: [ assemble ]
+    type: js
+    script: |
+      function process(record, ctx) {
+        var r = record.after;
+        if (r == null) return record;
+        var s = r.subcategory;
+        record.after = { product_number: r.product_number, name: r.name,
+                         subcategory: s == null ? null : s.subcategory_name,
+                         category: s == null ? null : s.category_name,
+                         mes_part_no: r.mes_part_no, wms_item: r.wms_item, procurement_ref: r.procurement_ref };
+        return record;
+      }
+view: { id: mfg_product_ref, from: shape, primary_key: product_number }
