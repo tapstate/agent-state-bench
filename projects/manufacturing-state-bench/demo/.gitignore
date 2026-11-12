@@ -1,3 +1,9 @@
 runs/
 __pycache__/
 trace_report.html
+recording/*
+!recording/*.py
+!recording/*.sh
+!recording/*.html
+!recording/*.js
+recording/trace_report*.html
