@@ -47,7 +47,9 @@ def main():
     sys.path.insert(0, a.harness)
     from score import bootstrap_ci, cost_per_correct, pass_at_1
 
-    category = {f"query{q['id']}": q["category"] for q in json.loads((HERE / "questions.json").read_text())}
+    frozen = json.loads((HERE / "questions.json").read_text())
+    category = {f"query{q['id']}": q["category"] for q in frozen}
+    n_systems = {f"query{q['id']}": len(q["systems"]) for q in frozen}
     rows = load(a.csv, a.model)
     if not rows:
         sys.exit("no manufacturing rows for that model")
@@ -78,6 +80,21 @@ def main():
                   f"{statistics.median(r['duration_s'] for r in rs):.0f} | "
                   f"{'-' if cpc == float('inf') else f'{cpc:.3f}'} |")
         print()
+
+    print("### By number of source systems a question needs\n")
+    print("| Systems | Questions | A median tokens | C median tokens | A / C | A median turns | C median turns |")
+    print("|---:|---:|---:|---:|---:|---:|---:|")
+    by_n = defaultdict(lambda: defaultdict(list))
+    for r in rows:
+        by_n[n_systems[r["query"]]][r["arm"]].append(r)
+    for n in sorted(by_n):
+        a_, c_ = by_n[n].get("A", []), by_n[n].get("C", [])
+        if not a_ or not c_:
+            continue
+        ma, mc = statistics.median(tokens(r) for r in a_), statistics.median(tokens(r) for r in c_)
+        print(f"| {n} | {len({r['query'] for r in a_})} | {ma:,.0f} | {mc:,.0f} | {ma / mc:.1f}× | "
+              f"{statistics.median(r['llm_calls'] for r in a_):.0f} | {statistics.median(r['llm_calls'] for r in c_):.0f} |")
+    print()
 
     print("### Per question (pass rate over runs; median tokens)\n")
     arms = sorted({r["arm"] for r in rows})

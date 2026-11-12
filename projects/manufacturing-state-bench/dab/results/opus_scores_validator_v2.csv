@@ -1,0 +1,416 @@
+dataset,arm,model,run,query,valid,strict,input_tokens,output_tokens,cached_tokens,llm_calls,duration_s,cost_usd,terminate,answer
+manufacturing,A,cc-claude-opus-5-5,0,query1,True,True,28220,699,24768,5,13.2,0.04651,return_answer,301
+manufacturing,A,cc-claude-opus-5-5,1,query1,True,True,22166,473,21112,4,9.1,0.02208,return_answer,301
+manufacturing,A,cc-claude-opus-5-5,2,query1,True,True,22166,499,21117,4,9.8,0.02256,return_answer,301
+manufacturing,A,cc-claude-opus-5-5,3,query1,True,False,22162,489,21080,4,9.8,0.02262,return_answer,301 work orders that started in 2024 scrapped at least one unit.
+manufacturing,A,cc-claude-opus-5-5,4,query1,True,False,22299,560,21078,4,9.6,0.02515,return_answer,"301 work orders that started in 2024 scrapped at least one unit. I counted orders with a start date in 2024 and a scrapped quantity above zero. Each of the 301 is a separate work order, and every one "
+manufacturing,A,cc-claude-opus-5-5,0,query10,True,False,104363,1496,82850,8,20.6,0.21854,return_answer,"Across all locations, there are 38,789 units on hand of the items supplied by Bergeron Off-Roads.
+
+Bergeron Off-Roads (vendor ID 1540) supplies 24 items: 23 with ""LN"" part numbers and one, LR-2398. Al"
+manufacturing,A,cc-claude-opus-5-5,1,query10,True,False,86949,1355,73556,8,18.1,0.1489,return_answer,"Bergeron Off-Roads (vendor 1540) has 38,789 units on hand across all locations for the items it supplies.
+
+That covers 24 items: 23 lock nuts (LN-1024 through LN-9161) and LR-2398. Every item is stock"
+manufacturing,A,cc-claude-opus-5-5,2,query10,True,False,89632,1366,75355,8,19.5,0.15655,return_answer,"The 24 items supplied by Bergeron Off-Roads (vendor 1540) have a total of 38,789 units on hand across all locations.
+
+The vendor supplies 23 lock nuts (LN-1024 through LN-9161) and one other part, LR-"
+manufacturing,A,cc-claude-opus-5-5,3,query10,True,False,62240,1291,52452,7,18.2,0.11457,return_answer,"Bergeron Off-Roads (vendor 1540) supplies 24 items: 23 lock nuts and one other part, LR-2398. All 24 are in stock at three locations (1, 6 and 50). Their total quantity on hand across all locations is"
+manufacturing,A,cc-claude-opus-5-5,4,query10,True,False,70721,1266,59616,7,17.8,0.12604,return_answer,"Bergeron Off-Roads supplies 24 items, and their total quantity on hand across all locations is 38,789 units.
+
+I took the vendor's 24 item numbers (LN_1024 to LN_9161, plus LR_2398) from the purchasing"
+manufacturing,A,cc-claude-opus-5-5,0,query11,True,False,43645,1119,32822,6,14.3,0.1155,return_answer,The Touring Rear Wheel (RW-T905) had the most units scrapped in the Wheels subcategory: 61 units across work orders that started in 2024. There are currently 741 units of it on hand: 265 at location 6
+manufacturing,A,cc-claude-opus-5-5,1,query11,True,False,62491,1122,52276,6,15.1,0.11458,return_answer,The Touring Rear Wheel (RW-T905) had the most scrapped units in the Wheels subcategory: 61 units across 213 work orders that started in 2024. There are 741 units of it on hand right now: 265 at locati
+manufacturing,A,cc-claude-opus-5-5,2,query11,True,False,62786,1238,52463,6,15.6,0.1178,return_answer,The Wheels product with the most units scrapped was the Touring Rear Wheel (RW-T905). Its work orders that started in 2024 scrapped 61 units in total. It currently has 741 units on hand across all loc
+manufacturing,A,cc-claude-opus-5-5,3,query11,True,False,44802,1181,38413,7,15.1,0.08237,return_answer,The Touring Rear Wheel (RW-T905) had the most units scrapped among Wheels products: 61 units across work orders that started in 2024. There are currently 741 units of it on hand: 265 at location 6 and
+manufacturing,A,cc-claude-opus-5-5,4,query11,True,False,67667,1253,56001,7,15.6,0.12955,return_answer,"The Touring Rear Wheel (RW-T905) had the most units scrapped among Wheels products: 61 units from work orders that started in 2024. It currently has 741 units on hand across all locations, made up of "
+manufacturing,A,cc-claude-opus-5-5,0,query12,True,False,114577,1657,92893,8,20.7,0.22514,return_answer,"The gross margin on Mountain-200 sales in Q1 2025 (January to March) was $831,507.97.
+
+This covers 995 sales order lines across all six Mountain-200 products (Silver and Black in sizes 38, 42 and 46)."
+manufacturing,A,cc-claude-opus-5-5,1,query12,True,False,41590,1414,38234,7,18.5,0.06273,return_answer,"$831,507.97"
+manufacturing,A,cc-claude-opus-5-5,2,query12,True,False,44787,1273,41090,8,16.8,0.06321,return_answer,"$831,507.97"
+manufacturing,A,cc-claude-opus-5-5,3,query12,True,False,68861,1347,57008,8,17.1,0.13313,return_answer,"Gross margin on Mountain-200 sales, orders placed January to March 2025: $831,507.97.
+
+This is the sum of line totals minus quantity times each product's current standard cost. It covers the six Mount"
+manufacturing,A,cc-claude-opus-5-5,4,query12,True,True,46261,1414,42273,9,18.2,0.06859,return_answer,831507.97
+manufacturing,A,cc-claude-opus-5-5,0,query13,True,True,86004,1578,63845,8,18.3,0.22156,return_answer,"sold: 37208, received: 17200"
+manufacturing,A,cc-claude-opus-5-5,1,query13,True,True,74362,1337,55797,6,17.1,0.18639,return_answer,"sold: 37208, received: 17200"
+manufacturing,A,cc-claude-opus-5-5,2,query13,True,True,86400,1679,66484,9,19.5,0.20616,return_answer,"sold: 37208, received: 17200"
+manufacturing,A,cc-claude-opus-5-5,3,query13,True,True,98545,1593,79451,8,18.7,0.20046,return_answer,"sold: 37208, received: 17200"
+manufacturing,A,cc-claude-opus-5-5,4,query13,True,True,100457,1495,80443,7,18.2,0.20606,return_answer,"sold: 37208, received: 17200"
+manufacturing,A,cc-claude-opus-5-5,0,query14,True,False,92652,1744,67827,6,20.7,0.24701,return_answer,"Six purchased Components products have less stock on hand across all locations than their safety stock level of 500:
+
+| Product number | Total on hand | Safety stock | Shortest average vendor lead tim"
+manufacturing,A,cc-claude-opus-5-5,1,query14,True,False,92426,1911,67414,6,23.4,0.25177,return_answer,SE-M798: 15 days; SE-M940: 17 days; SE-R995: 15 days; SE-T762: 15 days; PD-R347: 16 days; PD-R563: 16 days
+manufacturing,A,cc-claude-opus-5-5,2,query14,True,False,92909,1572,67681,6,19.7,0.24677,return_answer,"Six purchased (make_flag 0) Components products have less stock on hand across all locations than their safety stock level of 500 units:
+
+| Product number | Total on hand | Shortest vendor average lea"
+manufacturing,A,cc-claude-opus-5-5,3,query14,True,False,92424,1623,67442,6,20.1,0.24577,return_answer,"Six purchased Components products have less stock on hand, summed across all locations, than their safety stock level. Every one of them has a safety stock level of 500.
+
+| Product number | Total on h"
+manufacturing,A,cc-claude-opus-5-5,4,query14,True,False,92446,1719,67375,6,20.7,0.24839,return_answer,"Six purchased Components products (make_flag 0) have less stock on hand, summed across all locations, than their safety stock level of 500 units:
+
+| Product number | Total on hand | Safety stock level"
+manufacturing,A,cc-claude-opus-5-5,0,query15,True,False,42672,1180,32276,6,14.3,0.11319,return_answer,"The top-selling bike in Q4 2024 (October to December) was the Road-350-W Yellow, 48 (BK-R79Y-48). It sold 371 units on sales orders placed in that period. There are 227 units currently on hand: 104 at"
+manufacturing,A,cc-claude-opus-5-5,1,query15,True,False,42763,1266,34425,6,15.2,0.09888,return_answer,"The top seller was Road-350-W Yellow, 48 (product number BK-R79Y-48). It sold 371 units on sales orders placed from October through December 2024. There are currently 227 units on hand across all loca"
+manufacturing,A,cc-claude-opus-5-5,2,query15,True,False,53859,1066,41809,6,14.1,0.12605,return_answer,"The top-selling bike in Q4 2024 (October to December) was the Road-350-W Yellow, 48 (product BK-R79Y-48). It sold 371 units on sales orders placed in that quarter. There are 227 units on hand right no"
+manufacturing,A,cc-claude-opus-5-5,3,query15,True,False,42679,1176,34440,6,14.2,0.09629,return_answer,"The top-selling bike in Q4 2024 (October to December) was the Road-350-W Yellow, 48 (product number BK-R79Y-48). It sold 371 units on sales orders placed in that quarter. There are 227 units of it on "
+manufacturing,A,cc-claude-opus-5-5,4,query15,True,False,44431,1232,35571,6,15.4,0.1026,return_answer,"The top-selling bike in Q4 2024 (October 1 to December 31) was the Road-350-W Yellow, 48 (BK-R79Y-48). It sold 371 units across 145 sales order lines. There are currently 227 units on hand across two "
+manufacturing,A,cc-claude-opus-5-5,0,query16,True,True,78936,1176,59191,8,15.2,0.19328,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,A,cc-claude-opus-5-5,1,query16,False,False,63308,1362,42503,7,16.2,0.20215,success,
+manufacturing,A,cc-claude-opus-5-5,2,query16,True,True,73030,2120,64073,12,23.9,0.12681,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,A,cc-claude-opus-5-5,3,query16,True,True,88813,1387,67943,8,16.5,0.20825,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,A,cc-claude-opus-5-5,4,query16,True,True,51074,1497,42556,8,17.8,0.10656,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,A,cc-claude-opus-5-5,0,query17,False,False,85396,1205,67279,6,15.1,0.18245,return_answer,"Work orders that started in 2024 scrapped 58 units in the Bikes category and 886 units in the Components category.
+
+I matched the work orders to the product list by part number, ignoring upper and low"
+manufacturing,A,cc-claude-opus-5-5,1,query17,False,False,91868,1253,74297,6,16.2,0.18045,return_answer,"Work orders that started in 2024 scrapped 58 Bikes units and 886 Components units.
+
+To get these totals, I added up the scrapped quantity on every work order with a start date from 1 January to 31 Dec"
+manufacturing,A,cc-claude-opus-5-5,2,query17,False,False,89458,1181,72584,6,15.7,0.17309,return_answer,"Work orders that started in 2024 scrapped 58 units of Bikes and 886 units of Components.
+
+I matched each work order's part number to the product catalog, ignoring differences in letter case. Another 4"
+manufacturing,A,cc-claude-opus-5-5,3,query17,False,False,85878,1185,69852,6,15.8,0.16584,return_answer,"Work orders that started in 2024 scrapped 58 units of Bikes and 886 units of Components.
+
+I matched each work order's part number to its product category in the product master, ignoring upper/lower ca"
+manufacturing,A,cc-claude-opus-5-5,4,query17,False,False,68525,1066,51630,5,14.9,0.16677,return_answer,"Work orders that started in 2024 scrapped 58 units of Bikes and 886 units of Components, for a total of 944.
+
+Category is taken from the product records, matching each work order's part number without"
+manufacturing,A,cc-claude-opus-5-5,0,query18,True,False,180826,2395,149766,10,27.2,0.32628,return_answer,"Bikes-category revenue on 2024 sales orders came to $36,313,572.48 across all 10 territories. Southwest was the largest at $7,596,427.39 and Southeast the smallest at $1,928,935.57.
+
+This adds up the "
+manufacturing,A,cc-claude-opus-5-5,1,query18,True,False,145965,2082,119699,8,24.1,0.27566,return_answer,"Bikes revenue on sales orders placed in 2024, by sales territory (USD):
+
+| Territory | Revenue |
+|---|---|
+| Southwest | $7,596,427.39 |
+| Canada | $4,924,929.56 |
+| Northwest | $4,920,530.33 |
+| Aust"
+manufacturing,A,cc-claude-opus-5-5,2,query18,True,False,82313,2386,71463,11,26.7,0.14876,return_answer,"Revenue from Bikes-category products on sales orders placed in 2024, by sales territory (sum of line totals, USD):
+
+| Territory | Revenue (USD) |
+|---|---|
+| Northwest (US) | 4,920,530.33 |
+| Northeas"
+manufacturing,A,cc-claude-opus-5-5,3,query18,True,False,87754,2348,71741,9,24.8,0.18936,return_answer,"Revenue from Bikes-category products on sales orders placed in 2024 was $36,313,572.48 in total. By territory, in US dollars:
+
+| Territory | Revenue (USD) |
+|---|---|
+| Southwest | 7,596,427.39 |
+| Ca"
+manufacturing,A,cc-claude-opus-5-5,4,query18,True,False,71015,1867,60870,9,21.9,0.13063,return_answer,"Bikes revenue on 2024 sales orders, by territory (in USD, from 16,513 order lines):
+
+- Northwest: $4,920,530.33
+- Northeast: $2,067,189.89
+- Central: $2,475,045.18
+- Southwest: $7,596,427.39
+- Southea"
+manufacturing,A,cc-claude-opus-5-5,0,query19,True,False,153506,2841,119273,10,29.9,0.35449,return_answer,"Stock on hand valued at current standard cost, by category:
+
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+
+The four categories add up to $19,22"
+manufacturing,A,cc-claude-opus-5-5,1,query19,True,False,195876,3196,157840,9,33.7,0.39973,return_answer,"Stock on hand valued at each product's current standard cost:
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+Total for the four categories: $19,2"
+manufacturing,A,cc-claude-opus-5-5,2,query19,True,False,159926,2516,128089,10,27.7,0.33059,return_answer,"Stock on hand valued at each product's current standard cost, by category (US dollars):
+
+| Category | Units on hand | Stock value |
+|---|---|---|
+| Bikes | 15,536 | $14,623,652.53 |
+| Components | 47,"
+manufacturing,A,cc-claude-opus-5-5,3,query19,True,False,566165,14015,499672,17,118.8,0.91208,return_answer,"Stock on hand valued at each product's current standard cost, by category (USD):
+
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+
+Total: $19,225,"
+manufacturing,A,cc-claude-opus-5-5,4,query19,True,False,154243,3062,127543,8,34.2,0.3003,return_answer,"Here is the stock on hand for each category, valued at current standard cost (USD):
+
+- **Bikes:** $14,623,652.53 (15,536 units)
+- **Components:** $4,375,836.81 (47,214 units)
+- **Clothing:** $138,132."
+manufacturing,A,cc-claude-opus-5-5,0,query2,True,False,34091,963,28870,5,15.2,0.06676,return_answer,"Southwest (territory 4) had the highest total order subtotal on 2024 sales orders: $9,121,931.65 across 2,733 orders."
+manufacturing,A,cc-claude-opus-5-5,1,query2,True,False,33590,1001,30575,5,14.0,0.05022,return_answer,"Southwest had the highest total order subtotal for sales orders placed in 2024: $9,121,931.65.
+
+This is the sum of the subtotal on all 2,733 Southwest orders dated from 1 January to 31 December 2024. "
+manufacturing,A,cc-claude-opus-5-5,2,query2,True,False,33856,841,28591,6,11.9,0.06463,return_answer,"Southwest had the highest total order subtotal on 2024 sales orders: $9,121,931.65, across 2,733 orders.
+
+This total includes every order dated in 2024, whatever its status, and excludes tax and freig"
+manufacturing,A,cc-claude-opus-5-5,3,query2,True,False,34416,1063,31186,6,14.8,0.0533,return_answer,"Southwest had the highest total order subtotal on sales orders placed in 2024, at $9,121,931.65 across 2,733 orders. That is the sum of the subtotals (before tax and freight) for all orders dated 1 Ja"
+manufacturing,A,cc-claude-opus-5-5,4,query2,True,False,41522,1234,36372,7,15.3,0.07311,return_answer,"Southwest (territory 4, US) had the highest total order subtotal on sales orders placed in 2024: $9,121,931.65. This is the sum of the subtotal (before tax and freight) on its 2,733 orders dated 1 Jan"
+manufacturing,A,cc-claude-opus-5-5,0,query20,True,True,170090,2662,140380,11,30.3,0.31894,return_answer,2343792.06
+manufacturing,A,cc-claude-opus-5-5,1,query20,True,False,127465,2835,102436,10,29.2,0.27737,return_answer,"Gross margin on Bikes-category products sold on sales orders placed in 2023: $2,343,792.06. That is $27,152,551.07 in line totals minus each line's quantity times the product's standard cost in effect"
+manufacturing,A,cc-claude-opus-5-5,2,query20,True,False,133989,2635,109009,9,54.7,0.27429,return_answer,"$2,343,792.06"
+manufacturing,A,cc-claude-opus-5-5,3,query20,True,False,171560,2639,148789,11,30.5,0.26464,return_answer,"The gross margin on Bikes-category products sold on 2023 sales orders was $2,343,792.06.
+
+That comes from $27,152,551.07 in line totals across 10,143 order lines, minus quantity times the standard cos"
+manufacturing,A,cc-claude-opus-5-5,4,query20,True,False,94719,1694,72532,8,19.7,0.22584,return_answer,"Gross margin on Bikes-category products for sales orders placed in 2023 was $2,343,792.06. Bike line totals were $27,152,551.07, and quantity times the standard cost in effect on each order date was a"
+manufacturing,A,cc-claude-opus-5-5,0,query3,True,False,35266,1122,29849,7,15.4,0.07171,return_answer,"Subassembly (location 50) holds the most stock: 95,477 units in total. That figure is the sum of quantity on hand across its 251 stock records, and no item/shelf/bin record appears twice. The next two"
+manufacturing,A,cc-claude-opus-5-5,1,query3,True,False,26853,785,24097,5,10.9,0.04254,return_answer,"Subassembly (location 50) holds the most stock: 95,477 units in total across 251 stock records. It is followed by Miscellaneous Storage (location 6) with 83,173 units and Tool Crib (location 1) with 7"
+manufacturing,A,cc-claude-opus-5-5,2,query3,True,False,26869,787,24106,5,12.0,0.04263,return_answer,"Subassembly (location 50) holds the most stock: 95,477 units in total, summed across its 251 stock records. Miscellaneous Storage (location 6) is second with 83,173 units, and Tool Crib (location 1) i"
+manufacturing,A,cc-claude-opus-5-5,3,query3,True,False,26825,781,24088,5,11.9,0.0423,return_answer,"Subassembly (location 50) holds the most stock: 95,477 units across 251 stock records. The next largest are Miscellaneous Storage (location 6) with 83,173 units and Tool Crib (location 1) with 72,899 "
+manufacturing,A,cc-claude-opus-5-5,4,query3,False,False,19676,700,17031,4,10.0,0.03854,success,
+manufacturing,A,cc-claude-opus-5-5,0,query4,True,False,32906,834,28025,7,12.5,0.06129,return_answer,"$43,387.08"
+manufacturing,A,cc-claude-opus-5-5,1,query4,True,False,32459,817,29856,6,11.8,0.0431,return_answer,"The total freight on purchase orders placed in 2024 that use the 'OVERSEAS - DELUXE' ship method is $43,387.08.
+
+This covers 49 purchase orders (ship method ID 3) dated from 1 January to 31 December 2"
+manufacturing,A,cc-claude-opus-5-5,2,query4,True,False,24934,682,22788,5,10.1,0.03533,return_answer,"Total freight on 2024 purchase orders shipped via 'OVERSEAS - DELUXE' is $43,387.08. This covers 49 purchase orders, each with an order date in 2024 and ship method ID 3, which is 'OVERSEAS - DELUXE'."
+manufacturing,A,cc-claude-opus-5-5,3,query4,True,False,24275,692,22401,5,10.3,0.03328,return_answer,"The total freight is $43,387.08, from 49 purchase orders placed in 2024 that used the 'OVERSEAS - DELUXE' ship method (ship method 3). Each order was counted once (no duplicates), and the unrounded su"
+manufacturing,A,cc-claude-opus-5-5,4,query4,True,False,32455,835,29971,6,12.9,0.04253,return_answer,"$43,387.08"
+manufacturing,A,cc-claude-opus-5-5,0,query5,True,True,38884,874,32681,6,12.3,0.0736,return_answer,265
+manufacturing,A,cc-claude-opus-5-5,1,query5,True,False,31962,1260,27032,5,14.8,0.07001,return_answer,"Work orders that started in 2024 scrapped 265 units in total across the 14 products in the 'Wheels' subcategory.
+
+The wheel products were taken from the product master and matched to the manufacturing"
+manufacturing,A,cc-claude-opus-5-5,2,query5,True,True,35887,1037,32384,6,14.0,0.0552,return_answer,265
+manufacturing,A,cc-claude-opus-5-5,3,query5,True,True,34222,1094,31282,6,14.4,0.05162,return_answer,265
+manufacturing,A,cc-claude-opus-5-5,4,query5,True,False,43831,1733,37742,6,18.2,0.09088,return_answer,"Work orders that started in 2024 for products in the 'Wheels' subcategory scrapped **265 units** in total.
+
+There are 14 Wheels products (7 front wheels and 7 rear wheels), covering 3,502 work orders."
+manufacturing,A,cc-claude-opus-5-5,0,query6,True,True,25487,1053,21028,5,13.9,0.06091,return_answer,6978
+manufacturing,A,cc-claude-opus-5-5,1,query6,True,False,35182,1293,31613,7,15.5,0.06069,return_answer,"6,978 units of Mountain-200 bikes were sold on sales orders placed in 2024. They came from 2,227 order lines.
+
+The Mountain-200 model has six products, in Silver and Black and frame sizes 38, 42 and 4"
+manufacturing,A,cc-claude-opus-5-5,2,query6,True,False,38001,1518,33742,8,17.3,0.07114,return_answer,"6,978 units of the Mountain-200 model were sold on sales orders placed in 2024.
+
+That total comes from the model's six products:
+
+- BK-M68B-38 (Black, 38): 1,472 units
+- BK-M68B-42 (Black, 42): 1,262 "
+manufacturing,A,cc-claude-opus-5-5,3,query6,True,False,26019,1197,23141,5,14.9,0.05156,return_answer,"6,978 units of Mountain-200 products were sold on sales orders placed in 2024.
+
+The model has six products in the product catalogue. Each one's product number matches a SKU on the sales order lines, s"
+manufacturing,A,cc-claude-opus-5-5,4,query6,True,False,51942,1289,40416,5,15.1,0.12604,return_answer,"6,978 units of Mountain-200 products were sold on sales orders placed in 2024.
+
+The Mountain-200 model has six products, and their 2024 totals are:
+- Mountain-200 Black, 38 (BK-M68B-38): 1,472
+- Mount"
+manufacturing,A,cc-claude-opus-5-5,0,query7,True,False,63230,1263,48620,6,19.2,0.15182,return_answer,"1,318 units of Silver products are in stock at Finished Goods Storage. This total covers 17 Silver products found in that location's stock, all with the color recorded as exactly ""Silver"". Some produc"
+manufacturing,A,cc-claude-opus-5-5,1,query7,True,False,79934,1332,67441,7,21.2,0.14002,return_answer,"There are 1,318 units of Silver-colored products in stock at Finished Goods Storage (location 7). This total covers 17 Silver products that have stock records there. I used only products whose color i"
+manufacturing,A,cc-claude-opus-5-5,2,query7,True,False,63310,1467,50832,6,21.4,0.13929,return_answer,"There are 1,318 units of Silver-colored products in stock at the Finished Goods Storage location (location ID 7).
+
+These units are spread across 17 Silver products, all of them Silver bike models. I m"
+manufacturing,A,cc-claude-opus-5-5,3,query7,True,False,81246,1299,68453,7,20.7,0.14197,return_answer,"1,318 units of Silver-colored products are in stock at Finished Goods Storage (location 7). This total comes from 17 Silver products. No Silver/Black products are stocked there, so the total is the sa"
+manufacturing,A,cc-claude-opus-5-5,4,query7,True,False,62581,968,50514,6,16.8,0.12596,return_answer,"1,318 units of Silver-colored products are in stock at Finished Goods Storage (location 7), spread across 17 stocked items. I counted only products whose color is exactly ""Silver"". The seven ""Silver/B"
+manufacturing,A,cc-claude-opus-5-5,0,query8,True,False,47346,1138,34974,5,15.1,0.1287,return_answer,"The mean average lead time is 20.44 days.
+
+This covers 18 vendor offers for the 11 products in the 'Tires and Tubes' subcategory, with one offer per vendor and product. The two systems write product n"
+manufacturing,A,cc-claude-opus-5-5,1,query8,True,True,51134,960,39251,5,14.5,0.12208,return_answer,20.44
+manufacturing,A,cc-claude-opus-5-5,2,query8,True,True,60279,1464,50481,6,19.3,0.11772,return_answer,20.44
+manufacturing,A,cc-claude-opus-5-5,3,query8,True,True,46284,974,36829,5,13.5,0.10245,return_answer,20.44
+manufacturing,A,cc-claude-opus-5-5,4,query8,True,False,47650,1122,37300,5,14.3,0.11267,return_answer,"The mean average lead time is 20.44 days.
+
+There are 18 vendor offers across the 11 products in the 'Tires and Tubes' subcategory, with no duplicate vendor–product pairs. Seventeen of them have a lead"
+manufacturing,A,cc-claude-opus-5-5,0,query9,True,False,64484,1256,51654,6,15.8,0.13805,return_answer,"The units scrapped by work orders that started between October 1 and December 31, 2024 are worth $43,693.01 at each product's current standard cost.
+
+I added up the scrapped quantity for each product "
+manufacturing,A,cc-claude-opus-5-5,1,query9,True,False,48793,1000,38807,5,14.1,0.10762,return_answer,"$43,693.01"
+manufacturing,A,cc-claude-opus-5-5,2,query9,True,False,79415,1507,68523,7,19.1,0.13093,return_answer,"At current standard cost, the units scrapped by work orders that started from October 1 to December 31, 2024 were worth $43,693.01.
+
+I added up the scrapped quantity for each product across those work"
+manufacturing,A,cc-claude-opus-5-5,3,query9,True,False,110452,1777,86966,8,22.2,0.24077,return_answer,"$43,693.01"
+manufacturing,A,cc-claude-opus-5-5,4,query9,True,False,65850,1220,55129,6,16.4,0.12115,return_answer,"$43,693.01"
+manufacturing,C,cc-claude-opus-5-5,0,query1,True,False,16228,543,13030,3,9.2,0.03903,return_answer,301 work orders that started in 2024 scrapped at least one unit (scrapped_qty > 0).
+manufacturing,C,cc-claude-opus-5-5,1,query1,True,False,21577,744,19962,4,11.2,0.03176,return_answer,"301 work orders that started in 2024 scrapped at least one unit, out of 28,994 work orders started that year. I counted work orders with a start date in 2024 and a scrapped quantity above zero. All st"
+manufacturing,C,cc-claude-opus-5-5,2,query1,True,False,28981,846,26725,5,12.7,0.04027,return_answer,"301 work orders that started in 2024 scrapped at least one unit, out of 28,994 work orders started that year.
+
+That counts work orders with a start date in 2024 and a scrapped quantity greater than ze"
+manufacturing,C,cc-claude-opus-5-5,3,query1,True,False,16203,537,14734,3,9.1,0.02541,return_answer,301 work orders that started in 2024 scrapped at least one unit (scrapped quantity above 0).
+manufacturing,C,cc-claude-opus-5-5,4,query1,True,False,21315,786,19891,4,11.1,0.03106,return_answer,"301 work orders that started in 2024 scrapped at least one unit (scrapped_qty > 0), out of 28,994 work orders that started that year."
+manufacturing,C,cc-claude-opus-5-5,0,query10,True,True,33420,786,28641,5,12.3,0.05964,return_answer,38789
+manufacturing,C,cc-claude-opus-5-5,1,query10,True,False,25376,810,22500,5,12.2,0.04368,return_answer,"The 24 items supplied by Bergeron Off-Roads have a total of 38,789 units on hand across all locations. Each item is stocked at 3 locations. That covers 23 products numbered LN-xxxx plus LR-2398. Only "
+manufacturing,C,cc-claude-opus-5-5,2,query10,True,False,42619,1259,33891,5,15.7,0.10175,return_answer,"Bergeron Off-Roads (vendor ID 1540) supplies 24 items, and together they have 38,789 units on hand across all locations. The items are 23 lock nuts (part numbers starting LN-) and one LR- item. Each o"
+manufacturing,C,cc-claude-opus-5-5,3,query10,True,False,25706,1004,22488,5,13.2,0.05029,return_answer,"The items that Bergeron Off-Roads supplies have a combined quantity on hand of 38,789 units across all locations.
+
+Bergeron Off-Roads (vendor ID 1540) supplies 24 products: LN-1024, LN-1032, LN-1213, "
+manufacturing,C,cc-claude-opus-5-5,4,query10,True,False,29311,756,25255,4,12.6,0.05259,return_answer,"Bergeron Off-Roads supplies 24 items: 23 products numbered LN-…, which Mountain Works also supplies, plus LR-2398. Together they have 38,789 units on hand across all locations. Each item is stocked at"
+manufacturing,C,cc-claude-opus-5-5,0,query11,True,False,25239,1166,20367,5,14.1,0.06634,return_answer,The Wheels product with the most scrap from work orders that started in 2024 was the Touring Rear Wheel (RW-T905). Its work orders that year scrapped 61 units in total. The next highest was the ML Mou
+manufacturing,C,cc-claude-opus-5-5,1,query11,True,False,23730,975,21213,5,12.8,0.04385,return_answer,The Touring Rear Wheel (RW-T905) had the most units scrapped: 61 units across 213 work orders that started in 2024. There are currently 741 units of it on hand: 265 in Miscellaneous Storage and 476 in
+manufacturing,C,cc-claude-opus-5-5,2,query11,True,False,23199,1007,20906,5,13.6,0.04263,return_answer,"In the Wheels subcategory, the Touring Rear Wheel (RW-T905) had the most units scrapped by work orders that started in 2024: 61 units across 213 work orders. The next highest was the ML Mountain Front"
+manufacturing,C,cc-claude-opus-5-5,3,query11,True,False,23353,1242,20973,5,15.3,0.04804,return_answer,"The Touring Rear Wheel (RW-T905) had the most units scrapped in the 'Wheels' subcategory. Its work orders that started in 2024 scrapped 61 units in total, across 213 work orders. The next highest was "
+manufacturing,C,cc-claude-opus-5-5,4,query11,True,False,24897,1033,21770,5,12.8,0.05,return_answer,The Touring Rear Wheel (RW-T905) had the most units scrapped: 61 units across 213 work orders that started in 2024. There are currently 741 units of it on hand: 265 in Miscellaneous Storage and 476 in
+manufacturing,C,cc-claude-opus-5-5,0,query12,True,False,69099,1560,55929,7,19.9,0.14769,return_answer,"The gross margin on Mountain-200 sales in Q1 2025 (January to March) was $831,507.97.
+
+This covers 995 sales order lines for the six Mountain-200 products, with orders dated 2025-01-01 through 2025-03"
+manufacturing,C,cc-claude-opus-5-5,1,query12,True,False,31191,1183,28726,6,15.5,0.04909,return_answer,"$831,507.97"
+manufacturing,C,cc-claude-opus-5-5,2,query12,False,False,44405,1201,34480,5,16.4,0.11028,success,
+manufacturing,C,cc-claude-opus-5-5,3,query12,True,False,72405,1358,60389,6,18.4,0.13532,return_answer,"$831,507.97"
+manufacturing,C,cc-claude-opus-5-5,4,query12,True,False,80096,1843,67903,8,22.1,0.14793,return_answer,"The gross margin on Mountain-200 sales in Q1 2025 (January 1 to March 31) was $831,507.97.
+
+I found 995 sales order lines across the six Mountain-200 products: Black and Silver, in sizes 38, 42 and 46"
+manufacturing,C,cc-claude-opus-5-5,0,query13,True,True,41162,1878,35544,10,23.3,0.08956,return_answer,"sold: 37208, received: 17200"
+manufacturing,C,cc-claude-opus-5-5,1,query13,True,True,33886,1177,29382,7,16.9,0.06541,return_answer,"sold: 37208, received: 17200"
+manufacturing,C,cc-claude-opus-5-5,2,query13,True,True,16542,789,15002,4,12.4,0.03108,return_answer,"sold: 37208, received: 17200"
+manufacturing,C,cc-claude-opus-5-5,3,query13,True,True,17565,864,15477,4,13.0,0.03706,return_answer,"sold: 37208, received: 17200"
+manufacturing,C,cc-claude-opus-5-5,4,query13,True,True,24292,1133,21750,6,15.8,0.04731,return_answer,"sold: 37208, received: 17200"
+manufacturing,C,cc-claude-opus-5-5,0,query14,True,False,52742,1014,44848,5,13.3,0.09236,return_answer,"Six of the 19 purchased Components products have less stock on hand across all locations than their safety stock level. Every one of them has a safety stock level of 500.
+
+| Product number | Total on "
+manufacturing,C,cc-claude-opus-5-5,1,query14,True,False,31519,1063,25834,4,12.5,0.07187,return_answer,"I found 6 purchased Components products (make_flag 0) whose total stock across all locations is below their safety stock level of 500:
+
+| Product number | Total on hand | Shortest average lead time (d"
+manufacturing,C,cc-claude-opus-5-5,2,query14,True,False,35496,1448,31451,5,17.1,0.06757,return_answer,"Six purchased Components products (make_flag 0) have less stock on hand, across all locations, than their safety stock level of 500:
+
+| Product number | Total on hand | Shortest average vendor lead ti"
+manufacturing,C,cc-claude-opus-5-5,3,query14,True,False,27450,1227,23688,4,14.8,0.05934,return_answer,"Six purchased Components products (make_flag 0) have total stock below their safety stock level of 500:
+
+| Product number | Total on hand | Shortest average lead time (days) |
+|---|---|---|
+| PD-R347 "
+manufacturing,C,cc-claude-opus-5-5,4,query14,True,False,55133,1225,46108,5,16.0,0.10588,return_answer,Six purchased Components products (make_flag 0) have less stock on hand across all locations than their safety stock level. All six have a safety stock level of 500. I checked 19 purchased Components 
+manufacturing,C,cc-claude-opus-5-5,0,query15,True,False,29951,1235,25463,6,15.5,0.06566,return_answer,"The top seller was Road-350-W Yellow, 48 (product number BK-R79Y-48). It sold 371 units on sales orders placed from October to December 2024. There are currently 227 units on hand across all locations"
+manufacturing,C,cc-claude-opus-5-5,1,query15,True,False,23725,1084,21216,5,13.7,0.04596,return_answer,"The Bikes product that sold the most units in Q4 2024 (October to December) was Road-350-W Yellow, 48 (BK-R79Y-48). It sold 371 units across 145 sales order lines. The next closest was Mountain-200 Bl"
+manufacturing,C,cc-claude-opus-5-5,2,query15,True,False,29958,1128,27399,6,14.3,0.04847,return_answer,"The top Bikes product for Q4 2024 (orders placed October to December) was Road-350-W Yellow, 48 (BK-R79Y-48), with 371 units sold. The next closest was Mountain-200 Black, 38, with 355 units.
+
+There a"
+manufacturing,C,cc-claude-opus-5-5,3,query15,True,False,29397,1038,27025,5,14.2,0.0451,return_answer,"Road-350-W Yellow, 48 (product number BK-R79Y-48) sold the most units of any Bikes product on sales orders placed from October to December 2024, with 371 units. The runner-up was Mountain-200 Black, 3"
+manufacturing,C,cc-claude-opus-5-5,4,query15,True,False,29281,1019,26939,5,13.5,0.04446,return_answer,"The top seller was Road-350-W Yellow, 48 (BK-R79Y-48), with 371 units sold on sales orders placed from October 1 to December 31, 2024. The next highest was Mountain-200 Black, 38 at 355 units. There a"
+manufacturing,C,cc-claude-opus-5-5,0,query16,True,True,72776,1347,54089,6,17.8,0.18721,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,C,cc-claude-opus-5-5,1,query16,True,True,26911,1207,23216,6,14.0,0.05831,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,C,cc-claude-opus-5-5,2,query16,True,True,25921,1291,22916,6,14.9,0.05441,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,C,cc-claude-opus-5-5,3,query16,True,True,27694,1084,24112,6,13.6,0.05513,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,C,cc-claude-opus-5-5,4,query16,True,True,27122,1089,23812,6,13.6,0.05299,return_answer,"sold: 16711, stocked: 17407"
+manufacturing,C,cc-claude-opus-5-5,0,query17,True,False,61918,1261,51017,7,21.1,0.12258,return_answer,"Units scrapped by work orders that started in 2024: Bikes = 58, Components = 886. The total for the two categories is 944. This counts every work order with a start date in 2024 and adds up its scrapp"
+manufacturing,C,cc-claude-opus-5-5,1,query17,False,False,21930,824,20137,4,11.6,0.03482,return_answer,"Work orders that started in 2024 scrapped 58 units in the Bikes category and 886 units in the Components category.
+
+These totals add up the scrapped quantity of every work order with a start date from"
+manufacturing,C,cc-claude-opus-5-5,2,query17,False,False,15453,638,14347,3,10.0,0.02445,success,
+manufacturing,C,cc-claude-opus-5-5,3,query17,True,False,27794,974,25938,5,14.2,0.03948,return_answer,"Bikes: 58 units scrapped (5,291 work orders started in 2024). Components: 886 units scrapped (15,319 work orders started in 2024)."
+manufacturing,C,cc-claude-opus-5-5,4,query17,False,False,37579,1071,34400,6,15.7,0.05368,return_answer,"Work orders that started in 2024 scrapped 58 units of Bikes and 886 units of Components. Bikes had 5,291 work orders that year and Components had 15,319."
+manufacturing,C,cc-claude-opus-5-5,0,query18,True,False,25638,1581,20202,4,16.9,0.07912,return_answer,"Revenue from Bikes-category products on sales orders placed in 2024 (order dates 2024-01-01 to 2024-12-31), summing each order line's line total, by sales territory:
+
+| Territory | Revenue (USD) |
+|--"
+manufacturing,C,cc-claude-opus-5-5,1,query18,True,False,27136,1518,23117,4,16.6,0.0671,return_answer,"2024 revenue from products in the Bikes category, by sales territory (sum of order line totals, USD):
+
+| Territory | Bikes revenue, 2024 (USD) |
+|---|---|
+| Northwest | 4,920,530.33 |
+| Northeast | 2,"
+manufacturing,C,cc-claude-opus-5-5,2,query18,True,False,25263,1221,22089,4,15.7,0.0542,return_answer,"Revenue from Bikes-category products on sales orders placed in 2024 (2024-01-01 to 2024-12-31), by sales territory, in US dollars:
+
+| Territory | Revenue (USD) |
+|---|---|
+| Southwest | 7,596,427.39 |"
+manufacturing,C,cc-claude-opus-5-5,3,query18,True,False,25342,1237,22043,4,14.9,0.05551,return_answer,"Revenue from Bikes on sales orders placed in 2024, by sales territory. This is the sum of order line totals, in US dollars:
+
+- Northwest: $4,920,530.33
+- Northeast: $2,067,189.89
+- Central: $2,475,045"
+manufacturing,C,cc-claude-opus-5-5,4,query18,True,False,25337,1250,21998,4,14.5,0.05608,return_answer,"2024 revenue from Bikes-category products, by sales territory (US dollars):
+
+| Territory | Revenue |
+|---|---|
+| Northwest | $4,920,530.33 |
+| Northeast | $2,067,189.89 |
+| Central | $2,475,045.18 |
+|"
+manufacturing,C,cc-claude-opus-5-5,0,query19,True,False,48081,1295,37435,5,16.8,0.11851,return_answer,"I valued stock as quantity on hand across all locations times each product's current standard cost.
+
+| Category | Stock value (USD) |
+|---|---|
+| Bikes | 14,623,652.53 |
+| Components | 4,375,836.81 |
+"
+manufacturing,C,cc-claude-opus-5-5,1,query19,True,False,40090,1044,32282,4,14.3,0.08977,return_answer,"Stock on hand valued at each product's current standard cost (quantities summed over all stock locations):
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $8"
+manufacturing,C,cc-claude-opus-5-5,2,query19,True,False,41688,1272,33175,4,16.0,0.10015,return_answer,"Stock on hand at each product's current standard cost, by category:
+
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+
+Together these four categori"
+manufacturing,C,cc-claude-opus-5-5,3,query19,True,False,49781,1380,40429,5,17.8,0.11046,return_answer,"Stock on hand valued at each product's current standard cost, by category:
+
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+
+Together the four cat"
+manufacturing,C,cc-claude-opus-5-5,4,query19,True,False,54179,1362,45520,5,17.2,0.10558,return_answer,"Stock on hand valued at each product's current standard cost, by category (USD):
+
+- Bikes: $14,623,652.53
+- Components: $4,375,836.81
+- Clothing: $138,132.93
+- Accessories: $88,211.76
+
+For each produc"
+manufacturing,C,cc-claude-opus-5-5,0,query2,True,False,42607,1486,36387,7,17.9,0.08671,return_answer,"The Southwest territory had the highest total order subtotal (before tax and freight) on sales orders placed in 2024: $9,121,931.65 across 2,733 orders. Canada was second at $6,231,209.96.
+
+I checked "
+manufacturing,C,cc-claude-opus-5-5,1,query2,True,False,40107,1536,35913,6,17.9,0.07141,return_answer,"The Southwest territory had the highest order subtotal for sales orders placed in 2024, at $9,121,931.65 across 2,733 orders.
+
+Canada was second at $6,231,209.96, followed by Northwest at $6,018,432.5"
+manufacturing,C,cc-claude-opus-5-5,2,query2,True,False,31319,1269,27921,6,15.8,0.05811,return_answer,"Southwest (territory 4) had the highest subtotal on 2024 sales orders: $9,121,931.65, across 2,733 orders. The next highest was Canada at $6,231,209.96. This counts every order with an order date in 2"
+manufacturing,C,cc-claude-opus-5-5,3,query2,True,False,37432,1130,32192,6,15.1,0.07092,return_answer,"Southwest had the highest total order subtotal for sales orders placed in 2024: $9,121,931.65 across 2,733 orders."
+manufacturing,C,cc-claude-opus-5-5,4,query2,True,False,39142,1211,35214,6,16.4,0.06264,return_answer,"Southwest had the highest total order subtotal (before tax and freight) on sales orders placed in 2024: $9,121,931.65 across 2,733 orders. Canada was second at $6,231,209.96. Every 2024 order is count"
+manufacturing,C,cc-claude-opus-5-5,0,query20,True,False,68394,1278,49400,5,15.5,0.18736,return_answer,"The gross margin on Bikes-category products sold on sales orders placed in 2023 was $2,343,792.06. Line totals for those sales came to about $27,152,551.07. The cost subtracted was each line's quantit"
+manufacturing,C,cc-claude-opus-5-5,1,query20,True,False,68109,1108,51044,5,14.1,0.16886,return_answer,"The gross margin on Bikes-category products sold on sales orders placed in 2023 was $2,343,792.06.
+
+This is the sum of line totals minus quantity times standard cost, across 10,143 order lines dated 2"
+manufacturing,C,cc-claude-opus-5-5,2,query20,True,False,90105,1318,72622,6,16.7,0.18071,return_answer,"The gross margin on Bikes-category products sold on sales orders placed in 2023 was $2,343,792.06.
+
+That figure comes from all 10,143 Bikes order lines with an order date in 2023. For each line I took"
+manufacturing,C,cc-claude-opus-5-5,3,query20,True,False,92543,1390,74217,6,17.9,0.18921,return_answer,"The gross margin on Bikes-category products sold on sales orders placed in 2023 was $2,343,792.06.
+
+This covers all 10,143 Bikes order lines from 2023. For each line, I subtracted the quantity times t"
+manufacturing,C,cc-claude-opus-5-5,4,query20,True,False,90081,1319,72594,6,16.4,0.18075,return_answer,"The gross margin on Bikes sold on sales orders placed in 2023 was $2,343,792.06.
+
+I calculated it as the sum of line totals minus quantity times the standard cost in effect on each order date. That co"
+manufacturing,C,cc-claude-opus-5-5,0,query3,True,False,23215,654,19439,4,10.7,0.04714,return_answer,"The Subassembly location (location ID 50) holds the most stock: 95,477 units in total, summed across its 251 inventory records. Miscellaneous Storage is second with 83,173 units."
+manufacturing,C,cc-claude-opus-5-5,1,query3,True,False,23289,767,21210,4,11.9,0.03618,return_answer,"Subassembly (location ID 50) holds the most stock: 95,477 units across 251 inventory records. Miscellaneous Storage is second with 83,173 units, and Tool Crib is third with 72,899."
+manufacturing,C,cc-claude-opus-5-5,2,query3,True,False,23370,778,21241,4,11.6,0.03681,return_answer,"Subassembly (location 50) holds the most stock: 95,477 units in total. That figure adds up the quantities in its 251 inventory records. Miscellaneous Storage is second with 83,173 units and Tool Crib "
+manufacturing,C,cc-claude-opus-5-5,3,query3,True,False,23320,729,21205,4,10.9,0.03571,return_answer,"The Subassembly location (location ID 50) holds the most stock: 95,477 units in total, spread across 251 product inventory records. Miscellaneous Storage is second with 83,173 units, and Tool Crib is "
+manufacturing,C,cc-claude-opus-5-5,4,query3,True,False,23161,636,21148,4,10.1,0.03302,return_answer,"Subassembly (location 50) holds the most stock, with 95,477 units in total, summed across 251 product inventory records. Miscellaneous Storage is second with 83,173 units."
+manufacturing,C,cc-claude-opus-5-5,0,query4,True,False,31668,811,26880,5,13.0,0.05986,return_answer,"$43,387.08"
+manufacturing,C,cc-claude-opus-5-5,1,query4,True,False,30783,842,27930,5,12.5,0.04521,return_answer,"The total freight on purchase orders placed in 2024 with ship method 'OVERSEAS - DELUXE' is $43,387.08, across 49 orders."
+manufacturing,C,cc-claude-opus-5-5,2,query4,True,False,25095,685,22479,4,11.0,0.03909,return_answer,"The total freight on the 49 purchase orders placed in 2024 that used the ship method 'OVERSEAS - DELUXE' is $43,387.08."
+manufacturing,C,cc-claude-opus-5-5,3,query4,True,False,24698,706,21615,4,11.8,0.04308,return_answer,"Purchase orders placed in 2024 with the ship method 'OVERSEAS - DELUXE' had a total freight of $43,387.08, across 49 orders."
+manufacturing,C,cc-claude-opus-5-5,4,query4,True,False,18363,472,15879,3,8.5,0.03246,return_answer,"The total freight is $43,387.08, from 49 purchase orders placed in 2024 that use the ship method 'OVERSEAS - DELUXE'."
+manufacturing,C,cc-claude-opus-5-5,0,query5,True,False,22637,640,19067,4,10.7,0.04514,return_answer,"Work orders that started in 2024 for products in the 'Wheels' subcategory scrapped 265 units in total. That total comes from 3,502 work orders."
+manufacturing,C,cc-claude-opus-5-5,1,query5,True,False,32080,908,28463,5,13.5,0.05275,return_answer,"Work orders that started in 2024 for products in the 'Wheels' subcategory scrapped 265 units in total. That total comes from 3,502 work orders.
+
+I checked the data before adding it up. The subcategory"
+manufacturing,C,cc-claude-opus-5-5,2,query5,True,False,22947,810,20919,4,12.0,0.03658,return_answer,"Work orders that started in 2024 for products in the 'Wheels' subcategory scrapped 265 units in total. There were 3,502 of these work orders. I checked the data, and every work order's start date and "
+manufacturing,C,cc-claude-opus-5-5,3,query5,True,False,30025,891,27482,5,13.5,0.04362,return_answer,"Work orders that started in 2024 for products in the 'Wheels' subcategory scrapped 265 units in total. That figure comes from 3,502 work orders."
+manufacturing,C,cc-claude-opus-5-5,4,query5,True,True,21626,785,20178,4,11.8,0.03129,return_answer,265
+manufacturing,C,cc-claude-opus-5-5,0,query6,True,False,30693,1571,25770,6,17.9,0.07592,return_answer,"6,978 units of Mountain-200 products were sold on sales orders placed in 2024. That total covers 3,297 order lines on 2,227 orders. The model has six products: Black and Silver, each in sizes 38, 42 a"
+manufacturing,C,cc-claude-opus-5-5,1,query6,True,False,29476,1092,27136,5,14.9,0.04595,return_answer,"6,978 units of Mountain-200 bikes were sold on sales orders placed in 2024. That total comes from 3,297 order lines covering the model's six products: Black and Silver, each in sizes 38, 42 and 46."
+manufacturing,C,cc-claude-opus-5-5,2,query6,True,False,32588,1611,28836,8,17.8,0.06796,return_answer,"6,978 units of Mountain-200 bikes were sold on sales orders placed in 2024, across 3,297 order lines.
+
+The model has six products. Units sold of each:
+- BK-M68B-38: 1,472
+- BK-M68B-42: 1,262
+- BK-M68S"
+manufacturing,C,cc-claude-opus-5-5,3,query6,True,False,22696,796,20708,4,11.7,0.03593,return_answer,"6,978 units of Mountain-200 bikes were sold on sales orders placed in 2024, across 3,297 order lines. This covers all six products of the Mountain-200 model: the Black and Silver versions in sizes 38,"
+manufacturing,C,cc-claude-opus-5-5,4,query6,True,True,22486,773,20674,4,11.7,0.03406,return_answer,6978
+manufacturing,C,cc-claude-opus-5-5,0,query7,True,False,16821,505,13260,3,9.7,0.04122,return_answer,"There are 1,318 units of Silver-colored products in stock at the 'Finished Goods Storage' location, spread across 17 product stock entries. Only products whose color is exactly ""Silver"" are counted. N"
+manufacturing,C,cc-claude-opus-5-5,1,query7,True,False,16295,518,14776,3,9.5,0.02544,return_answer,"There are 1,318 units of Silver-colored products in stock at the 'Finished Goods Storage' location, spread across 17 product inventory records there."
+manufacturing,C,cc-claude-opus-5-5,2,query7,True,False,16826,542,15009,3,9.6,0.02835,return_answer,"There are 1,318 units of Silver-colored products in stock at the Finished Goods Storage location, held across 17 inventory records. I added up the stock quantities for every product whose color is Sil"
+manufacturing,C,cc-claude-opus-5-5,3,query7,True,False,16885,576,15009,3,9.6,0.02951,return_answer,"There are 1,318 units of Silver products in stock at Finished Goods Storage, spread across 17 inventory records. This counts only products whose color is exactly ""Silver"". Products colored ""Silver/Bla"
+manufacturing,C,cc-claude-opus-5-5,4,query7,True,True,24536,701,21909,4,11.8,0.03939,return_answer,1318
+manufacturing,C,cc-claude-opus-5-5,0,query8,True,True,23614,773,19390,4,10.8,0.0531,return_answer,20.44
+manufacturing,C,cc-claude-opus-5-5,1,query8,True,True,23558,779,21127,4,11.1,0.03922,return_answer,20.44
+manufacturing,C,cc-claude-opus-5-5,2,query8,True,True,25002,750,22130,4,11.9,0.04237,return_answer,20.44
+manufacturing,C,cc-claude-opus-5-5,3,query8,True,True,25789,698,22640,4,11.2,0.04365,return_answer,20.44
+manufacturing,C,cc-claude-opus-5-5,4,query8,True,True,24311,768,21486,4,11.4,0.04223,return_answer,20.44
+manufacturing,C,cc-claude-opus-5-5,0,query9,True,False,21651,900,18377,4,12.5,0.04784,return_answer,"$43,693.01: 111 work orders that started between 2024-10-01 and 2024-12-31 scrapped 1,772 units, each valued at its product's current standard cost."
+manufacturing,C,cc-claude-opus-5-5,1,query9,True,False,41093,1675,35845,6,19.8,0.08261,return_answer,"The units scrapped by work orders that started in Q4 2024 are worth $43,693.01 at current standard cost.
+
+This covers 1,772 scrapped units from 111 work orders that started between 2024-10-01 and 2024"
+manufacturing,C,cc-claude-opus-5-5,2,query9,True,False,48312,1106,42123,6,16.6,0.08001,return_answer,"$43,693.01"
+manufacturing,C,cc-claude-opus-5-5,3,query9,True,False,22712,1060,20848,5,13.2,0.04025,return_answer,"The units scrapped by work orders that started in Q4 2024 (October 1 to December 31) are worth $43,693.01 at each product's current standard cost. That covers 1,772 scrapped units across 111 work orde"
+manufacturing,C,cc-claude-opus-5-5,4,query9,True,False,21818,928,20337,4,12.5,0.03444,return_answer,"$43,693.01"

@@ -107,6 +107,14 @@ class AnswerCheckTests(unittest.TestCase):
         self.assertTrue(self.h(spec, "PD-R347 and SE-M798"))
         self.assertFalse(self.h(spec, "PD-R3470 and SE-M798"))
 
+    def test_labeled_accepts_the_value_just_before_its_label(self):
+        """Version 3: "58 Bikes units and 886 Components units"; swapped values still fail."""
+        spec = ["labeled", [["Bikes", ["count", 58]], ["Components", ["count", 886]]]]
+        self.assertTrue(self.h(spec, "Work orders that started in 2024 scrapped 58 Bikes units and 886 Components units."))
+        self.assertTrue(self.h(spec, "58 units in the Bikes category and 886 units in the Components category"))
+        self.assertFalse(self.h(spec, "scrapped 886 Bikes units and 58 Components units"))
+        self.assertFalse(self.h(spec, "Bikes: 886, Components: 58"))
+
     def test_labeled_accepts_a_table_row(self):
         spec = ["labeled", [["Bikes", ["count", 58]], ["Components", ["count", 886]]]]
         self.assertTrue(self.h(spec, "| Bikes | 58 |\n| Components | 886 |"))
