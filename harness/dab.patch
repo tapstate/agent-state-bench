@@ -49,6 +49,19 @@ index fb83f9fa8..5357215e0 100644
      
      return [
          {
+diff --git a/common_scaffold/tools/BaseTool.py b/common_scaffold/tools/BaseTool.py
+index 590875b77..d4ac619b4 100644
+--- a/common_scaffold/tools/BaseTool.py
++++ b/common_scaffold/tools/BaseTool.py
+@@ -78,7 +78,7 @@ class BaseTool(ABC):
+         }
+ 
+         with open(self.log_path, "a", encoding="utf-8") as f:
+-            f.write(json.dumps(log_entry) + "\n")
++            f.write(json.dumps(log_entry, default=str) + "\n")  # parsed Mongo queries can hold datetimes
+ 
+ 
+         return exec_result
 diff --git a/common_scaffold/tools/ListDBTool.py b/common_scaffold/tools/ListDBTool.py
 index 91ee8f659..c8ca12e08 100644
 --- a/common_scaffold/tools/ListDBTool.py
