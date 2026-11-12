@@ -19,18 +19,23 @@ The data is Microsoft's AdventureWorks OLTP sample (MIT licence): a fictitious b
 504 products, 72,591 work orders, 31,465 sales orders with 121,317 lines, 4,012 purchase orders,
 and stock in 14 locations.
 
-**Setup A, live sources.** Six systems, each writing the product key in its own format:
+**Setup A, live sources.** Six systems on three database servers, each system writing the product
+key in its own format:
 
 | System | Engine | Product key |
 |---|---|---|
 | ERP sales | Postgres | `BK-R93R-62` (canonical) |
-| PLM (product master, BOM) | SQLite | canonical; the only system that holds names, subcategories and categories |
-| MES (work orders, routings) | DuckDB | `bk-r93r-62` |
-| WMS (stock) | MongoDB | `AW:BK-R93R-62` |
-| Procurement (vendors, POs) | DuckDB | `BK_R93R_62` |
+| PLM (product master, BOM) | Postgres | canonical; the only system that holds names, subcategories and categories |
+| MES (work orders, routings) | MySQL 8 | `bk-r93r-62` |
+| WMS (stock) | MongoDB (its own server) | `AW:BK-R93R-62` |
+| Procurement (vendors, POs) | MySQL 8 | `BK_R93R_62` |
 | Costing | Postgres | canonical |
 
-**Setup C, Tapstate.** One MongoDB database with four collections built by Tapstate 0.7.0:
+MySQL compares text case-sensitively (`utf8mb4_0900_bin`), as Postgres does. An earlier layout put
+PLM in SQLite and MES and procurement in DuckDB; the smoke-test numbers below cover both layouts.
+
+**Setup C, Tapstate.** One MongoDB database with four collections built by Tapstate 0.7.0 from the
+six source databases themselves (Postgres logical replication, MySQL binlog, MongoDB change streams):
 `products` (BOM, costs, prices, inventory and vendors embedded), `work_orders`, `sales_orders`
 and `purchase_orders`. Each order and work order carries its product's number, name, subcategory
 and category.
@@ -49,14 +54,20 @@ from the raw AdventureWorks tables:
 
 ## Results so far
 
-| Setup | Runs | Correct | Tokens |
-|---|---:|---:|---:|
-| A: six live sources | 1 | 1 | 94k |
-| C: Tapstate state | 1 | 1 | 32k |
+Smoke test, question 14 (purchased Components below safety stock, with the shortest vendor lead
+time of each; PLM + WMS + procurement), Claude Opus 5.5:
 
-Both runs answered correctly, and the Tapstate setup used about a third of the tokens (2.9×). That
-is close to the bank benchmark's 3.5× at the median over 720 runs, but one run per setup has no
-confidence interval. Treat it as a sign the setup works, not as a result.
+| Layout | Setup | Runs | Correct | Tokens |
+|---|---|---:|---:|---:|
+| SQLite / DuckDB / Postgres / MongoDB | A: six live sources | 1 | 1 | 94k |
+| | C: Tapstate state | 1 | 1 | 32k |
+| Postgres / MySQL / MongoDB | A: six live sources | 1 | 1 | 126k |
+| | C: Tapstate state | 1 | 1 | 39k |
+
+All four runs answered correctly. The Tapstate setup used about a third of the tokens (2.9× on the
+first layout, 3.2× on the second). That is close to the bank benchmark's 3.5× at the median over
+720 runs, but one run per setup has no confidence interval. Treat it as a sign the setup works, not
+as a result.
 
 ## What we learned about Tapstate 0.7.0
 
@@ -75,8 +86,13 @@ while building it:
 
 Two other findings:
 
-- As on 0.6.0, a SQL `DATE` can't be read inside a `js` step, so the Tapstate source copy stores
-  dates as text.
+- A SQL `DATE` can't be turned into text by any step: in a `js` step it is an opaque object, and a
+  `map` step refuses a CEL expression on it. Passed through untouched it lands in MongoDB as a BSON
+  date, so setup C stores BSON dates and its description says how to write one in a query. After the
+  initial load, a MySQL change event carries a date as an epoch number (milliseconds for `DATE`,
+  seconds for `DATETIME`), and a Postgres update to an array element keyed by a date adds a second
+  element instead of replacing it. Neither happens here, since the sources are loaded once.
+- The MySQL connector is not bundled with the 0.7.0 server; `tapstate register mysql` fetches it.
 - The default nest memory budget made the 121k-line staging pipeline run at about 40 rows a
   second. Raising `entries_in_memory` made it several times faster.
 
