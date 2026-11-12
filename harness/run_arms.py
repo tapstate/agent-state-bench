@@ -47,6 +47,10 @@ def env():
     e.setdefault("PG_PASSWORD", "secret")
     e.setdefault("DOCKER_HOST", f"unix://{Path.home()}/.docker/run/docker.sock")
     e.setdefault("MONGO_URI", "mongodb://127.0.0.1:27017/?directConnection=true")
+    e.setdefault("MYSQL_HOST", "127.0.0.1")
+    e.setdefault("MYSQL_PORT", "33306")
+    e.setdefault("MYSQL_USER", "root")
+    e.setdefault("MYSQL_PASSWORD", "secret")
     return e
 
 

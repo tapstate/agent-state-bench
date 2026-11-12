@@ -1,9 +1,14 @@
 #!/bin/sh
-# Stand-in for the harness's `mongorestore --nsInclude=DB.* DUMP_DIR`: runs the Mongo image's
-# mongorestore on the compose network, with the dump directory mounted at the same path.
-dump=; args=
+# Stand-in for the harness's `mongorestore --nsInclude=DB.* [--uri=URI] DUMP_DIR`: runs the Mongo
+# image's mongorestore with the dump directory mounted at the same path. Without --uri it restores to
+# the compose network's `mongo` service; with --uri (a database's own server, as db_config.yaml's
+# `uri`), it uses the host network so a loopback URI resolves as it does for the harness.
+dump=; args=; uri=
 for a in "$@"; do
-  case "$a" in --*) args="$args $a" ;; *) dump="$a" ;; esac
+  case "$a" in --uri=*) uri="${a#--uri=}" ;; --*) args="$args $a" ;; *) dump="$a" ;; esac
 done
+if [ -n "$uri" ]; then
+  exec docker run --rm --network host -v "$dump:$dump:ro" mongo:7.0 mongorestore --quiet --uri "$uri" $args "$dump"
+fi
 exec docker run --rm --network "${DAB_MONGO_NETWORK:-ts_default}" -v "$dump:$dump:ro" mongo:7.0 \
   mongorestore --quiet --uri "mongodb://mongo:27017/?directConnection=true" $args "$dump"
