@@ -1,12 +1,20 @@
-# The manufacturing benchmark's stack: Tapstate Community 0.7.0, its MongoDB store (which also holds the
-# MongoDB-backed source and setup C), and Postgres 16 for the Postgres-backed sources.
+# The manufacturing benchmark's stack: the six source systems on three engines, and Tapstate Community
+# 0.7.0 with its own MongoDB store (which also holds setup C, mfg_state).
+#
+#   postgres        Postgres 16: ERP sales (mfg_erp), PLM (mfg_plm), costing (mfg_costing)
+#   mysql           MySQL 8: MES (mfg_mes), procurement (mfg_procurement); ROW binlog with GTIDs for CDC
+#   mongo-sources   MongoDB 7, replica set rs1: WMS (mfg_wms); separate from Tapstate's store
+#   mongo           MongoDB 7, replica set rs0: Tapstate's store, its views, and setup C (mfg_state)
+#   server          Tapstate 0.7.0, reading the six source databases directly
 #
 # Derived from Tapstate's own quickstart (deploy/quickstart/docker-compose.yml at v0.7.0), with
-# these changes: the server image is pinned to 0.7.0; the demo MySQL service is removed; MongoDB
-# and Postgres are published on the loopback interface so the agents' tools reach them; and
-# Postgres allows more replication slots, since the manufacturing pipeline captures six source schemas.
+# these changes: the server image is pinned to 0.7.0; every database is published on the loopback
+# interface so the agents' tools reach them; Postgres allows more replication slots; MySQL uses a
+# case- and accent-sensitive collation (utf8mb4_0900_bin) so key formats compare exactly as they do in
+# Postgres. The MySQL connector is not bundled with the server: `tapstate register mysql` adds it
+# (dab/run_tapstate.sh does).
 #
-# Ports can be moved with MONGO_PORT, PG_PORT and TAPSTATE_PORT (see ../env.sh).
+# Ports can be moved with MONGO_PORT, MONGO_SOURCES_PORT, PG_PORT, MYSQL_PORT and TAPSTATE_PORT (../env.sh).
 name: mfg-bench
 
 services:
@@ -49,10 +57,56 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  mysql:
+    image: mysql:8.0
+    command:
+      - "--binlog-format=ROW"
+      - "--binlog-row-image=FULL"
+      - "--gtid-mode=ON"
+      - "--enforce-gtid-consistency=ON"
+      - "--log-bin=mysql-bin"
+      - "--server-id=1"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_0900_bin"
+    ports: ["127.0.0.1:${MYSQL_PORT:-33306}:3306"]
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin -uroot -psecret ping -h 127.0.0.1 --silent"]
+      interval: 3s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  mongo-sources:
+    image: mongo:7.0
+    # A single-member replica set: Tapstate reads WMS through change streams, which need one.
+    command: ["--replSet", "rs1", "--bind_ip_all"]
+    ports: ["127.0.0.1:${MONGO_SOURCES_PORT:-27018}:27017"]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs1', members: [{ _id: 0, host: 'mongo-sources:27017' }] }) };
+         if (!db.hello().isWritablePrimary) { quit(1) }"
+      interval: 3s
+      timeout: 10s
+      retries: 40
+      start_period: 20s
+    volumes:
+      - mongo-sources-data:/data/db
+
   server:
     image: ghcr.io/tapstate/tapstate:0.7.0
     depends_on:
       mongo:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      mongo-sources:
         condition: service_healthy
     environment:
       TAPSTATE_STORE_MONGO_URI: mongodb://mongo:27017/tapstate?directConnection=true
@@ -88,3 +142,5 @@ services:
 volumes:
   mongo-data:
   postgres-data:
+  mysql-data:
+  mongo-sources-data:
