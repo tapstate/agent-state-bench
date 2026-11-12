@@ -1,9 +1,12 @@
 #!/bin/bash
 # Record the demo's three live terminal segments with util-linux `script` (output + timing), at a fixed
 # terminal size: setup A's run, the Tapstate side, setup C's run. Paid model runs (two sessions).
-# Usage: recording/record_live.sh <dab-root>     (from demo/, with env.sh sourced)
+# Usage: recording/record_live.sh <dab-root> [zh]     (from demo/, with env.sh sourced)
+# With zh, everything prints in Simplified Chinese (--lang zh) and the files get a _zh suffix.
 set -u
 DAB="$1"
+LANG_ARG="${2:-en}"
+SFX=""; [ "$LANG_ARG" = zh ] && SFX="_zh"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEMO="$(dirname "$HERE")"
 COLS=${COLS:-136} ROWS=${ROWS:-38}
@@ -12,8 +15,8 @@ rec() {   # name command
     -c "stty cols $COLS rows $ROWS; export COLUMNS=$COLS LINES=$ROWS; $2"
 }
 cd "$DEMO"
-rec a_run "python sales_agent.py '$DAB' --setup A --model claude-opus-5-5"
-rec tapstate "bash '$HERE/tapstate_side.sh'"
-rec c_run "python sales_agent.py '$DAB' --setup C --model claude-opus-5-5"
-ls -t runs | grep -E '^[AC]_' | head -2 | sort > "$HERE/runs.txt"
-echo "runs: $(tr '\n' ' ' < "$HERE/runs.txt")"
+rec a_run$SFX "python sales_agent.py '$DAB' --setup A --model claude-opus-5-5 --lang $LANG_ARG"
+rec tapstate$SFX "DEMO_LANG=$LANG_ARG bash '$HERE/tapstate_side.sh'"
+rec c_run$SFX "python sales_agent.py '$DAB' --setup C --model claude-opus-5-5 --lang $LANG_ARG"
+ls -t runs | grep -E '^[AC]_' | head -2 | sort > "$HERE/runs$SFX.txt"
+echo "runs: $(tr '\n' ' ' < "$HERE/runs$SFX.txt")"

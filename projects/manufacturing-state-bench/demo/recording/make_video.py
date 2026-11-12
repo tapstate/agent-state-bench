@@ -7,9 +7,12 @@ runs' numbers. Terminal sections replay the recorded bytes at their recorded tim
 capped at 2 s (as asciinema's --idle-time-limit); the agents' output is not edited or sped up.
 
 Rendering happens in headless Chrome (player.html draws on a canvas; MediaRecorder encodes H.264), so
-no ffmpeg is needed. Also writes one still PNG per section.
+no ffmpeg is needed; remux_mp4.py turns MediaRecorder's fragmented MP4 into a regular one (real duration,
+seekable in QuickTime/PowerPoint), keeping the original as *_fragmented.mp4. Also writes one still PNG
+per section.
 
 Usage (from demo/): python recording/make_video.py <dab-root> [--sample] [--lang zh]
+--lang zh (without --sample) writes recording/sales_agent_demo_zh.mp4 from record_live.sh's zh recordings.
 --sample writes recording/sample.mp4 instead: ~3 s of a caption card, ~9 s of setup A's recording,
 ~4 s of the trace report, to check the look.
 --sample --lang zh writes recording/sample_zh.mp4: everything on screen in Simplified Chinese, the
@@ -33,8 +36,8 @@ COLS, ROWS = 136, 38
 PORT = 8765
 
 
-def term_events(name):
-    """[(t, text)] from util-linux script's classic timing log, gaps capped at IDLE_CAP."""
+def term_events(name, cap=IDLE_CAP):
+    """[(t, text)] from util-linux script's classic timing log, gaps capped at `cap` seconds."""
     raw = (HERE / f"{name}.out").read_bytes()
     if raw.startswith(b"Script started"):
         raw = raw[raw.index(b"\n") + 1:]
@@ -43,7 +46,7 @@ def term_events(name):
         if not line.strip():
             continue
         delay, n = line.split()
-        t += min(float(delay), IDLE_CAP)
+        t += min(float(delay), cap)
         events.append([round(t, 3), raw[off:off + int(n)].decode("utf-8", "replace")])
         off += int(n)
     # drop script's own trailer if it slipped into the last chunk
@@ -51,8 +54,8 @@ def term_events(name):
     return events
 
 
-def term_seg(name, caption, hold):
-    ev = term_events(name)
+def term_seg(name, caption, hold, cap=IDLE_CAP):
+    ev = term_events(name, cap)
     return {"kind": "term", "cols": COLS, "rows": ROWS, "events": ev, "dur": round(ev[-1][0] + hold, 2),
             "caption": caption}
 
@@ -104,7 +107,7 @@ async def capture_report(report, out, zh=False):
     return imgs, px
 
 
-def report_seg(px, view_h=1080 - 72):
+def report_seg(px, view_h=1080 - 72, stretch=1.0):
     top = 0
     clamp = lambda y, end: max(0, min(y, end - view_h))   # noqa: E731
     e0, e2 = px["end"], px["end2"]
@@ -119,7 +122,8 @@ def report_seg(px, view_h=1080 - 72):
         [82.01, "r2", clamp(px["rowC"] - 300, e2)], [90, "r2", clamp(px["rowC"] - 300, e2)],  # row C opened
         [98, "r2", clamp(e2, e2)], [102, "r2", clamp(e2, e2)],
     ]
-    return {"kind": "page", "keys": k, "dur": 102,
+    k = [[round(t * stretch, 2), im, y] for t, im, y in k]
+    return {"kind": "page", "keys": k, "dur": round(102 * stretch, 2),
             "caption": "Trace report: both runs side by side, then every call each agent made (two queries opened)"}
 
 
@@ -177,67 +181,116 @@ def sample_zh(dab):
                        out_name="sample_zh.mp4"))
 
 
+TEXT = {
+    "en": {
+        "title_kicker": "Sales agent demo", "title_caption": "The customer's question, sent to the sales agent",
+        "demo1": "Demo 1: six live systems",
+        "engines": "ERP, PLM and costing on Postgres · MES and procurement on MySQL · WMS on MongoDB",
+        "a_caption": "Live: the agent gets six connection strings and works across Postgres, MySQL and MongoDB",
+        "card2_caption": "Next: the same question against Tapstate",
+        "demo2": "Demo 2: the same six databases, consolidated by Tapstate",
+        "demo2_sub": "Tapstate captures every change from the six systems and keeps one consolidated MongoDB "
+                     "database, mfg_state.",
+        "tap_caption": "Live: Tapstate's six source definitions, its running pipelines, and one consolidated "
+                       "product document",
+        "c_caption": "Live: the same agent and question, with one connection to Tapstate's consolidated state",
+        "report_caption": "Trace report: both runs side by side, then every call each agent made (two queries opened)",
+        "close_caption": "The two live runs in this video", "close_head": "Same agent, same question, same data",
+        "close_ratio": "Against six live systems the agent used {r:.1f}× the tokens it used against Tapstate.",
+        "rows": ["", "Six live systems", "Tapstate"], "correct": "Correct answer", "yes": "yes", "no": "NO",
+        "tokens": "Tokens", "rt": "Round trips to the model", "queries": "Queries issued",
+        "q_a": "{n} (6 systems)", "q_c": "{n} (1 database)", "failed": "Failed calls", "cost": "Cost (API-equivalent)",
+    },
+    "zh": {
+        "title_kicker": "销售助理智能体演示", "title_caption": "客户的问题，发给销售助理智能体",
+        "demo1": "演示一：六个在线系统",
+        "engines": "ERP、PLM 和成本核算在 Postgres · MES 和采购在 MySQL · WMS 在 MongoDB",
+        "a_caption": "现场运行：智能体拿到六个连接串，在 Postgres、MySQL 和 MongoDB 之间查询",
+        "card2_caption": "接下来：同一个问题，改为查询 Tapstate",
+        "demo2": "演示二：同样的六个数据库，由 Tapstate 整合",
+        "demo2_sub": "Tapstate 捕获六个系统的每一次变更，并维护一个整合后的 MongoDB 数据库：mfg_state。",
+        "tap_caption": "现场演示：Tapstate 的六个数据源定义、正在运行的管道，以及一个整合后的产品文档",
+        "c_caption": "现场运行：同一个智能体、同一个问题，只连接 Tapstate 的整合状态",
+        "report_caption": "运行对比报告：两次运行并排对比，然后是每一次调用（展开其中两条查询）",
+        "close_caption": "本视频中的两次现场运行", "close_head": "同样的智能体、同样的问题、同样的数据",
+        "close_ratio": "面对六个在线系统，智能体消耗的 token 是面对 Tapstate 时的 {r:.1f} 倍。",
+        "rows": ["", "六个在线系统", "Tapstate"], "correct": "回答正确", "yes": "是", "no": "否",
+        "tokens": "token 总数", "rt": "与模型的往返次数", "queries": "发出的查询",
+        "q_a": "{n}（6 个系统）", "q_c": "{n}（1 个数据库）", "failed": "失败的调用", "cost": "成本（按 API 价格折算）",
+    },
+}
+
+
 def main():
     dab = Path(sys.argv[1]).resolve()
-    if "--lang" in sys.argv and sys.argv[sys.argv.index("--lang") + 1] == "zh":
+    lang = sys.argv[sys.argv.index("--lang") + 1] if "--lang" in sys.argv else "en"
+    sample = "--sample" in sys.argv
+    if lang == "zh" and sample:
         return sample_zh(dab)
-    runs = (HERE / "runs.txt").read_text().split()
-    a_run, c_run = sorted(runs)            # A_..., C_...
+    sfx = "_zh" if lang == "zh" else ""
+    T = TEXT[lang]
+    a_run, c_run = sorted((HERE / f"runs{sfx}.txt").read_text().split())   # A_..., C_...
     A, C = numbers(a_run), numbers(c_run)
     question = json.loads((dab / "query_manufacturing" / "query101" / "query.json").read_text())
-    report = HERE / "trace_report.html"
+    if lang == "zh":
+        sys.path.insert(0, str(DEMO))
+        import i18n
+        i18n.set_lang("zh")
+        question = i18n.question(question)
+    report = HERE / f"trace_report{sfx}.html"
     subprocess.run([sys.executable, str(DEMO / "trace_report.py"), str(DEMO / "runs" / a_run),
-                    str(DEMO / "runs" / c_run), "-o", str(report)], check=True)
-    imgs, px = asyncio.run(capture_report(report, HERE))
+                    str(DEMO / "runs" / c_run), "-o", str(report), "--lang", lang], check=True)
+    imgs, px = asyncio.run(capture_report(report, HERE, zh=lang == "zh"))
 
     ratio = A["tokens"]["total"] / C["tokens"]["total"]
-    yes = lambda s: "yes" if s["correct"] else "NO"   # noqa: E731
+    yes = lambda s: T["yes"] if s["correct"] else T["no"]   # noqa: E731
+    rep = report_seg(px, stretch=1.0 if lang == "en" else 1.28)
+    rep["caption"] = T["report_caption"]
     segs = [
-        {"kind": "card", "dur": 15, "top": 200, "caption": "The customer's question, sent to the sales agent",
-         "blocks": [{"text": "Sales agent demo", "size": 30, "color": "#8b949e", "gap": 40},
-                    {"text": question, "size": 36, "width": 1500, "align": "left", "gap": 70},
-                    {"text": "Demo 1: six live systems", "size": 56, "bold": True, "color": "#f0883e"},
-                    {"text": "ERP, PLM and costing on Postgres · MES and procurement on MySQL · WMS on MongoDB",
-                     "size": 28, "color": "#8b949e"}]},
-        term_seg("a_run", "Live: the agent gets six connection strings and works across Postgres, MySQL and MongoDB",
-                 hold=8),
-        {"kind": "card", "dur": 8, "top": 430, "caption": "Next: the same question against Tapstate",
-         "blocks": [{"text": "Demo 2: the same six databases, consolidated by Tapstate", "size": 52, "bold": True,
-                     "color": "#39c5cf", "width": 1700},
-                    {"text": "Tapstate captures every change from the six systems and keeps one consolidated "
-                             "MongoDB database, mfg_state.", "size": 30, "color": "#8b949e", "width": 1500}]},
-        term_seg("tapstate", "Live: Tapstate's six source definitions, its running pipelines, and one consolidated "
-                             "product document", hold=4),
-        term_seg("c_run", "Live: the same agent and question, with one connection to Tapstate's consolidated state",
-                 hold=8),
-        report_seg(px),
-        {"kind": "card", "dur": 25, "top": 250, "caption": "The two live runs in this video",
-         "blocks": [{"text": "Same agent, same question, same data", "size": 46, "bold": True, "gap": 30},
-                    {"text": f"Against six live systems the agent used {ratio:.1f}× the tokens it used against "
-                             f"Tapstate.", "size": 32, "color": "#8b949e", "width": 1500, "gap": 50}],
+        {"kind": "card", "dur": 15 if lang == "en" else 18, "top": 200 if lang == "en" else 190,
+         "caption": T["title_caption"],
+         "blocks": [{"text": T["title_kicker"], "size": 30, "color": "#8b949e", "gap": 40},
+                    {"text": question, "size": 36 if lang == "en" else 34, "width": 1500, "align": "left", "gap": 70},
+                    {"text": T["demo1"], "size": 56, "bold": True, "color": "#f0883e"},
+                    {"text": T["engines"], "size": 28, "color": "#8b949e"}]},
+        term_seg(f"a_run{sfx}", T["a_caption"], hold=8 if lang == "en" else 10),
+        {"kind": "card", "dur": 8, "top": 430, "caption": T["card2_caption"],
+         "blocks": [{"text": T["demo2"], "size": 52, "bold": True, "color": "#39c5cf", "width": 1700},
+                    {"text": T["demo2_sub"], "size": 30, "color": "#8b949e", "width": 1500}]},
+        # the Tapstate segment's pauses are scripted reading time (tapstate_side.sh), not idle waiting
+        term_seg(f"tapstate{sfx}", T["tap_caption"], hold=4, cap=IDLE_CAP if lang == "en" else 8.0),
+        term_seg(f"c_run{sfx}", T["c_caption"], hold=8 if lang == "en" else 10),
+        rep,
+        {"kind": "card", "dur": 25, "top": 250, "caption": T["close_caption"],
+         "blocks": [{"text": T["close_head"], "size": 46, "bold": True, "gap": 30},
+                    {"text": T["close_ratio"].format(r=ratio), "size": 32, "color": "#8b949e", "width": 1500,
+                     "gap": 50}],
          "table": {"rows": [
-             ["", "Six live systems", "Tapstate"],
-             ["Correct answer", yes(A), yes(C)],
-             ["Tokens", f"{A['tokens']['total']:,}", f"{C['tokens']['total']:,}"],
-             ["Round trips to the model", str(A["round_trips"]), str(C["round_trips"])],
-             ["Queries issued", f"{A['queries']} (6 systems)", f"{C['queries']} (1 database)"],
-             ["Failed calls", str(A["errors"]), str(C["errors"])],
-             ["Cost (API-equivalent)", f"${A['cost_usd']:.2f}", f"${C['cost_usd']:.2f}"],
+             T["rows"],
+             [T["correct"], yes(A), yes(C)],
+             [T["tokens"], f"{A['tokens']['total']:,}", f"{C['tokens']['total']:,}"],
+             [T["rt"], str(A["round_trips"]), str(C["round_trips"])],
+             [T["queries"], T["q_a"].format(n=A["queries"]), T["q_c"].format(n=C["queries"])],
+             [T["failed"], str(A["errors"]), str(C["errors"])],
+             [T["cost"], f"${A['cost_usd']:.2f}", f"${C['cost_usd']:.2f}"],
          ]}},
     ]
-    if "--sample" in sys.argv:
+    if sample:
         a = term_seg("a_run", segs[1]["caption"], hold=0)
         a["events"] = [e for e in a["events"] if e[0] <= 9.0]
         a["dur"] = 9.5
         segs = [dict(segs[2], dur=3), a,
                 {"kind": "page", "dur": 4, "caption": segs[5]["caption"],
                  "keys": [[0, "r0", 0], [1.5, "r0", 0], [4, "r0", min(px["hl"] - 120, px["end"] - 1008)]]}]
-    timeline = {"segments": segs, "images": {k: v for k, v in imgs.items()}}
+    timeline = {"lang": lang, "segments": segs, "images": {k: v for k, v in imgs.items()}}
     (HERE / "timeline.json").write_text(json.dumps(timeline))
     total = sum(s["dur"] for s in segs)
     print(f"timeline: {total:.0f} s ({total / 60:.1f} min), sections: " +
           ", ".join(f"{s['kind']} {s['dur']:.0f}s" for s in segs))
-    asyncio.run(render(segs, total, sample="--sample" in sys.argv))
+    names = None if sample else [f"{n}{sfx}" for n in ("1_title", "2_setup_a", "3_caption", "4_tapstate",
+                                                        "5_setup_c", "6_report", "7_closing")]
+    out_name = None if sample else f"sales_agent_demo{sfx}.mp4"
+    asyncio.run(render(segs, total, sample=sample, names=names, out_name=out_name))
 
 
 async def render(segs, total, sample=False, names=None, out_name=None):
@@ -251,10 +304,8 @@ async def render(segs, total, sample=False, names=None, out_name=None):
             print(f"player loaded: {info}")
             stills = HERE / "stills"
             stills.mkdir(exist_ok=True)
-            names_override = names
-            names = ["1_title", "2_setup_a", "3_caption", "4_tapstate", "5_setup_c", "6_report", "7_closing"]
-            if sample:
-                names = names_override or ["sample_1_caption", "sample_2_terminal", "sample_3_report"]
+            names = names or (["sample_1_caption", "sample_2_terminal", "sample_3_report"] if sample else
+                              ["1_title", "2_setup_a", "3_caption", "4_tapstate", "5_setup_c", "6_report", "7_closing"])
             t = 0.0
             for s, name in zip(segs, names):
                 at = t + (s["dur"] - (8 if s["kind"] == "term" else 0)) * (0.98 if s["kind"] == "term" else 0.5)
@@ -268,11 +319,14 @@ async def render(segs, total, sample=False, names=None, out_name=None):
             print(f"stills: {stills}")
             size = await c.eval("record(3500000)", await_promise=True)
             out = HERE / (out_name or ("sample.mp4" if sample else "sales_agent_demo.mp4"))
-            with out.open("wb") as f:
+            frag = out.with_name(out.stem + "_fragmented.mp4")   # MediaRecorder's file, before remuxing
+            with frag.open("wb") as f:
                 step = 4 * 1024 * 1024
                 for off in range(0, size, step):
                     f.write(base64.b64decode(await c.eval(f"chunk({off}, {step})")))
-            print(f"wrote {out} ({size / 1e6:.1f} MB)")
+            from remux_mp4 import remux
+            frames, secs, _ = remux(frag, out)   # a regular MP4: real duration, seekable everywhere
+            print(f"wrote {out} ({out.stat().st_size / 1e6:.1f} MB, {secs:.1f} s, {frames} frames)")
     finally:
         server.terminate()
 
