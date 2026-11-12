@@ -32,16 +32,19 @@ sys.path.insert(0, str(REPO / "harness"))
 
 PG = f"{os.environ.get('PG_USER', 'postgres')}:{os.environ.get('PG_PASSWORD', 'secret')}@" \
      f"{os.environ.get('PG_HOST', '127.0.0.1')}:{os.environ.get('PG_PORT', '55432')}"
-MONGO = f"127.0.0.1:{os.environ.get('MONGO_PORT', '27017')}"
+MYSQL = f"{os.environ.get('MYSQL_USER', 'root')}:{os.environ.get('MYSQL_PASSWORD', 'secret')}@" \
+        f"{os.environ.get('MYSQL_HOST', '127.0.0.1')}:{os.environ.get('MYSQL_PORT', '33306')}"
+MONGO = f"127.0.0.1:{os.environ.get('MONGO_PORT', '27017')}"                     # Tapstate's store (setup C)
+MONGO_SOURCES = f"127.0.0.1:{os.environ.get('MONGO_SOURCES_PORT', '27018')}"     # WMS
 
 # db name in db_config.yaml -> (system, engine, connection string shown to the agent and the audience)
 CONNECTIONS = {
     "A": {
         "erp": ("ERP sales", "PostgreSQL", f"postgresql://{PG}/mfg_erp"),
-        "plm": ("PLM", "SQLite", "sqlite:///query_dataset/plm.db"),
-        "mes": ("MES", "DuckDB", "duckdb:///query_dataset/mes.duckdb"),
-        "wms": ("WMS", "MongoDB", f"mongodb://{MONGO}/mfg_wms"),
-        "procurement": ("Procurement", "DuckDB", "duckdb:///query_dataset/procurement.duckdb"),
+        "plm": ("PLM", "PostgreSQL", f"postgresql://{PG}/mfg_plm"),
+        "mes": ("MES", "MySQL", f"mysql://{MYSQL}/mfg_mes"),
+        "wms": ("WMS", "MongoDB", f"mongodb://{MONGO_SOURCES}/mfg_wms"),
+        "procurement": ("Procurement", "MySQL", f"mysql://{MYSQL}/mfg_procurement"),
         "costing": ("Cost accounting", "PostgreSQL", f"postgresql://{PG}/mfg_costing"),
     },
     "C": {
@@ -211,7 +214,8 @@ def run(a):
         "command": sys.executable,
         "args": [str(REPO / "harness" / "dab_mcp_server.py"), "--dab", str(dab), "--dataset", ds, "--run-dir", str(out)],
         "env": {k_: v for k_, v in child_env().items()
-                if k_ in ("PATH", "HOME", "DOCKER_HOST", "MONGO_URI", "DAB_PERSISTENT_DBS") or k_.startswith("PG_")},
+                if k_ in ("PATH", "HOME", "DOCKER_HOST", "MONGO_URI", "DAB_PERSISTENT_DBS")
+                or k_.startswith(("PG_", "MYSQL_", "DAB_MYSQL_"))},
     }}}))
     question = json.loads((dab / f"query_{ds}" / f"query{a.query}" / "query.json").read_text())
     banner(a.setup, a.model, question)

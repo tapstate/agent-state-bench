@@ -52,6 +52,7 @@ fill the summary slide.
 If the network or a run misbehaves, `python sales_agent.py --replay runs/A_<ts>/stream.jsonl`
 re-prints a rehearsal run at reading pace.
 
-Disclosure for the audience: in this stack Tapstate captures changes from a Postgres copy of the six
-systems (one schema per system, same values and key formats), loaded by
-`dab/load_mfg_to_postgres.py`. The agent in setup A queries the six systems on their own engines.
+Disclosure for the audience: the six systems run on three engines (Postgres for ERP, PLM and
+costing; MySQL for MES and procurement; MongoDB for WMS, on its own server), and Tapstate captures
+changes from those same six databases, the ones the agent in setup A queries. The data is loaded
+once and does not change during the demo.
