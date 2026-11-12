@@ -137,6 +137,15 @@ class Trace:
             if r["tool"] in ("query_db", "list_db"):
                 by_system[r["system"]] = by_system.get(r["system"], 0) + 1
         res = self.result or {}
+        # The per-message usage in the stream is a partial count: output_tokens there misses most of the
+        # output (thinking included). The final result event carries the session's real totals, so the
+        # summary uses them; the live "tokens so far" counter stays an approximation.
+        u = res.get("usage") or {}
+        if u:
+            self.tokens = {"input": u.get("input_tokens") or 0,
+                           "cache_write": u.get("cache_creation_input_tokens") or 0,
+                           "cache_read": u.get("cache_read_input_tokens") or 0,
+                           "output": u.get("output_tokens") or 0}
         return {
             "setup": self.setup, "round_trips": self.round_trips, "tool_calls": len(self.order),
             "queries": sum(1 for r in self.order if r["tool"] == "query_db"),
