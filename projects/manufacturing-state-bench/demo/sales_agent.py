@@ -14,8 +14,10 @@ cost, the answer and whether it is correct). trace_report.py turns two such runs
 
 This is a paid model run (one session, on the Claude Code login on this machine).
 
-Usage: python sales_agent.py <dab-root> --setup A --model claude-opus-5-5 [--query 101]
-       python sales_agent.py --replay runs/A_.../stream.jsonl     # re-print a recorded run
+Usage: python sales_agent.py <dab-root> --setup A --model claude-opus-5-5 [--query 101] [--lang zh]
+       python sales_agent.py --replay runs/A_.../stream.jsonl [--lang zh]   # re-print a recorded run
+--lang zh prints the display in Simplified Chinese (i18n.py); the agent's prompt and the saved run stay
+in English.
 """
 import argparse
 import importlib.util
@@ -27,6 +29,9 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import i18n  # noqa: E402
+from i18n import pad, t  # noqa: E402
 REPO = HERE.parents[2]
 sys.path.insert(0, str(REPO / "harness"))
 
@@ -116,8 +121,9 @@ class Trace:
         self.order.append(rec)
         if self.live:
             q = " ".join(str(rec["query"]).split())
-            where = f"{system:<16}" if tool == "query_db" or tool == "list_db" else f"{'(python)' if tool == 'execute_python' else '':<16}"
-            tag = f"#{rec['n']:>2} rt {self.round_trips:>2}"
+            where = pad(t(system), 16) if tool in ("query_db", "list_db") else \
+                pad("(python)" if tool == "execute_python" else "", 16)
+            tag = f"#{rec['n']:>2} {t('rt')} {self.round_trips:>2}"
             print(f"{c(DIM, tag)}  {c(CYAN, f'{tool:<14}')} {c(BOLD, where)} "
                   f"{q[:90]}{'…' if len(q) > 90 else ''}", flush=True)
 
@@ -130,9 +136,9 @@ class Trace:
         rec["result_chars"] = len(text)
         rec["error"] = bool(b.get("is_error")) or text.lstrip().lower().startswith(("error", "failed"))
         if self.live:
-            mark = c(RED, "error") if rec["error"] else c(GREEN, "ok")
-            print(f"{'':>10}  ↳ {mark} {k(len(text))} chars back   {c(YELLOW, f'tokens so far {k(self.total)}')}",
-                  flush=True)
+            mark = c(RED, t("error")) if rec["error"] else c(GREEN, t("ok"))
+            print(f"{'':>10}  ↳ {mark} {k(len(text))} {t('chars back')}   "
+                  f"{c(YELLOW, t('tokens so far') + ' ' + k(self.total))}", flush=True)
 
     def summary(self):
         by_system = {}
@@ -161,13 +167,17 @@ class Trace:
 
 
 def banner(setup, model, question):
-    print(c(BOLD, f"\n=== Sales agent, setup {setup}: "
-                  f"{'six live source systems' if setup == 'A' else 'Tapstate consolidated state'} ({model}) ==="))
-    print(c(DIM, "Customer question:"))
-    print(f"  {question}\n")
-    print(c(DIM, f"Connections given to the agent ({len(CONNECTIONS[setup])}):"))
+    what = t("six live source systems" if setup == "A" else "Tapstate consolidated state")
+    sep = "：" if i18n.LANG == "zh" else ": "
+    lp, rp = ("（", "）") if i18n.LANG == "zh" else (" (", ")")
+    print(c(BOLD, f"\n=== {t('Sales agent, setup')} {setup}{sep}{what}{lp}{model}{rp} ==="))
+    print(c(DIM, t("Customer question:")))
+    print(f"  {i18n.question(question)}\n")
+    n = len(CONNECTIONS[setup])
+    print(c(DIM, f"{t('Connections given to the agent')}（{n} 个）：" if i18n.LANG == "zh"
+            else f"Connections given to the agent ({n}):"))
     for db, (system, engine, uri) in CONNECTIONS[setup].items():
-        print(f"  {system:<16} {engine:<11} {uri}")
+        print(f"  {pad(t(system), 16)} {engine:<11} {uri}")
     print()
 
 
@@ -178,25 +188,36 @@ def check(dab, ds, q, answer):
     return mod.validate(answer or "")
 
 
-def finish(trace, out, answer, verdict, question, model):
+def finish(trace, out, answer, verdict, question, model, write=True):
     s = trace.summary()
     s["answer"], s["correct"], s["check"] = answer, verdict[0], verdict[1]
     s["question"], s["model"] = question, model
-    (out / "summary.json").write_text(json.dumps(s, indent=1))
-    t = s["tokens"]
-    print(c(BOLD, "\n--- Answer ---"))
-    print(answer or c(RED, "(no answer)"))
-    print(c(GREEN, "correct") if s["correct"] else c(RED, f"not correct: {s['check']}"))
-    print(c(BOLD, "\n--- The work ---"))
-    print(f"  round trips to the model  {s['round_trips']}")
-    print(f"  queries issued            {s['queries']}  ({', '.join(f'{k_}: {v}' for k_, v in s['queries_by_system'].items())})")
-    print(f"  failed calls              {s['errors']}")
-    print(f"  tokens                    {t['total']:,}  (input {t['input']:,}, cache write {t['cache_write']:,}, "
-          f"cache read {t['cache_read']:,}, output {t['output']:,})")
+    if write:   # a replay re-prints a run and leaves its files as recorded
+        (out / "summary.json").write_text(json.dumps(s, indent=1))
+    tk = s["tokens"]
+    zh = i18n.LANG == "zh"
+    print(c(BOLD, "\n" + t("--- Answer ---")))
+    print(answer or c(RED, t("(no answer)")))
+    tr = i18n.answer_translation(answer)
+    if tr:
+        print(c(DIM, f"（{t('translation')}）") + tr)
+    print(c(GREEN, t("correct")) if s["correct"] else c(RED, f"{t('not correct')}: {s['check']}"))
+    print(c(BOLD, "\n" + t("--- The work ---")))
+    lab = lambda x: pad(t(x), 26 if zh else 26)   # noqa: E731
+    sep = "，" if zh else ", "
+    colon = "：" if zh else ": "
+    print(f"  {lab('round trips to the model')}{s['round_trips']}")
+    by = sep.join(f"{t(k_)}{colon}{v}" for k_, v in s["queries_by_system"].items())
+    lp, rp = ("（", "）") if zh else ("(", ")")
+    print(f"  {lab('queries issued')}{s['queries']}  {lp}{by}{rp}")
+    print(f"  {lab('failed calls')}{s['errors']}")
+    parts = sep.join(f"{t(x)} {tk[key]:,}" for x, key in (("input", "input"), ("cache write", "cache_write"),
+                                                          ("cache read", "cache_read"), ("output", "output")))
+    print(f"  {lab('tokens')}{tk['total']:,}  {lp}{parts}{rp}")
     if s["cost_usd"] is not None:
-        print(f"  cost (API-equivalent)     ${s['cost_usd']:.2f}")
-    print(f"  wall time                 {s['duration_s']}s")
-    print(c(DIM, f"\nsaved {out}"))
+        print(f"  {lab('cost (API-equivalent)')}${s['cost_usd']:.2f}")
+    print(f"  {lab('wall time')}{s['duration_s']}s")
+    print(c(DIM, f"\n{t('saved') if write else t('run record')} {out}"))
 
 
 def run(a):
@@ -249,13 +270,15 @@ def replay(path, delay):
     out = path.parent
     s = json.loads((out / "summary.json").read_text())
     trace = Trace(s["setup"])
-    banner(s["setup"], f"recorded run, {s.get('model')}", s.get("question", ""))
+    sep = "，" if i18n.LANG == "zh" else ", "
+    banner(s["setup"], f"{t('recorded run')}{sep}{s.get('model')}", s.get("question", ""))
     for line in path.read_text().splitlines():
         ev = json.loads(line)
         trace.event(ev)
         if ev.get("type") in ("assistant", "user"):
             time.sleep(delay)
-    finish(trace, out, s.get("answer"), (s.get("correct"), s.get("check")), s.get("question"), s.get("model"))
+    finish(trace, out, s.get("answer"), (s.get("correct"), s.get("check")), s.get("question"), s.get("model"),
+           write=False)
 
 
 def main():
@@ -268,7 +291,9 @@ def main():
     ap.add_argument("--out", type=Path)
     ap.add_argument("--replay", help="a recorded stream.jsonl to re-print instead of running")
     ap.add_argument("--delay", type=float, default=0.4, help="seconds between events on --replay")
+    ap.add_argument("--lang", choices=["en", "zh"], default="en", help="display language (zh: Simplified Chinese)")
     a = ap.parse_args()
+    i18n.set_lang(a.lang)
     if a.replay:
         return replay(a.replay, a.delay)
     if not (a.dab and a.setup):
