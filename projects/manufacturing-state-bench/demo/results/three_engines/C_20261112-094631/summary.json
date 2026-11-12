@@ -1,0 +1,136 @@
+{
+ "setup": "C",
+ "round_trips": 8,
+ "tool_calls": 9,
+ "queries": 7,
+ "errors": 0,
+ "queries_by_system": {
+  "Tapstate state": 7
+ },
+ "systems_touched": 1,
+ "tokens": {
+  "input": 16,
+  "cache_write": 16791,
+  "cache_read": 87333,
+  "output": 2623,
+  "total": 106763
+ },
+ "cost_usd": 0.2043186,
+ "duration_s": 28.6,
+ "num_turns": 10,
+ "calls": [
+  {
+   "n": 1,
+   "round_trip": 1,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"sales_orders\",\"pipeline\":[{\"$match\":{\"customer.store.name\":{\"$regex\":\"Rural Cycle\"}}},{\"$group\":{\"_id\":\"$customer.store.name\",\"n\":{\"$sum\":1},\"min\":{\"$min\":\"$order_date\"},\"max\":{\"$max\":\"$order_date\"},\"cids\":{\"$addToSet\":\"$customer.customer_id\"}}}]}",
+   "tokens_before": 5315,
+   "t": 4.3,
+   "result_chars": 270,
+   "error": false
+  },
+  {
+   "n": 2,
+   "round_trip": 2,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"sales_orders\",\"pipeline\":[{\"$match\":{\"customer.store.name\":\"Rural Cycle Emporium\",\"order_date\":{\"$gte\":{\"$date\":\"2024-07-01T00:00:00Z\"}}}},{\"$unwind\":\"$lines\"},{\"$match\":{\"lines.product.category\":\"Bikes\"}},{\"$group\":{\"_id\":{\"pn\":\"$lines.product.product_number\",\"name\":\"$lines.product.name\"},\"q\":{\"$sum\":\"$lines.order_qty\"}}},{\"$sort\":{\"q\":-1}}]}",
+   "tokens_before": 10999,
+   "t": 7.1,
+   "result_chars": 1945,
+   "error": false
+  },
+  {
+   "n": 3,
+   "round_trip": 3,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"sales_orders\",\"pipeline\":[{\"$match\":{\"customer.store.name\":\"Rural Cycle Emporium\"}},{\"$project\":{\"order_date\":1,\"status\":1,\"lines\":{\"$filter\":{\"input\":\"$lines\",\"cond\":{\"$eq\":[\"$$this.product.product_number\",\"BK-M68B-38\"]}}}}}]}",
+   "tokens_before": 18232,
+   "t": 10.7,
+   "result_chars": 3843,
+   "error": false
+  },
+  {
+   "n": 4,
+   "round_trip": 3,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"products\",\"filter\":{\"_id\":\"BK-M68B-38\"},\"projection\":{\"name\":1,\"list_price\":1,\"list_price_history\":1,\"inventory\":1,\"bom\":1}}",
+   "tokens_before": 18232,
+   "t": 11.6,
+   "result_chars": 3348,
+   "error": false
+  },
+  {
+   "n": 5,
+   "round_trip": 3,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"work_orders\",\"pipeline\":[{\"$match\":{\"product.product_number\":\"BK-M68B-38\",\"end_date\":{\"$gte\":{\"$date\":\"2025-04-01T00:00:00Z\"},\"$lt\":{\"$date\":\"2025-07-01T00:00:00Z\"}}}},{\"$group\":{\"_id\":null,\"stocked\":{\"$sum\":\"$stocked_qty\"},\"ordered\":{\"$sum\":\"$order_qty\"},\"n\":{\"$sum\":1}}}]}",
+   "tokens_before": 18232,
+   "t": 13.0,
+   "result_chars": 208,
+   "error": false
+  },
+  {
+   "n": 6,
+   "round_trip": 4,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"products\",\"filter\":{\"$or\":[{\"make_flag\":true},{\"make_flag\":false}]},\"projection\":{\"make_flag\":1,\"bom.component_number\":1,\"bom.end_date\":1,\"vendors.average_lead_time\":1,\"vendors.vendor.name\":1}}",
+   "tokens_before": 30288,
+   "t": 16.4,
+   "result_chars": 130,
+   "error": false
+  },
+  {
+   "n": 7,
+   "round_trip": 5,
+   "tool": "query_db",
+   "db": "mfg_state",
+   "system": "Tapstate state",
+   "query": "{\"collection\":\"products\",\"filter\":{},\"projection\":{\"make_flag\":1,\"bom.component_number\":1,\"bom.end_date\":1,\"vendors.average_lead_time\":1,\"vendors.vendor.name\":1}}",
+   "tokens_before": 42699,
+   "t": 18.3,
+   "result_chars": 11759,
+   "error": false
+  },
+  {
+   "n": 8,
+   "round_trip": 6,
+   "tool": "execute_python",
+   "db": "",
+   "system": "-",
+   "query": "import json\nd=json.load(open(var_call_7))\nP={p['_id']:p for p in d}\ndef comps(pn):\n    return [b['component_number'] for b in P[pn].get('bom',[]) if b.get('end_date') in (None,'None')]\nseen=set();stack=comps('BK-M68B-38');res=[]\nwhile stack:\n    c=stack.pop()\n    if c in seen: continue\n    seen.add(c)\n    p=P.get(c)\n    if p is None: res.append((c,'missing'));continue\n    if str(p['make_flag'])=='0':\n        lts=[int(v['average_lead_time']) for v in p.get('vendors',[])]\n        res.append((c,max(lts) if lts else None, [v['vendor']['name'] for v in p.get('vendors',[])]))\n    stack+=comps(c)\ndirect=[ (c,[v['average_lead_time'] for v in P[c].get('vendors',[])],P[c]['make_flag']) for c in comps('BK-M68B-38')]\nprint('__RESULT__:')\nprint(json.dumps({'res':res,'direct':direct}))",
+   "tokens_before": 61465,
+   "t": 23.3,
+   "result_chars": 3141,
+   "error": false
+  },
+  {
+   "n": 9,
+   "round_trip": 7,
+   "tool": "return_answer",
+   "db": "",
+   "system": "-",
+   "query": "bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days",
+   "tokens_before": 82731,
+   "t": 25.8,
+   "result_chars": 253,
+   "error": false
+  }
+ ],
+ "answer": "bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days",
+ "correct": true,
+ "check": "Expected answer found: bike: Mountain-200 Black, 38; list price: 2294.99; in stock: 188; built in Q2 2025: 361; longest lead time: 19",
+ "question": "A customer writes in: \"Hi, this is Rural Cycle Emporium. We'd like to reorder the bike we have bought the most units of from you on orders placed since 1 July 2024. Which bike is that, and what is its current list price? How many units can you ship from stock today, across all your locations? How many units of it did your factory finish in the second quarter of 2025 (work orders that ended April to June 2025)? And if you have to build more, what is the longest supplier lead time, in days, among the parts you buy in for it?\" Answer in the form 'bike: NAME, list price: $X, in stock: N, built in Q2 2025: N, longest lead time: N days'.",
+ "model": "claude-opus-5-5"
+}
