@@ -209,6 +209,13 @@ class SourceLayoutTests(unittest.TestCase):
             self.assertIn(db, where, system)
             self.assertNotIn("mfgsrc", json.dumps(src["config"]), system)
 
+    def test_mongodb_sources_read_pre_images(self):
+        """Without an update's earlier document, a nest stops at the first update
+        (nest.reference-tracking-requires-before-image); MongoDB sends it only with preImage: true."""
+        for sid in ("src_mfg_wms", "src_mfg_stage", "src_mfg_ref"):
+            src = yaml.safe_load((self.WS / f"{sid}.tap.yml").read_text())
+            self.assertIs(src["config"].get("preImage"), True, sid)
+
     @unittest.skipUnless(HAVE_DATA, "run fetch_data.py first")
     def test_db_config_matches_the_engines(self):
         cfg = yaml.safe_load(split_sources.DB_CONFIG)["db_clients"]

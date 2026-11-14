@@ -296,6 +296,9 @@ def load_server_side(base):
     m.drop_database(WMS_DB)
     for f in sorted((qd / f"{WMS_DB}_dump" / WMS_DB).glob("*.bson")):
         m[WMS_DB][f.stem].insert_many(bson.decode_all(f.read_bytes()))
+        # change streams carry an update's earlier document only with pre-images on; Tapstate's
+        # nest needs it (src_mfg_wms reads with preImage: true), or the first update stops the pipeline
+        m[WMS_DB].command({"collMod": f.stem, "changeStreamPreAndPostImages": {"enabled": True}})
     print(f"loaded Postgres {', '.join(d for d, _ in PG_SYSTEMS.values())}; "
           f"MySQL {', '.join(d for d, _ in MYSQL_SYSTEMS.values())}; MongoDB {WMS_DB} ({MONGO_SOURCES_URI})")
 

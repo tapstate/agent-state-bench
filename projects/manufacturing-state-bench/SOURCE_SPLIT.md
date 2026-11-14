@@ -147,7 +147,21 @@ changes after the initial load, which the benchmark never does: a MySQL change e
 and a Postgres update to a history row keyed by a date (`start_date` in `standard_cost_history`,
 `list_price_history`) adds a second array element instead of replacing the one the snapshot
 loaded. An earlier layout loaded a Postgres copy of the six systems with dates as text (`mfgsrc`);
-it is retired. An array element's key must not be the
+it is retired.
+
+**Updates from MongoDB need pre-images.** A nest that embeds a referenced row needs an update's earlier
+row to know where it pointed before; without it the pipeline stops at the first update
+(`nest.reference-tracking-requires-before-image`), which is the right refusal. Postgres sends the
+earlier row (`REPLICA IDENTITY FULL`) and so does MySQL's ROW binlog with full row images; a MongoDB
+change stream sends it only when the collection records pre-images (`changeStreamPreAndPostImages`)
+and the Tapstate source asks for them (`preImage: true` in its config). The initial load (inserts
+only) works without either, which is why the first build and the benchmark never hit it; the demo's
+live stock change did. `split_sources.py` turns pre-images on for the WMS collections,
+`run_tapstate.sh` for the staging and reference views that `src_mfg_stage` and `src_mfg_ref` read, and
+the three MongoDB sources set `preImage: true`. With that, a stock change in the WMS reaches
+`views.mfg_product` through two pipelines in about 0.1 s.
+
+An array element's key must not be the
 field a nested lookup joins on (the level then partitions by it), and the default nest memory
 budget (4,000 entries per level, the rest served from MongoDB) made the 121,317-line staging
 pipeline run at about 40 rows a second; `entries_in_memory: 250000` on the large nests made it

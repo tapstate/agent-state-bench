@@ -20,6 +20,11 @@ WS="$HERE/tapstate"
 T="${TAPSTATE_CLI:-tapstate} -c $TAPSTATE_SERVER -u admin"
 MONGO="${MONGO_URI:-mongodb://127.0.0.1:27017/?directConnection=true}"
 
+preimages() {   # record pre-images on views.<collection>...: src_mfg_ref and src_mfg_stage read them with preImage: true
+  python -c "import sys; from pymongo import MongoClient
+v = MongoClient(sys.argv[1])['views']
+for c in sys.argv[2:]: v.command({'collMod': c, 'changeStreamPreAndPostImages': {'enabled': True}})" "$MONGO" "$@"
+}
 count() {   # documents in views.<collection>
   python -c "import sys; from pymongo import MongoClient; print(MongoClient(sys.argv[1])['views'][sys.argv[2]].estimated_document_count())" "$MONGO" "$1"
 }
@@ -47,6 +52,7 @@ for s in erp plm mes wms procurement costing; do $T discover-schema "src_mfg_$s"
 $T apply "$WS" >/dev/null 2>&1 || true   # pipelines reading views not yet discovered are refused here
 for p in mfg_product_ref mfg_stock mfg_offer mfg_routing; do $T start "$p"; done
 wait_for mfg_product_ref 504 mfg_product_ref
+preimages mfg_product_ref
 $T discover-schema src_mfg_ref >/dev/null
 $T apply "$WS" >/dev/null 2>&1 || true
 for p in mfg_sales_line mfg_po_line; do $T start "$p"; done
@@ -55,6 +61,7 @@ wait_for mfg_offer 460 mfg_offer
 wait_for mfg_routing 67131 mfg_routing
 wait_for mfg_sales_line 121317 mfg_sales_line
 wait_for mfg_po_line 8845 mfg_po_line
+preimages mfg_stock mfg_offer mfg_routing mfg_sales_line mfg_po_line
 $T discover-schema src_mfg_stage >/dev/null
 $T apply "$WS"
 for p in mfg_products mfg_work_orders mfg_sales_orders mfg_purchase_orders; do $T start "$p"; done

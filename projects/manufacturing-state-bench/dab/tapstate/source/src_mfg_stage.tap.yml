@@ -7,6 +7,6 @@ id: src_mfg_stage
 # resolved on a root: on Tapstate 0.7.0 such a lookup embedded under an array element attaches to
 # only one element of the whole level (SOURCE_SPLIT.md §3).
 connector: mongodb
-config: { isUri: true, uri: "mongodb://mongo:27017/views?directConnection=true" }
+config: { isUri: true, uri: "mongodb://mongo:27017/views?directConnection=true", preImage: true }
 mode: cdc
 tables: [ mfg_stock, mfg_offer, mfg_routing, mfg_sales_line, mfg_po_line ]
