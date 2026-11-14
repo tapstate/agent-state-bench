@@ -245,10 +245,12 @@ TEXT = {
 BUILD_CAPTIONS = {
     "zh": ["Tapstate 内部：六个源系统 → 统一产品编号的暂存管道 → 嵌套出状态（由真实工作区自动生成）",
            "声明式管道：每一行 embed 产出文档的一部分，并标明它来自哪个系统",
-           "实测：修改 WMS 库存，Tapstate 的实时文档随之更新（实测用时），随后改回并校验"],
+           {"price": "实测：修改成本核算（Postgres）中的当前标价，Tapstate 的实时文档随之更新，随后改回并校验",
+            "stock": "实测：修改 WMS（MongoDB）中的库存，Tapstate 的实时文档随之更新，随后改回并校验"}],
     "en": ["Inside Tapstate: six sources → staging pipelines that unify the product key → nested state (drawn from the workspace)",
            "A declarative pipeline: each embed line produces one part of the document, from one system",
-           "Measured: a WMS stock change reaches Tapstate's live document (measured latency), then set back and verified"],
+           {"price": "Measured: a list-price change in costing (Postgres) reaches Tapstate's live document, then set back and verified",
+            "stock": "Measured: a WMS (MongoDB) stock change reaches Tapstate's live document, then set back and verified"}],
 }
 
 
@@ -256,7 +258,9 @@ def build_segments(lang):
     """The "how the state is built" section (build_section.py), from live_change.py's measured log."""
     from build_section import section
     ensure_font()
-    return section(lang, BUILD_CAPTIONS[lang])
+    kind = json.loads((HERE / "live_change.json").read_text()).get("kind", "stock")
+    caps = BUILD_CAPTIONS[lang]
+    return section(lang, [caps[0], caps[1], caps[2][kind]])
 
 
 def main():
@@ -269,8 +273,9 @@ def main():
         total = sum(x["dur"] for x in segs)
         print(f"timeline: {total:.1f} s; latencies " + ", ".join(f"{st['from']}->{st['to']} {st['latency_s']} s"
                                                             for st in log["steps"]))
-        return asyncio.run(render(segs, total, sample=True, names=[f"sample_build_{lang}_{i}" for i in (1, 2, 3)],
-                                  out_name=f"sample_build_{lang}.mp4"))
+        name = sys.argv[sys.argv.index("--name") + 1] if "--name" in sys.argv else f"sample_build_{lang}"
+        return asyncio.run(render(segs, total, sample=True, names=[f"{name}_{i}" for i in (1, 2, 3)],
+                                  out_name=f"{name}.mp4"))
     if lang == "zh" and sample:
         return sample_zh(dab)
     if lang == "zh":

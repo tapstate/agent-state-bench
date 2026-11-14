@@ -76,16 +76,20 @@ which it fixed in its next call.
 
 ## Live change: how fast the state follows a source (2026-11-14)
 
-`recording/live_change.py` changed BK-M68B-38's stock at Final Assembly in the WMS (MongoDB) and
-watched Tapstate's live product document, `views.mfg_product`, every 20 ms:
+`recording/live_change.py` changes one source value and watches Tapstate's live product document,
+`views.mfg_product`, every 20 ms, then sets it back, runs `verify_tapstate.py` and checks the
+pipelines. The demo uses the relational change (MongoDB is the state store in the demo's story):
 
-| Change | Reached views.mfg_product after | Inventory elements |
-|---|---:|---:|
-| 88 → 98 | 0.066 s | 2 (no duplicate) |
-| 98 → 88 (set back) | 0.087 s | 2 |
+| Source | Change | Pipelines on the way | Reached views.mfg_product after |
+|---|---|---|---:|
+| costing, Postgres `mfg_costing.item_prices.list_price` | 2294.99 → 2199.99 | `mfg_products` | 0.484 s |
+| | 2199.99 → 2294.99 (set back) | | 0.478 s |
+| WMS, MongoDB `mfg_wms.stock.quantity` (Final Assembly) | 88 → 98 | `mfg_stock`, `mfg_products` | 0.066 s |
+| | 98 → 88 (set back) | | 0.087 s |
 
-The change passes through two pipelines (`mfg_stock`, then `mfg_products`). Afterwards
-`verify_tapstate.py` passed (15 s) and all ten pipelines were running. Setup C's `mfg_state` is a
+No duplicate array elements. After each run `verify_tapstate.py` passed (15 s) and all ten pipelines
+were running. Postgres changes arrive through logical replication, which Tapstate polls, hence the
+longer time than MongoDB's change stream. Setup C's `mfg_state` is a
 verified copy of these views and does not change with them.
 
 **Finding: updates from MongoDB need pre-images.** The first attempt failed: `mfg_stock` stopped with
@@ -95,6 +99,15 @@ The initial load (inserts only) works without them, so the build and the benchma
 With `changeStreamPreAndPostImages` on the WMS collections and the staging views, and
 `preImage: true` on the three MongoDB sources, the change went through as above
 ([../../SOURCE_SPLIT.md](../../SOURCE_SPLIT.md) §3).
+
+## Tapstate's web UI
+
+The 0.7.0 server serves a web UI on its port (sign in at `/`; English, Simplified and Traditional
+Chinese). Its pipeline editor shows each pipeline as a graph (the `mfg_products` graph:
+`recording/stills/builder_mfg_products.png`, not committed), and "Create pipeline" offers four build
+modes: a step-by-step pipeline builder, DuckDB SQL, a visual DAG designer, and "Build with AI"
+(generate a pipeline from a prompt). With the `.tap.yml` DSL and the CLI, that covers AI-assisted,
+visual and scripted (automated) creation.
 
 ## What the traces show
 

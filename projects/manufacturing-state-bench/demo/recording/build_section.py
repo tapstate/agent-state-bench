@@ -1,12 +1,13 @@
 """The demo's "how the state is built" section, in three beats, as images and player segments:
 
-1. the flow, drawn from the Tapstate workspace itself (dab/tapstate/): each source with its engine,
-   database and product-key format, the staging pipelines that resolve keys, the four state pipelines
-   and their live views, revealed column by column;
+1. the flow, drawn from the Tapstate workspace itself (dab/tapstate/): one straight lane per source
+   (engine, database, product-key format, then the staging pipelines that read it), converging only
+   into the four state (nest) pipelines and their live views, revealed column by column;
 2. demo/product_state.example.tap.yml beside the BK-M68B-38 document from views.mfg_product, one
    embed line highlighted at a time next to the part of the document it produces;
-3. the live change, rendered from recording/live_change.json (live_change.py's measured log): the WMS
-   row on one side, the live document on the other, with the measured latency, then verify's result.
+3. the live change, rendered from recording/live_change.json (live_change.py's measured log): the source
+   row and its update on one side (by default costing's list price in Postgres), the live document on
+   the other, with the measured latency, then verify's result.
 
 Simplified Chinese (zh) or English (en). Used by make_video.py.
 """
@@ -52,22 +53,28 @@ TXT = {
            "c2": "暂存管道：统一产品编号", "c3": "状态管道：嵌套（nest）", "c4": "实时状态",
            "arrow": "初始加载 + 每一次变更（CDC）",
            "foot": "由 dab/tapstate/ 中的 6 个数据源和 10 条管道定义自动生成；方案 C 的 mfg_state 是这些实时视图经逐字段校验后的副本。",
+           "foot2": "产品编号格式经 mfg_product_ref 统一解析（订单行、工单在暂存时查找它）。",
+           "direct": "无需暂存：编号已是标准格式，直接进入嵌套",
            "dsl_title": "声明式定义：一条管道产出一个产品文档", "left": "demo/product_state.example.tap.yml（精简版）",
            "right": "views.mfg_product 中的 BK-M68B-38（实际输出，已精简）",
-           "live_title": "实时变更：改动源系统，状态随之更新", "src_panel": "源系统：WMS（MongoDB）mfg_wms.stock",
+           "live_title": "实时变更：改动源系统，状态随之更新", "src_panel": "源系统：{system}（{engine}）{table}",
            "state_panel": "Tapstate 实时状态：views.mfg_product · BK-M68B-38", "inventory": "库存（inventory）",
-           "waiting": "等待传播……", "updated": "已更新，用时 {s} 秒（经过 2 条管道：mfg_stock → mfg_products）",
+           "waiting": "等待传播……", "updated": "已更新，用时 {s} 秒（经过 {n} 条管道：{pipes}）", "pipes_sep": " → ",
+           "systems": {"costing": "成本核算", "wms": "WMS 仓储"},
            "verify_ok": "已改回原值；校验通过：实时视图与参考数据逐字段一致（校验用时 {s} 秒，视频中已略去等待）",
            "built_in": "自制产品，无外购报价"},
     "en": {"flow_title": "How Tapstate builds the operational state", "c1": "Six source systems (own key formats)",
            "c2": "Staging pipelines: one product key", "c3": "State pipelines: nest", "c4": "Live state",
            "arrow": "initial load + every change (CDC)",
            "foot": "Generated from the 6 sources and 10 pipelines in dab/tapstate/; setup C's mfg_state is a field-for-field verified copy of these live views.",
+           "foot2": "Key formats resolved via mfg_product_ref (order lines and work orders look it up while staging).",
+           "direct": "no staging: the key is already canonical; read by the nest directly",
            "dsl_title": "Declarative: one pipeline, one product document", "left": "demo/product_state.example.tap.yml (simplified)",
            "right": "BK-M68B-38 in views.mfg_product (actual output, trimmed)",
-           "live_title": "A live change: edit a source, the state follows", "src_panel": "Source: WMS (MongoDB) mfg_wms.stock",
+           "live_title": "A live change: edit a source, the state follows", "src_panel": "Source: {system} ({engine}) {table}",
            "state_panel": "Tapstate live state: views.mfg_product · BK-M68B-38", "inventory": "inventory",
-           "waiting": "propagating…", "updated": "updated after {s} s (through 2 pipelines: mfg_stock → mfg_products)",
+           "waiting": "propagating…", "updated": "updated after {s} s (through {n} pipeline(s): {pipes})", "pipes_sep": " → ",
+           "systems": {"costing": "Costing", "wms": "WMS"},
            "verify_ok": "Set back; verify passed: the live views equal the reference field for field (verify took {s} s, wait cut)",
            "built_in": "built in-house, no vendor offers"},
 }
@@ -104,77 +111,90 @@ def workspace_graph():
     return src, pipes
 
 
+def lanes():
+    """One lane per source system, straight from the workspace: the system's source, the staging
+    pipelines that read it (their views are read back by src_mfg_stage/src_mfg_ref), and the state
+    pipelines the lane feeds (directly, or through its staging views). mfg_product_ref is the shared key
+    lookup; it sits in the PLM lane, and the lookups from other lanes are a footnote, not arrows."""
+    src, pipes = workspace_graph()
+    staging = {p for p in pipes if p not in STATE}
+    out = []
+    for s_id in SYSTEMS:
+        stage = [p for p in STAGING if p in staging and s_id in pipes[p]["feeds"]]
+        views = {pipes[p]["view"] for p in stage}
+        feeds = [p for p in STATE if s_id in pipes[p]["feeds"] or views & set(pipes[p]["feeds"])]
+        out.append({"source": s_id, "staging": stage, "feeds": feeds})
+    return src, pipes, out
+
+
 def flow_page(lang, reveal):
     T = TXT[lang]
-    src, pipes = workspace_graph()
+    src, pipes, lane_list = lanes()
     zi = 0 if lang == "zh" else 1
-    cols = [60, 560, 1070, 1500]
-    widths = [430, 440, 340, 360]
-    boxes, y0 = {}, 175
-    srcs = list(SYSTEMS)
-    for i, s in enumerate(srcs):
-        boxes[s] = (cols[0], y0 + i * 128, widths[0], 108)
-    for i, p in enumerate(STAGING):
-        boxes[p] = (cols[1], y0 + i * 128, widths[1], 108)
-    for i, p in enumerate(STATE):
-        boxes[p] = (cols[2], y0 + 60 + i * 168, widths[2], 120)
-        boxes["v:" + p] = (cols[3], y0 + 60 + i * 168, widths[3], 120)
-    # edges straight from the workspace: a source or a pipeline's view feeding a pipeline
-    view_of = {v["view"]: k for k, v in pipes.items()}
-    edges = []
-    for p, d in pipes.items():
-        for f in d["feeds"]:
-            edges.append((view_of.get(f, f), p))
-    for p in STATE:
-        edges.append((p, "v:" + p))
-    col_of = lambda n: 0 if n in SYSTEMS else 1 if n in STAGING else 2 if n in STATE else 3   # noqa: E731
-
+    X = [60, 560, 1090, 1500]
+    Wd = [430, 440, 330, 360]
+    top, lane_h, gap = 178, 100, 18
     svg = []
-    for a, b in edges:
-        if a not in boxes or b not in boxes or col_of(b) > reveal:
-            continue
-        xa, ya, wa, ha = boxes[a]
-        xb, yb, wb, hb = boxes[b]
-        x1, y1, x2, y2 = xa + wa, ya + ha / 2, xb, yb + hb / 2
-        color = ENGINE_COLOR.get(src[a]["connector"], "#6e7681") if a in src else "#6e7681"
-        mx = (x1 + x2) / 2
-        svg.append(f'<path d="M{x1},{y1} C{mx},{y1} {mx},{y2} {x2},{y2}" fill="none" stroke="{color}" '
-                   f'stroke-width="2.5" opacity="0.75" marker-end="url(#ah)"/>')
-    for n, (x, y, w, h) in boxes.items():
-        c = col_of(n)
-        if c > reveal:
-            continue
-        if n in SYSTEMS:
-            eng = src[n]["connector"]
-            db = src[n]["config"].get("database") or re.search(r"/([a-z_]+)\?", src[n]["config"]["uri"]).group(1)
-            inner = (f'<div style="font:700 25px Noto Sans SC,DejaVu Sans">{esc(SYSTEMS[n][zi])}</div>'
-                     f'<div style="color:{ENGINE_COLOR[eng]};font-size:20px">{ENGINE_NAME[eng]} · {esc(db)}</div>'
-                     f'<div class="mono" style="font-size:19px;color:#d29922">{esc(SYSTEMS[n][2])}</div>')
-            border = ENGINE_COLOR[eng]
-        elif n in STAGING:
-            inner = (f'<div class="mono" style="font-size:22px;font-weight:bold">{n}</div>'
-                     f'<div style="font-size:20px;color:#c9d1d9">{esc(STAGING[n][zi])}</div>')
-            border = "#8b949e"
-        elif n in STATE:
-            inner = (f'<div class="mono" style="font-size:23px;font-weight:bold">{n}</div>'
-                     f'<div style="font-size:20px;color:#c9d1d9">nest → {esc(pipes[n]["view"])}</div>')
-            border = "#39c5cf"
-        else:
-            p = n[2:]
-            inner = (f'<div class="mono" style="font-size:22px">views.{pipes[p]["view"]}</div>'
-                     f'<div class="mono" style="font-size:20px;color:#39c5cf">→ mfg_state.{COLLECTION[p]}</div>')
-            border = "#39c5cf"
-        svg.append(f'<foreignObject x="{x}" y="{y}" width="{w}" height="{h}"><div xmlns="http://www.w3.org/1999/xhtml" '
-                   f'style="box-sizing:border-box;width:{w}px;height:{h}px;border:2px solid {border};border-radius:10px;'
-                   f'background:#161b22;padding:10px 16px;line-height:1.35">{inner}</div></foreignObject>')
-    heads = "".join(f'<text x="{cols[i]}" y="150" fill="#8b949e" font-size="22">{esc(T["c" + str(i + 1)])}</text>'
+
+    def box(x, y, w, h, border, inner, dashed=False):
+        style = "dashed" if dashed else "solid"
+        return (f'<foreignObject x="{x}" y="{y}" width="{w}" height="{h}"><div xmlns="http://www.w3.org/1999/xhtml" '
+                f'style="box-sizing:border-box;width:{w}px;height:{h}px;border:2px {style} {border};border-radius:10px;'
+                f'background:#161b22;padding:9px 16px;line-height:1.35">{inner}</div></foreignObject>')
+    lane_y = {}
+    for i, ln in enumerate(lane_list):
+        y = top + i * (lane_h + gap)
+        lane_y[ln["source"]] = y
+        s_id = ln["source"]
+        eng = src[s_id]["connector"]
+        color = ENGINE_COLOR[eng]
+        db = src[s_id]["config"].get("database") or re.search(r"/([a-z_]+)\?", src[s_id]["config"]["uri"]).group(1)
+        svg.append(box(X[0], y, Wd[0], lane_h, color,
+                       f'<div style="font:700 25px Noto Sans SC,DejaVu Sans">{esc(SYSTEMS[s_id][zi])}</div>'
+                       f'<div style="color:{color};font-size:20px">{ENGINE_NAME[eng]} · {esc(db)}</div>'
+                       f'<div class="mono" style="font-size:19px;color:#d29922">{esc(SYSTEMS[s_id][2])}</div>'))
+        if reveal >= 1:
+            ym = y + lane_h / 2
+            svg.append(f'<line x1="{X[0] + Wd[0]}" y1="{ym}" x2="{X[1]}" y2="{ym}" stroke="{color}" stroke-width="3" marker-end="url(#ah)"/>')
+            if ln["staging"]:
+                inner = "".join(f'<div style="font-size:20px"><span class="mono" style="font-weight:bold">{p}</span>'
+                                f'<span style="color:#c9d1d9">　{esc(STAGING[p][zi])}</span></div>' for p in ln["staging"])
+                svg.append(box(X[1], y, Wd[1], lane_h, "#8b949e", f'<div style="display:flex;flex-direction:column;justify-content:center;height:100%">{inner}</div>'))
+            else:
+                svg.append(box(X[1], y, Wd[1], lane_h, "#6e7681",
+                               f'<div style="display:flex;align-items:center;height:100%;font-size:20px;color:#8b949e">{esc(T["direct"])}</div>',
+                               dashed=True))
+    nest_y = {}
+    for i, p in enumerate(STATE):
+        nest_y[p] = top + 20 + i * 178
+    if reveal >= 2:
+        for ln in lane_list:   # the only converging arrows: lanes into the nest pipelines
+            ya = lane_y[ln["source"]] + lane_h / 2
+            color = ENGINE_COLOR[src[ln["source"]]["connector"]]
+            for p in ln["feeds"]:
+                yb = nest_y[p] + 60
+                mx = (X[1] + Wd[1] + X[2]) / 2
+                svg.append(f'<path d="M{X[1] + Wd[1]},{ya} C{mx},{ya} {mx},{yb} {X[2]},{yb}" fill="none" stroke="{color}" '
+                           f'stroke-width="2.5" opacity="0.8" marker-end="url(#ah)"/>')
+        for p in STATE:
+            svg.append(box(X[2], nest_y[p], Wd[2], 120, "#39c5cf",
+                           f'<div class="mono" style="font-size:23px;font-weight:bold">{p}</div>'
+                           f'<div style="font-size:20px;color:#c9d1d9">nest → {esc(pipes[p]["view"])}</div>'))
+    if reveal >= 3:
+        for p in STATE:
+            y = nest_y[p]
+            svg.append(f'<line x1="{X[2] + Wd[2]}" y1="{y + 60}" x2="{X[3]}" y2="{y + 60}" stroke="#39c5cf" stroke-width="2.5" marker-end="url(#ah)"/>')
+            svg.append(box(X[3], y, Wd[3], 120, "#39c5cf",
+                           f'<div class="mono" style="font-size:22px">views.{pipes[p]["view"]}</div>'
+                           f'<div class="mono" style="font-size:20px;color:#39c5cf">→ mfg_state.{COLLECTION[p]}</div>'))
+    heads = "".join(f'<text x="{X[i]}" y="155" fill="#8b949e" font-size="22">{esc(T["c" + str(i + 1)])}</text>'
                     for i in range(reveal + 1))
-    arrow = (f'<text x="{(cols[0] + widths[0] + cols[1]) / 2}" y="1000" fill="#8b949e" font-size="1"></text>')
     return f"""<!doctype html><meta charset="utf-8">{CSS}<body><h1>{esc(T['flow_title'])}</h1>
 <div style="position:absolute;right:60px;top:48px;font-size:26px;color:#d29922">⟶ {esc(T['arrow'])}</div>
 <svg width="1920" height="1008" style="position:absolute;left:0;top:0">
 <defs><marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#8b949e"/></marker></defs>
-{heads}{''.join(svg)}{arrow}</svg><div class="foot">{esc(T['foot'])}</div></body>"""
+{heads}{''.join(svg)}</svg>
+<div class="foot" style="bottom:46px">{esc(T['foot2'])}</div><div class="foot">{esc(T['foot'])}</div></body>"""
 
 
 # --- beat 2: the DSL beside the document -----------------------------------------------------------
@@ -247,33 +267,45 @@ def dsl_page(lang, step):
 
 
 # --- beat 3: the live change ----------------------------------------------------------------------
-def live_page(lang, ev, phase, latency=None, verify=None):
+def live_page(lang, log, ev, phase, latency=None, verify=None):
     T = TXT[lang]
-    s = ev["source"]
-    changed_src = phase in ("set", "seen")
-    doc = (f'{{\n  _id: {s["_id"]},\n  item: "{s["item"]}",\n  location_id: {s["location_id"]},\n'
-           f'  quantity: <span style="color:{"#f0883e" if changed_src else "#e6edf3"};font-weight:bold">{s["quantity"]}</span>\n}}')
-    cmd = f'db.stock.updateOne({{ _id: {s["_id"]} }}, {{ $set: {{ quantity: {s["quantity"]} }} }})' if phase != "start" else ""
-    inv = "".join(
-        f'<div class="mono" style="font-size:26px;padding:6px 0">{esc(i["location"]):<24} quantity '
-        f'<span style="color:{"#3fb950" if (phase == "seen" and i["location"] == "Final Assembly") else "#e6edf3"};'
-        f'font-weight:bold">{i["quantity"]}</span></div>' for i in ev["inventory"])
+    eng = ENGINE_NAME[log["engine"]]
+    changed = phase in ("set", "seen")
+    src, st = ev["source"], ev["state"]
+    hl = lambda on, color: f'color:{color};font-weight:bold' if on else 'color:#e6edf3;font-weight:bold'   # noqa: E731
+    if log["kind"] == "price":
+        row = (f'<table class="mono" style="font-size:24px;border-collapse:collapse;margin-top:18px">'
+               f'<tr style="color:#8b949e"><td style="padding:4px 18px 4px 0">product_number</td><td style="padding:4px 18px">standard_cost</td><td style="padding:4px 0 4px 18px">list_price</td></tr>'
+               f'<tr><td style="padding:4px 18px 4px 0">{esc(src["product_number"])}</td><td style="padding:4px 18px">{src["standard_cost"]:.2f}</td>'
+               f'<td style="padding:4px 0 4px 18px;{hl(changed, "#f0883e")}">{src["list_price"]:.2f}</td></tr></table>')
+        right = (f'<div class="mono" style="font-size:24px;line-height:1.8">product_number: "BK-M68B-38"<br>name: "Mountain-200 Black, 38"<br>'
+                 f'standard_cost: {st["standard_cost"]:.4f}<br>list_price: <span style="{hl(phase == "seen", "#3fb950")}">{st["list_price"]:.2f}</span></div>')
+    else:
+        row = (f'<pre class="mono" style="font-size:26px;margin:16px 0">{{\n  _id: {src["_id"]},\n  item: "{src["item"]}",\n'
+               f'  location_id: {src["location_id"]},\n  quantity: <span style="{hl(changed, "#f0883e")}">{src["quantity"]}</span>\n}}</pre>')
+        right = f'<div style="font-size:22px;color:#8b949e;margin:10px 0 8px">{esc(T["inventory"])}</div>' + "".join(
+            f'<div class="mono" style="font-size:26px;padding:6px 0">{esc(i["location"]):<24} quantity '
+            f'<span style="{hl(phase == "seen" and i["location"] == "Final Assembly", "#3fb950")}">{i["quantity"]}</span></div>'
+            for i in st["inventory"])
+    cmd = ev.get("statement") or ""
+    pipes = T["pipes_sep"].join(log["pipelines"])
     status = ""
     if phase == "set":
         status = f'<span style="color:#d29922">{esc(T["waiting"])}</span>'
     elif phase == "seen":
-        status = f'<span style="color:#3fb950">{esc(T["updated"].format(s=f"{latency:.2f}"))}</span>'
+        status = f'<span style="color:#3fb950">{esc(T["updated"].format(s=f"{latency:.2f}", n=len(log["pipelines"]), pipes=pipes))}</span>'
     elif phase == "verify":
         status = f'<span style="color:#3fb950">{esc(T["verify_ok"].format(s=verify["seconds"]))}</span>'
-    verify_line = f'<div class="mono" style="font-size:20px;color:#8b949e;margin-top:14px">$ python verify_tapstate.py<br>{esc(verify["line"])}</div>' if verify else ""
+    verify_line = (f'<div class="mono" style="font-size:20px;color:#8b949e;margin-top:14px">$ python verify_tapstate.py<br>'
+                   f'{esc(verify["line"])}</div>') if verify else ""
+    title = T["src_panel"].format(system=T["systems"][log["system"]], engine=eng, table=log["table"])
+    border = ENGINE_COLOR[log["engine"]]
     return f"""<!doctype html><meta charset="utf-8">{CSS}<body><h1>{esc(T['live_title'])}</h1>
-<div style="position:absolute;left:60px;top:120px;width:860px;height:600px;border:2px solid #3fb950;border-radius:12px;background:#161b22;padding:24px;box-sizing:border-box">
- <div style="font-size:24px;color:#3fb950;margin-bottom:16px">{esc(T['src_panel'])}</div>
- <div class="mono" style="font-size:20px;color:#39c5cf;min-height:56px">{('$ ' + esc(cmd)) if cmd else ''}</div>
- <pre class="mono" style="font-size:26px;margin:16px 0">{doc}</pre></div>
+<div style="position:absolute;left:60px;top:120px;width:860px;height:600px;border:2px solid {border};border-radius:12px;background:#161b22;padding:24px;box-sizing:border-box">
+ <div style="font-size:24px;color:{border};margin-bottom:16px">{esc(title)}</div>
+ <div class="mono" style="font-size:20px;color:#39c5cf;min-height:56px;white-space:pre-wrap">{('$ ' + esc(cmd)) if cmd else ''}</div>{row}</div>
 <div style="position:absolute;left:1000px;top:120px;width:860px;height:600px;border:2px solid #39c5cf;border-radius:12px;background:#161b22;padding:24px;box-sizing:border-box">
- <div style="font-size:24px;color:#39c5cf;margin-bottom:16px">{esc(T['state_panel'])}</div>
- <div style="font-size:22px;color:#8b949e;margin:10px 0 8px">{esc(T['inventory'])}</div>{inv}</div>
+ <div style="font-size:24px;color:#39c5cf;margin-bottom:16px">{esc(T['state_panel'])}</div>{right}</div>
 <div style="position:absolute;left:60px;top:750px;width:1800px;font-size:28px">{status}{verify_line}</div></body>"""
 
 
@@ -325,12 +357,12 @@ def section(lang, captions):
     log = json.loads((HERE / "live_change.json").read_text())
     ev = log["events"]   # start, set, seen, set, seen
     steps = log["steps"]
-    pages += [("live_0", live_page(lang, ev[0], "start")),
-              ("live_1", live_page(lang, ev[1], "set")),
-              ("live_2", live_page(lang, ev[2], "seen", steps[0]["latency_s"])),
-              ("live_3", live_page(lang, ev[3], "set")),
-              ("live_4", live_page(lang, ev[4], "seen", steps[1]["latency_s"])),
-              ("live_5", live_page(lang, ev[4], "verify", verify=log["verify"]))]
+    pages += [("live_0", live_page(lang, log, ev[0], "start")),
+              ("live_1", live_page(lang, log, ev[1], "set")),
+              ("live_2", live_page(lang, log, ev[2], "seen", steps[0]["latency_s"])),
+              ("live_3", live_page(lang, log, ev[3], "set")),
+              ("live_4", live_page(lang, log, ev[4], "seen", steps[1]["latency_s"])),
+              ("live_5", live_page(lang, log, ev[4], "verify", verify=log["verify"]))]
     asyncio.run(shoot(pages, out))
     imgs = {n: f"build_{lang}/{n}.png" for n, _ in pages}
 

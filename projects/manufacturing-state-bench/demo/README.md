@@ -112,8 +112,8 @@ python recording/make_video.py "$DAB" --sample [--lang zh]   # a short clip to c
 | `make_video.py` | Builds the timeline (cards, terminal replays with idle gaps capped at 2 s, the trace report scrolled with two queries opened), renders it and writes one still per section to `stills/`. |
 | `player.html`, `cdp.py` | The canvas player and a minimal Chrome DevTools client. Chinese text uses Noto Sans SC (OFL), which `make_video.py` downloads once into `recording/fonts/` (sha256-checked). |
 | `remux_mp4.py` | Rewrites Chrome's fragmented MP4 as a regular one (real duration, seekable in QuickTime and PowerPoint). |
-| `live_change.py` | The live change, measured: a WMS stock change and its revert, timed until Tapstate's live document shows them, then `verify_tapstate.py`. Writes `live_change.json`. |
-| `build_section.py` | The "how the state is built" section: the flow drawn from `dab/tapstate/`, the pipeline beside its document, and the split screen rendered from `live_change.json`. `make_video.py --sample-build` renders it alone. |
+| `live_change.py` | The live change, measured: by default the bike's list price in costing (Postgres; `stock` for the WMS in MongoDB), changed and set back, timed until Tapstate's live document shows it, then `verify_tapstate.py`. Writes `live_change.json`. |
+| `build_section.py` | The "how the state is built" section: the flow drawn from `dab/tapstate/` (one straight lane per source, converging only into the nest pipelines), the pipeline beside its document, and the split screen rendered from `live_change.json`. `make_video.py --sample-build [--name N]` renders it alone. |
 
 Videos, recordings and stills stay out of git.
 
