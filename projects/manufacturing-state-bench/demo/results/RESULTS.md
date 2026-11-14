@@ -74,6 +74,28 @@ layout's five runs per setup from the 200-run batch:
 The three-engine A run had one failed call: an `execute_python` error in the agent's own code,
 which it fixed in its next call.
 
+## Live change: how fast the state follows a source (2026-11-14)
+
+`recording/live_change.py` changed BK-M68B-38's stock at Final Assembly in the WMS (MongoDB) and
+watched Tapstate's live product document, `views.mfg_product`, every 20 ms:
+
+| Change | Reached views.mfg_product after | Inventory elements |
+|---|---:|---:|
+| 88 → 98 | 0.066 s | 2 (no duplicate) |
+| 98 → 88 (set back) | 0.087 s | 2 |
+
+The change passes through two pipelines (`mfg_stock`, then `mfg_products`). Afterwards
+`verify_tapstate.py` passed (15 s) and all ten pipelines were running. Setup C's `mfg_state` is a
+verified copy of these views and does not change with them.
+
+**Finding: updates from MongoDB need pre-images.** The first attempt failed: `mfg_stock` stopped with
+`nest.reference-tracking-requires-before-image`, because a MongoDB change stream carries an update's
+earlier document only when the collection records pre-images and the Tapstate source asks for them.
+The initial load (inserts only) works without them, so the build and the benchmark never hit it.
+With `changeStreamPreAndPostImages` on the WMS collections and the staging views, and
+`preImage: true` on the three MongoDB sources, the change went through as above
+([../../SOURCE_SPLIT.md](../../SOURCE_SPLIT.md) §3).
+
 ## What the traces show
 
 Setup C's runs are steady (83–107k tokens on the three-engine layout): a few MongoDB aggregations on
@@ -106,6 +128,7 @@ Rendered by `../recording/make_video.py` from the recordings of `../recording/re
 | `sales_agent_demo_zh.mp4` | 4 min 33 s | 26.8 MB | the full demo in Simplified Chinese: the 09:45 live take, the Tapstate segment, the trace report, the numbers |
 | `sample.mp4` | 16.5 s | 1.5 MB | look-and-feel sample (English) |
 | `sample_zh.mp4` | 30.6 s | 3.3 MB | look-and-feel sample (Chinese), from replays of the 09:05 take |
+| `sample_build_zh.mp4` | 67.9 s | 4.2 MB | the "how the state is built" section (Chinese): the flow drawn from the workspace, the pipeline beside its document, the measured live change |
 
 To regenerate: see [../README.md](../README.md#record-the-demo). The full English video was not
 rendered; `make_video.py` builds it from the 09:05 recordings.

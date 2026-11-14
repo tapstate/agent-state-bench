@@ -60,7 +60,27 @@ def term_seg(name, caption, hold, cap=IDLE_CAP):
             "caption": caption}
 
 
-FONT_LOAD = """(async () => { const t = document.body.innerText;
+FONT_URL = "https://github.com/google/fonts/raw/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf"
+FONT_SHA256 = "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da"
+FONT = HERE / "fonts" / "NotoSansSC-wght.ttf"
+
+
+def ensure_font():
+    """Noto Sans SC (SIL Open Font License), the whole variable font, for every Chinese frame."""
+    import hashlib
+    import urllib.request
+    if not FONT.exists():
+        FONT.parent.mkdir(exist_ok=True)
+        urllib.request.urlretrieve(FONT_URL, FONT)
+    if hashlib.sha256(FONT.read_bytes()).hexdigest() != FONT_SHA256:
+        raise SystemExit(f"{FONT} does not match its sha256; delete it and run again")
+
+
+LOCAL_FACE = """(() => { const s = document.createElement('style');
+  s.textContent = '@font-face{font-family:"Noto Sans SC";src:url("%s") format("truetype");font-weight:100 900}';
+  document.head.appendChild(s); return true; })()"""
+
+FONT_LOAD = """(async () => { const t = document.documentElement.textContent;
   for (const w of ['', 'bold ']) await document.fonts.load(w + '15px "Noto Sans SC"', t);
   await document.fonts.ready; return true; })()"""
 
@@ -74,6 +94,7 @@ async def capture_report(report, out, zh=False):
         await c.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-color-scheme", "value": "light"}]})
         await c.goto(report.as_uri())
         if zh:
+            await c.eval(LOCAL_FACE % FONT.as_uri())
             await c.eval(FONT_LOAD, await_promise=True)
             await asyncio.sleep(1)
         ys = json.loads(await c.eval("""JSON.stringify((() => {
@@ -221,12 +242,39 @@ TEXT = {
 }
 
 
+BUILD_CAPTIONS = {
+    "zh": ["Tapstate 内部：六个源系统 → 统一产品编号的暂存管道 → 嵌套出状态（由真实工作区自动生成）",
+           "声明式管道：每一行 embed 产出文档的一部分，并标明它来自哪个系统",
+           "实测：修改 WMS 库存，Tapstate 的实时文档随之更新（实测用时），随后改回并校验"],
+    "en": ["Inside Tapstate: six sources → staging pipelines that unify the product key → nested state (drawn from the workspace)",
+           "A declarative pipeline: each embed line produces one part of the document, from one system",
+           "Measured: a WMS stock change reaches Tapstate's live document (measured latency), then set back and verified"],
+}
+
+
+def build_segments(lang):
+    """The "how the state is built" section (build_section.py), from live_change.py's measured log."""
+    from build_section import section
+    ensure_font()
+    return section(lang, BUILD_CAPTIONS[lang])
+
+
 def main():
     dab = Path(sys.argv[1]).resolve()
     lang = sys.argv[sys.argv.index("--lang") + 1] if "--lang" in sys.argv else "en"
     sample = "--sample" in sys.argv
+    if "--sample-build" in sys.argv:
+        segs, imgs, log = build_segments(lang)
+        (HERE / "timeline.json").write_text(json.dumps({"lang": lang, "segments": segs, "images": imgs}))
+        total = sum(x["dur"] for x in segs)
+        print(f"timeline: {total:.1f} s; latencies " + ", ".join(f"{st['from']}->{st['to']} {st['latency_s']} s"
+                                                            for st in log["steps"]))
+        return asyncio.run(render(segs, total, sample=True, names=[f"sample_build_{lang}_{i}" for i in (1, 2, 3)],
+                                  out_name=f"sample_build_{lang}.mp4"))
     if lang == "zh" and sample:
         return sample_zh(dab)
+    if lang == "zh":
+        ensure_font()
     sfx = "_zh" if lang == "zh" else ""
     T = TEXT[lang]
     a_run, c_run = sorted((HERE / f"runs{sfx}.txt").read_text().split())   # A_..., C_...
@@ -311,6 +359,8 @@ async def render(segs, total, sample=False, names=None, out_name=None):
                 at = t + (s["dur"] - (8 if s["kind"] == "term" else 0)) * (0.98 if s["kind"] == "term" else 0.5)
                 if s["kind"] == "page":
                     at = t + min(50, s["dur"] - 0.5)
+                    if s.get("still_at") is not None:
+                        at = t + s["still_at"]
                 if sample and s["kind"] == "term":
                     at = t + s["dur"] - 0.2
                 png = await c.eval(f"still({at})")
