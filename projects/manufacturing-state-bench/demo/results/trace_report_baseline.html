@@ -1,0 +1,92 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Sales agent trace</title>
+
+<style>
+:root{--bg:#fafaf9;--fg:#1c1917;--mut:#78716c;--line:#e7e5e4;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1917;--fg:#f5f5f4;--mut:#a8a29e;--line:#44403c;--card:#292524}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px;margin:0 0 4px} .q{color:var(--mut);margin:0 0 20px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:8px;padding:16px}
+.card h2{margin:0;font-size:16px;color:var(--c)} .big{font-size:40px;font-weight:700} .big small{font-size:15px;color:var(--mut)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0} dt{color:var(--mut)} dd{margin:0}
+.ok{color:#15803d;font-weight:600} .bad{color:#b91c1c;font-weight:600} .ans{font-size:13px;color:var(--mut)}
+.hl{font-size:18px;margin:20px 0} svg{width:100%;max-width:700px} .grid{stroke:var(--line)}
+.ax{fill:var(--mut);font-size:11px} .lbl{font-size:12px;font-weight:600}
+.scroll{overflow-x:auto} table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:top} .n{text-align:right}
+tr.err td{color:#b91c1c} pre{white-space:pre-wrap;font-size:12px;margin:4px 0} summary{cursor:pointer}
+</style></head><body><main>
+<h1>Sales agent: what it took to answer one customer</h1>
+<p class="q">A customer writes in: &quot;Hi, this is Rural Cycle Emporium. We&#x27;d like to reorder the bike we have bought the most units of from you on orders placed since 1 July 2024. Which bike is that, and what is its current list price? How many units can you ship from stock today, across all your locations? How many units of it did your factory finish in the second quarter of 2025 (work orders that ended April to June 2025)? And if you have to build more, what is the longest supplier lead time, in days, among the parts you buy in for it?&quot; Answer in the form &#x27;bike: NAME, list price: $X, in stock: N, built in Q2 2025: N, longest lead time: N days&#x27;.</p>
+<div class="grid2"><section class="card" style="--c:#c2410c">
+<h2>Six live systems</h2>
+<div class="big">198k <small>tokens</small></div>
+<dl>
+<dt>Round trips to the model</dt><dd>9</dd>
+<dt>Queries issued</dt><dd>11</dd>
+<dt>By system</dt><dd>ERP sales 3, PLM 3, Cost accounting 1, WMS 1, MES 2, Procurement 1</dd>
+<dt>Failed calls</dt><dd>0</dd>
+<dt>Cost (API-equivalent)</dt><dd>$0.37</dd>
+<dt>Wall time</dt><dd>33.2 s</dd>
+<dt>Answer</dt><dd><span class="ok">correct</span></dd>
+</dl>
+<p class="ans">bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days</p>
+</section><section class="card" style="--c:#0f766e">
+<h2>Tapstate</h2>
+<div class="big">84k <small>tokens</small></div>
+<dl>
+<dt>Round trips to the model</dt><dd>7</dd>
+<dt>Queries issued</dt><dd>6</dd>
+<dt>By system</dt><dd>Tapstate state 6</dd>
+<dt>Failed calls</dt><dd>0</dd>
+<dt>Cost (API-equivalent)</dt><dd>$0.19</dd>
+<dt>Wall time</dt><dd>24.0 s</dd>
+<dt>Answer</dt><dd><span class="ok">correct</span></dd>
+</dl>
+<p class="ans">bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days</p>
+</section></div>
+<p class="hl">Against six live systems the agent spent <b>2.4×</b> the tokens it spent against Tapstate,
+over 9 round trips instead of 7.</p>
+<svg viewBox="0 0 640 220" role="img" aria-label="Tokens spent over the run"><line x1="44" x2="628" y1="194.0" y2="194.0" class="grid"/><text x="38" y="198.0" text-anchor="end" class="ax">0k</text><line x1="44" x2="628" y1="107.0" y2="107.0" class="grid"/><text x="38" y="111.0" text-anchor="end" class="ax">99k</text><line x1="44" x2="628" y1="20.0" y2="20.0" class="grid"/><text x="38" y="24.0" text-anchor="end" class="ax">198k</text><text x="342.0" y="216" text-anchor="middle" class="ax">tool calls, in order</text><path d="M44.0,188.8 L88.9,183.4 L133.8,177.1 L178.8,164.4 L223.7,164.4 L268.6,164.4 L313.5,164.4 L358.5,144.3 L403.4,144.3 L448.3,119.3 L493.2,119.3 L538.2,87.7 L583.1,55.4 L628.0,20.0" fill="none" stroke="#c2410c" stroke-width="2.5"/><circle cx="628.0" cy="20.0" r="4" fill="#c2410c"/><text x="622.0" y="11.0" text-anchor="end" class="lbl" fill="#c2410c">Six live systems: 198k</text><path d="M44.0,189.4 L88.9,184.5 L133.8,178.2 L178.8,178.2 L223.7,178.2 L268.6,169.3 L313.5,154.5 L358.5,138.5 L403.4,120.2" fill="none" stroke="#0f766e" stroke-width="2.5"/><circle cx="403.4" cy="120.2" r="4" fill="#0f766e"/><text x="397.4" y="111.2" text-anchor="end" class="lbl" fill="#0f766e">Tapstate: 84k</text></svg>
+<section><h3 style="color:#c2410c">Six live systems: every call</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>Round trip</th><th>Tool</th><th>System</th>
+<th>Query or code</th><th class='n'>Chars back</th><th class='n'>Tokens so far</th></tr></thead>
+<tbody><tr><td>1</td><td>1</td><td>query_db</td><td>ERP sales</td><td><details><summary>SELECT s.store_id, s.name, c.customer_id FROM stores s LEFT JOIN customers c ON </summary><pre>SELECT s.store_id, s.name, c.customer_id FROM stores s LEFT JOIN customers c ON c.store_id=s.store_id WHERE s.name ILIKE &#x27;%rural%cycle%&#x27;</pre></details></td><td class='n'>391</td><td class='n'>5.9k</td></tr><tr><td>2</td><td>2</td><td>query_db</td><td>ERP sales</td><td><details><summary>SELECT l.sku, SUM(l.order_qty) q, COUNT(*) n FROM sales_orders o JOIN sales_orde</summary><pre>SELECT l.sku, SUM(l.order_qty) q, COUNT(*) n FROM sales_orders o JOIN sales_order_lines l ON l.sales_order_id=o.sales_order_id JOIN customers c ON c.customer_id=o.customer_id WHERE c.store_id=&#x27;928&#x27; AND o.order_date &gt;= &#x27;2024-07-01&#x27; GROUP BY l.sku ORDER BY q DESC LIMIT 15</pre></details></td><td class='n'>960</td><td class='n'>12.1k</td></tr><tr><td>3</td><td>3</td><td>query_db</td><td>ERP sales</td><td><details><summary>SELECT o.customer_id, o.order_date, o.status, l.sku, l.order_qty FROM sales_orde</summary><pre>SELECT o.customer_id, o.order_date, o.status, l.sku, l.order_qty FROM sales_orders o JOIN sales_order_lines l ON l.sales_order_id=o.sales_order_id WHERE o.customer_id IN (&#x27;10&#x27;,&#x27;29770&#x27;) AND (l.sku ILIKE &#x27;%BK%&#x27; OR l.sku ILIKE &#x27;%bk%&#x27;) ORDER BY o.order_date</pre></details></td><td class='n'>12,074</td><td class='n'>19.2k</td></tr><tr><td>4</td><td>4</td><td>query_db</td><td>PLM</td><td><details><summary>SELECT * FROM products WHERE product_number=&#x27;BK-M68B-38&#x27;</summary><pre>SELECT * FROM products WHERE product_number=&#x27;BK-M68B-38&#x27;</pre></details></td><td class='n'>701</td><td class='n'>33.6k</td></tr><tr><td>5</td><td>4</td><td>query_db</td><td>Cost accounting</td><td><details><summary>SELECT &#x27;ip&#x27; src, product_number, list_price::text, NULL::text sd, NULL::text ed </summary><pre>SELECT &#x27;ip&#x27; src, product_number, list_price::text, NULL::text sd, NULL::text ed FROM item_prices WHERE product_number ILIKE &#x27;%M68B-38%&#x27; UNION ALL SELECT &#x27;h&#x27;, product_number, list_price::text, start_date::text, end_date::text FROM list_price_history WHERE product_number ILIKE &#x27;%M68B-38%&#x27;</pre></details></td><td class='n'>516</td><td class='n'>33.6k</td></tr><tr><td>6</td><td>4</td><td>query_db</td><td>WMS</td><td><details><summary>{&quot;collection&quot;:&quot;stock&quot;,&quot;filter&quot;:{&quot;item&quot;:{&quot;$regex&quot;:&quot;M68B-38&quot;,&quot;$options&quot;:&quot;i&quot;}}}</summary><pre>{&quot;collection&quot;:&quot;stock&quot;,&quot;filter&quot;:{&quot;item&quot;:{&quot;$regex&quot;:&quot;M68B-38&quot;,&quot;$options&quot;:&quot;i&quot;}}}</pre></details></td><td class='n'>390</td><td class='n'>33.6k</td></tr><tr><td>7</td><td>4</td><td>query_db</td><td>MES</td><td><details><summary>SELECT * FROM work_orders WHERE part_no ILIKE &#x27;%M68B-38%&#x27; AND end_date &gt;= &#x27;2025-</summary><pre>SELECT * FROM work_orders WHERE part_no ILIKE &#x27;%M68B-38%&#x27; AND end_date &gt;= &#x27;2025-04-01&#x27; AND end_date &lt; &#x27;2025-07-01&#x27;</pre></details></td><td class='n'>11,689</td><td class='n'>33.6k</td></tr><tr><td>8</td><td>5</td><td>query_db</td><td>MES</td><td><details><summary>SELECT part_no, COUNT(*), SUM(order_qty), SUM(stocked_qty), SUM(scrapped_qty) FR</summary><pre>SELECT part_no, COUNT(*), SUM(order_qty), SUM(stocked_qty), SUM(scrapped_qty) FROM work_orders WHERE upper(trim(part_no)) LIKE &#x27;%BK-M68B-38%&#x27; AND CAST(end_date AS DATE) BETWEEN DATE &#x27;2025-04-01&#x27; AND DATE &#x27;2025-06-30&#x27; GROUP BY part_no</pre></details></td><td class='n'>281</td><td class='n'>56.6k</td></tr><tr><td>9</td><td>5</td><td>query_db</td><td>PLM</td><td><details><summary>WITH RECURSIVE t(n, lvl) AS (SELECT component_number, 1 FROM bom WHERE assembly_</summary><pre>WITH RECURSIVE t(n, lvl) AS (SELECT component_number, 1 FROM bom WHERE assembly_number=&#x27;BK-M68B-38&#x27; AND (end_date IS NULL OR end_date=&#x27;&#x27; OR end_date=&#x27;None&#x27;) UNION SELECT b.component_number, lvl+1 FROM bom b JOIN t ON b.assembly_number=t.n WHERE (b.end_date IS NULL OR b.end_date=&#x27;&#x27; OR b.end_date=&#x27;None&#x27;)) SELECT t.n, t.lvl, p.make_flag, p.name FROM t LEFT JOIN products p ON p.product_number=t.n</pre></details></td><td class='n'>7,059</td><td class='n'>56.6k</td></tr><tr><td>10</td><td>6</td><td>query_db</td><td>Procurement</td><td><details><summary>SELECT part_ref, vendor_id, average_lead_time FROM vendor_items</summary><pre>SELECT part_ref, vendor_id, average_lead_time FROM vendor_items</pre></details></td><td class='n'>11,869</td><td class='n'>84.9k</td></tr><tr><td>11</td><td>6</td><td>query_db</td><td>PLM</td><td><details><summary>SELECT DISTINCT end_date FROM bom LIMIT 10</summary><pre>SELECT DISTINCT end_date FROM bom LIMIT 10</pre></details></td><td class='n'>411</td><td class='n'>84.9k</td></tr><tr><td>12</td><td>7</td><td>execute_python</td><td></td><td><details><summary>import json vi=json.load(open(var_call_10)) bom=var_call_9 lt={} for r in vi: k=</summary><pre>import json
+vi=json.load(open(var_call_10))
+bom=var_call_9
+lt={}
+for r in vi:
+    k=r[&#x27;part_ref&#x27;].strip().upper().replace(&#x27;_&#x27;,&#x27;-&#x27;)
+    lt.setdefault(k,[]).append(float(r[&#x27;average_lead_time&#x27;]))
+bought=[(b[&#x27;n&#x27;],max(lt.get(b[&#x27;n&#x27;],[0]))) for b in bom if b[&#x27;make_flag&#x27;]==&#x27;0&#x27;]
+anyv=[(b[&#x27;n&#x27;],max(lt[b[&#x27;n&#x27;]])) for b in bom if b[&#x27;n&#x27;] in lt]
+top=[(b[&#x27;n&#x27;],max(lt.get(b[&#x27;n&#x27;],[0]))) for b in bom if b[&#x27;make_flag&#x27;]==&#x27;0&#x27; and b[&#x27;lvl&#x27;]==&#x27;1&#x27;]
+print(&#x27;__RESULT__:&#x27;)
+print(json.dumps({&#x27;bought&#x27;:sorted(bought,key=lambda x:-x[1])[:5],&#x27;any&#x27;:sorted(anyv,key=lambda x:-x[1])[:5],&#x27;top&#x27;:top,&#x27;missing&#x27;:[b for b,v in bought if v==0]}))</pre></details></td><td class='n'>482</td><td class='n'>120.9k</td></tr><tr><td>13</td><td>8</td><td>return_answer</td><td></td><td><details><summary>bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2</summary><pre>bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days</pre></details></td><td class='n'>254</td><td class='n'>157.6k</td></tr></tbody></table></div></section>
+<section><h3 style="color:#0f766e">Tapstate: every call</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>Round trip</th><th>Tool</th><th>System</th>
+<th>Query or code</th><th class='n'>Chars back</th><th class='n'>Tokens so far</th></tr></thead>
+<tbody><tr><td>1</td><td>1</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:{&quot;$reg</summary><pre>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:{&quot;$regex&quot;:&quot;Rural Cycle&quot;}}},{&quot;$group&quot;:{&quot;_id&quot;:&quot;$customer.store.name&quot;,&quot;n&quot;:{&quot;$sum&quot;:1},&quot;min&quot;:{&quot;$min&quot;:&quot;$order_date&quot;},&quot;max&quot;:{&quot;$max&quot;:&quot;$order_date&quot;}}}]}</pre></details></td><td class='n'>229</td><td class='n'>5.3k</td></tr><tr><td>2</td><td>2</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:&quot;Rural</summary><pre>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:&quot;Rural Cycle Emporium&quot;,&quot;order_date&quot;:{&quot;$gte&quot;:&quot;2024-07-01&quot;}}},{&quot;$unwind&quot;:&quot;$lines&quot;},{&quot;$match&quot;:{&quot;lines.product.category&quot;:&quot;Bikes&quot;}},{&quot;$group&quot;:{&quot;_id&quot;:{&quot;p&quot;:&quot;$lines.product.product_number&quot;,&quot;n&quot;:&quot;$lines.product.name&quot;},&quot;q&quot;:{&quot;$sum&quot;:&quot;$lines.order_qty&quot;}}},{&quot;$sort&quot;:{&quot;q&quot;:-1}}]}</pre></details></td><td class='n'>1,865</td><td class='n'>10.8k</td></tr><tr><td>3</td><td>3</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:&quot;Rural</summary><pre>{&quot;collection&quot;:&quot;sales_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;customer.store.name&quot;:&quot;Rural Cycle Emporium&quot;}},{&quot;$project&quot;:{&quot;order_date&quot;:1,&quot;status&quot;:1,&quot;n&quot;:{&quot;$size&quot;:&quot;$lines&quot;}}}]}</pre></details></td><td class='n'>832</td><td class='n'>17.9k</td></tr><tr><td>4</td><td>3</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;products&quot;,&quot;filter&quot;:{&quot;_id&quot;:&quot;BK-M68B-38&quot;},&quot;projection&quot;:{&quot;name&quot;:1,&quot;l</summary><pre>{&quot;collection&quot;:&quot;products&quot;,&quot;filter&quot;:{&quot;_id&quot;:&quot;BK-M68B-38&quot;},&quot;projection&quot;:{&quot;name&quot;:1,&quot;list_price&quot;:1,&quot;list_price_history&quot;:1,&quot;inventory&quot;:1,&quot;bom&quot;:1}}</pre></details></td><td class='n'>3,195</td><td class='n'>17.9k</td></tr><tr><td>5</td><td>3</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;work_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;product.product_number&quot;:&quot;BK-</summary><pre>{&quot;collection&quot;:&quot;work_orders&quot;,&quot;pipeline&quot;:[{&quot;$match&quot;:{&quot;product.product_number&quot;:&quot;BK-M68B-38&quot;,&quot;end_date&quot;:{&quot;$gte&quot;:&quot;2025-04-01&quot;,&quot;$lte&quot;:&quot;2025-06-30&quot;}}},{&quot;$group&quot;:{&quot;_id&quot;:null,&quot;stocked&quot;:{&quot;$sum&quot;:&quot;$stocked_qty&quot;},&quot;ordered&quot;:{&quot;$sum&quot;:&quot;$order_qty&quot;},&quot;n&quot;:{&quot;$sum&quot;:1}}}]}</pre></details></td><td class='n'>208</td><td class='n'>17.9k</td></tr><tr><td>6</td><td>4</td><td>query_db</td><td>Tapstate state</td><td><details><summary>{&quot;collection&quot;:&quot;products&quot;,&quot;filter&quot;:{},&quot;projection&quot;:{&quot;make_flag&quot;:1,&quot;bom&quot;:1,&quot;vendor</summary><pre>{&quot;collection&quot;:&quot;products&quot;,&quot;filter&quot;:{},&quot;projection&quot;:{&quot;make_flag&quot;:1,&quot;bom&quot;:1,&quot;vendors.average_lead_time&quot;:1,&quot;vendors.vendor.name&quot;:1}}</pre></details></td><td class='n'>11,817</td><td class='n'>28.1k</td></tr><tr><td>7</td><td>5</td><td>execute_python</td><td></td><td><details><summary>import json d=json.load(open(var_call_6)) P={p[&#x27;_id&#x27;]:p for p in d} def cur(b): </summary><pre>import json
+d=json.load(open(var_call_6))
+P={p[&#x27;_id&#x27;]:p for p in d}
+def cur(b): return b[&#x27;end_date&#x27;] in (None,&#x27;None&#x27;,&#x27;&#x27;)
+res=[];seen=set()
+def walk(pn):
+    for b in P[pn][&#x27;bom&#x27;]:
+        if not cur(b): continue
+        c=b[&#x27;component_number&#x27;]
+        if c in seen: continue
+        seen.add(c)
+        p=P.get(c)
+        if p is None: res.append((c,&#x27;missing&#x27;));continue
+        if str(p[&#x27;make_flag&#x27;])==&#x27;0&#x27;:
+            res.append((c,[v[&#x27;average_lead_time&#x27;] for v in p[&#x27;vendors&#x27;]]))
+        walk(c)
+walk(&#x27;BK-M68B-38&#x27;)
+print(&quot;__RESULT__:&quot;)
+print(json.dumps(res))</pre></details></td><td class='n'>1,478</td><td class='n'>45.0k</td></tr><tr><td>8</td><td>6</td><td>return_answer</td><td></td><td><details><summary>bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2</summary><pre>bike: Mountain-200 Black, 38, list price: $2294.99, in stock: 188, built in Q2 2025: 361, longest lead time: 19 days</pre></details></td><td class='n'>253</td><td class='n'>63.2k</td></tr></tbody></table></div></section>
+<p class="q">Model: claude-opus-5-5. Tokens are input + cache write + cache read + output, as in the benchmark.
+Runs: first_layout/A_20261112-074634, first_layout/C_20261112-074833.</p>
+</main></body></html>

@@ -1,7 +1,8 @@
 version: tapstate/v1
 kind: source
 id: src_mfg_plm
+# PLM: Postgres mfg_plm, the database setup A's agent queries.
 connector: postgres
-config: { host: postgres, port: 5432, database: mfgsrc, schema: plm, user: postgres, password: secret }
+config: { host: postgres, port: 5432, database: mfg_plm, schema: public, user: postgres, password: secret }
 mode: cdc
 tables: [ products, subcategories, categories, models, bom ]

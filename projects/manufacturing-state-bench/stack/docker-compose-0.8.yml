@@ -1,0 +1,51 @@
+# Tapstate 0.8.0 beside the 0.7.0 stack (docker-compose.yml): its own store MongoDB and server, reading
+# the same six source databases. 0.8.0 needs a separate installation (no in-place upgrade from 0.7.0).
+# The 0.7.0 stack's source containers are attached to this stack's network under their usual names
+# (postgres, mysql, mongo-sources) by env08.sh's attach_sources, so the workspace's source definitions
+# work unchanged, and `mongo` here is 0.8.0's own store.
+#
+# Usage: . env.sh && . env08.sh && docker compose -f stack/docker-compose-0.8.yml up -d && attach_sources
+# First time: the installation steps below, then dab/run_tapstate.sh (findings: demo/results/tapstate_08/).
+name: mfg-bench08
+
+services:
+  mongo:
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports: ["127.0.0.1:${MONGO_PORT:-27019}:27017"]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) };
+         if (!db.hello().isWritablePrimary) { quit(1) }"
+      interval: 3s
+      timeout: 10s
+      retries: 40
+      start_period: 20s
+    volumes:
+      - mongo-data:/data/db
+
+  # 0.8.0 installs in steps (docs/storage/README.md at v0.8.0): an installation directory initialized
+  # once (`installation --initialize`), storage tested and saved on a management port the server opens on
+  # its own loopback, a restart, then `installation --authorize` and the first administrator on that
+  # management channel. The directory lives on the `installation` volume. The command-line steps run in the
+  # container (java -jar /opt/tapstate/tapstate.jar installation --initialize | --authorize
+  # --tapstate.installation.directory=/var/lib/tapstate/inst/installation); demo/recording/mgmt_setup.py
+  # fills the management page. The connector jars must be in /var/lib/tapstate/connectors before storage
+  # is saved, or the save returns 503 storage-unavailable.
+  server:
+    image: ghcr.io/tapstate/tapstate:0.8.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["--role=all", "--tapstate.installation.directory=/var/lib/tapstate/inst/installation"]
+    environment:
+      JDK_JAVA_OPTIONS: "--add-opens=java.base/java.lang=ALL-UNNAMED"
+    ports: ["127.0.0.1:${TAPSTATE_PORT:-8081}:8080"]
+    volumes:
+      - installation:/var/lib/tapstate/inst
+    stop_grace_period: 30s
+
+volumes:
+  mongo-data:
+  installation:

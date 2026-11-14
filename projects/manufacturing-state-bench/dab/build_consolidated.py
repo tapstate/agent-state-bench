@@ -1,7 +1,7 @@
 """Build setup C in Python, from the six source systems: the same consolidation as the Tapstate pipelines.
 
-Reads only the sources setup A queries (Postgres mfg_erp and mfg_costing, MongoDB mfg_wms, and the
-SQLite and DuckDB files of query_manufacturing), maps each system's product key back to the
+Reads only the sources setup A queries (Postgres mfg_erp, mfg_plm and mfg_costing, MySQL mfg_mes and
+mfg_procurement, MongoDB mfg_wms), maps each system's product key back to the
 canonical product number (common.py), and assembles the four collections of setup C. Then checks
 the result against common.reference_state(), built from the raw AdventureWorks tables by their
 integer ids, document for document and field for field, and refuses anything that differs or
@@ -12,17 +12,17 @@ check of the pipelines' logic. With --install it writes its own documents as set
 
 Usage: python build_consolidated.py <dab-root> [--install]
 """
-import sqlite3
 import sys
 from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-import duckdb
 import psycopg2
+import pymysql
 from pymongo import MongoClient
 
-from common import (COLLECTIONS, CONSOLIDATED, COSTING_DB, DATASET, ERP_DB, HERE, ID, MONGO_URI, PG,
+from common import (COLLECTIONS, CONSOLIDATED, COSTING_DB, ERP_DB, HERE, ID, MES_DB, MONGO_SOURCES_URI, MONGO_URI,
+                    MYSQL, PG, PLM_DB, PROC_DB, bson_dates,
                     PLM_PRODUCT_FIELDS, PO_LINE_FIELDS, PURCHASE_ORDER_FIELDS, ROUTING_FIELDS, SALES_LINE_FIELDS,
                     SALES_ORDER_FIELDS, STATE_DB, VENDOR_FIELDS, WMS_DB, WORK_ORDER_FIELDS, canonical, mes_to_pn,
                     proc_to_pn, reference_state, verify, wms_to_pn)
@@ -42,26 +42,22 @@ def records(cur):
     return [{k: plain(v) for k, v in zip(cols, row)} for row in cur.fetchall()]
 
 
-def read_sources(dab):
-    qd = dab / f"query_{DATASET}" / "query_dataset"
+def read_sources():
     src = {}
     for db, tables in ((ERP_DB, ("territories", "stores", "customers", "sales_orders", "sales_order_lines")),
+                       (PLM_DB, ("products", "subcategories", "categories", "models", "bom")),
                        (COSTING_DB, ("standard_cost_history", "list_price_history", "item_prices"))):
         cur = psycopg2.connect(dbname=db, **PG).cursor()
         for t in tables:
             cur.execute(f"SELECT * FROM {t}")
             src[t] = records(cur)
-    lite = sqlite3.connect(qd / "plm.db")
-    lite.row_factory = sqlite3.Row
-    for t in ("products", "subcategories", "categories", "models", "bom"):
-        src[t] = [dict(r) for r in lite.execute(f"SELECT * FROM {t}")]
-    for f, tables in (("mes.duckdb", ("work_orders", "routings", "work_centers", "scrap_reasons")),
-                      ("procurement.duckdb", ("vendors", "vendor_items", "purchase_orders", "po_lines",
-                                              "ship_methods"))):
-        con = duckdb.connect(str(qd / f), read_only=True)
+    for db, tables in ((MES_DB, ("work_orders", "routings", "work_centers", "scrap_reasons")),
+                       (PROC_DB, ("vendors", "vendor_items", "purchase_orders", "po_lines", "ship_methods"))):
+        cur = pymysql.connect(database=db, **MYSQL).cursor()
         for t in tables:
-            src[t] = records(con.execute(f"SELECT * FROM {t}"))
-    wms = MongoClient(MONGO_URI)[WMS_DB]
+            cur.execute(f"SELECT * FROM {t}")
+            src[t] = records(cur)
+    wms = MongoClient(MONGO_SOURCES_URI)[WMS_DB]
     src["stock"] = list(wms["stock"].find({}))
     src["locations"] = list(wms["locations"].find({}))
     return src
@@ -190,13 +186,14 @@ DESCRIPTION = HERE / "descriptions" / "setup_c.txt"
 
 def install(dab, built):
     """Make verified documents setup C: MongoDB mfg_state (one collection per view), its dump, and the
-    dataset's db_config.yaml and db_description.txt. Used by this build and by verify_tapstate.py --install."""
+    dataset's db_config.yaml and db_description.txt. Used by this build and by verify_tapstate.py --install.
+    Dates are stored as BSON dates, as Tapstate writes the sources' SQL DATEs (common.bson_dates)."""
     from split_sources import write_mongo_dump
     m = MongoClient(MONGO_URI)
     m.drop_database(STATE_DB)
     colls = {}
     for c in COLLECTIONS:
-        colls[c] = [{"_id": k, **d} for k, d in sorted(built[c].items())]
+        colls[c] = [bson_dates({"_id": k, **d}) for k, d in sorted(built[c].items())]
         m[STATE_DB][c].insert_many(colls[c])
     base = dab / f"query_{CONSOLIDATED}"
     write_mongo_dump(base / "query_dataset" / f"{STATE_DB}_dump", STATE_DB, colls)
@@ -209,7 +206,7 @@ def install(dab, built):
 
 def main():
     dab = Path(sys.argv[1]).resolve()
-    built = consolidate(read_sources(dab))
+    built = consolidate(read_sources())
     problems = verify(built, reference_state())
     if problems:
         raise SystemExit(f"{len(problems)} differences from the reference, e.g.:\n" + "\n".join(problems[:10]))

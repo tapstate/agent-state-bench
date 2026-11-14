@@ -195,11 +195,74 @@ class TapstateWorkspaceTests(unittest.TestCase):
                     walk(t["root"].get("embed"), False)
 
 
+class SourceLayoutTests(unittest.TestCase):
+    """The six systems on three engines, as setup A's agent and Tapstate both reach them."""
+    WS = HERE / "tapstate" / "source"
+
+    def test_tapstate_reads_the_agents_databases(self):
+        want = {"erp": ("postgres", "mfg_erp"), "plm": ("postgres", "mfg_plm"), "costing": ("postgres", "mfg_costing"),
+                "mes": ("mysql", "mfg_mes"), "procurement": ("mysql", "mfg_procurement"), "wms": ("mongodb", "mfg_wms")}
+        for system, (connector, db) in want.items():
+            src = yaml.safe_load((self.WS / f"src_mfg_{system}.tap.yml").read_text())
+            self.assertEqual(src["connector"], connector, system)
+            where = src["config"].get("database") or src["config"].get("uri", "")
+            self.assertIn(db, where, system)
+            self.assertNotIn("mfgsrc", json.dumps(src["config"]), system)
+
+    def test_mongodb_sources_read_pre_images(self):
+        """Without an update's earlier document, a nest stops at the first update
+        (nest.reference-tracking-requires-before-image); MongoDB sends it only with preImage: true."""
+        for sid in ("src_mfg_wms", "src_mfg_stage", "src_mfg_ref"):
+            src = yaml.safe_load((self.WS / f"{sid}.tap.yml").read_text())
+            self.assertIs(src["config"].get("preImage"), True, sid)
+
+    @unittest.skipUnless(HAVE_DATA, "run fetch_data.py first")
+    def test_db_config_matches_the_engines(self):
+        cfg = yaml.safe_load(split_sources.DB_CONFIG)["db_clients"]
+        self.assertEqual({k: v["db_type"] for k, v in cfg.items()},
+                         {"erp": "postgres", "plm": "postgres", "costing": "postgres", "mes": "mysql",
+                          "procurement": "mysql", "wms": "mongo"})
+        self.assertIn("uri", cfg["wms"])
+
+    @unittest.skipUnless(HAVE_DATA, "run fetch_data.py first")
+    def test_mysql_literals_escape_backslashes_and_quotes(self):
+        self.assertEqual(split_sources.sql_literal("a\\b'c", "mysql"), "'a\\\\b''c'")
+        self.assertEqual(split_sources.sql_literal("a\\b'c", "postgres"), "'a\\b''c'")
+
+
+class DateTests(unittest.TestCase):
+    def test_bson_dates_round_trip_to_the_reference_form(self):
+        doc = {"start_date": "2025-04-01", "name": "x", "lines": [{"due_date": "2025-05-02", "qty": 3}],
+               "end_date": None, "subcategory": {"name": "Road Bikes"}}
+        stored = common.bson_dates(doc)
+        self.assertEqual(stored["start_date"].isoformat(), "2025-04-01T00:00:00")
+        self.assertEqual(stored["lines"][0]["qty"], 3)
+        self.assertIsNone(stored["end_date"])
+        self.assertEqual(common.iso_dates(stored), doc)
+
+    @unittest.skipUnless(HAVE_DATA, "run fetch_data.py first")
+    def test_installed_form_still_verifies(self):
+        built = build_consolidated.consolidate(in_memory_sources(SYSTEMS))
+        stored = {c: {k: common.bson_dates(d) for k, d in list(docs.items())[:200]} for c, docs in built.items()}
+        back = {c: {k: common.iso_dates(d) for k, d in docs.items()} for c, docs in stored.items()}
+        ref = {c: {k: REFERENCE[c][k] for k in back[c]} for c in back}
+        self.assertEqual(common.verify(back, ref), [])
+
+
 class HarnessPatchTests(unittest.TestCase):
+    PATCH = HERE.parents[2] / "harness" / "dab.patch"
+
     def test_dab_runner_knows_both_datasets(self):
-        patch = (HERE.parents[2] / "harness" / "dab.patch").read_text()
+        patch = self.PATCH.read_text()
         for ds in ("manufacturing", "manufacturing_consolidated"):
             self.assertTrue(re.search(rf'^\+\s+"{ds}",$', patch, re.M), ds)
+
+    def test_dab_patch_adds_mysql_and_extended_json(self):
+        patch = self.PATCH.read_text()
+        self.assertIn("+++ b/common_scaffold/tools/db_utils/mysql_utils.py", patch)
+        for tool in ("QueryDBTool", "ListDBTool"):
+            self.assertRegex(patch, rf"(?s)\+\+\+ b/common_scaffold/tools/{tool}.py.*?\+.*mysql_utils\.Mysql{tool[:-6]}")
+        self.assertIn("+            query_json = json_util.loads(query)", patch)
 
 
 if __name__ == "__main__":

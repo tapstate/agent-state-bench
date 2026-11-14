@@ -6,6 +6,6 @@ id: src_mfg_ref
 # product's name, subcategory and category, for the pipelines that attach a product to a row
 # (SOURCE_SPLIT.md §3). A join or nest can only read source tables, not another pipeline's steps.
 connector: mongodb
-config: { isUri: true, uri: "mongodb://mongo:27017/views?directConnection=true" }
+config: { isUri: true, uri: "mongodb://mongo:27017/views?directConnection=true", preImage: true }
 mode: cdc
 tables: [ mfg_product_ref ]

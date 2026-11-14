@@ -49,11 +49,101 @@ index fb83f9fa8..5357215e0 100644
      
      return [
          {
+diff --git a/common_scaffold/tools/BaseTool.py b/common_scaffold/tools/BaseTool.py
+index 590875b77..d4ac619b4 100644
+--- a/common_scaffold/tools/BaseTool.py
++++ b/common_scaffold/tools/BaseTool.py
+@@ -78,7 +78,7 @@ class BaseTool(ABC):
+         }
+ 
+         with open(self.log_path, "a", encoding="utf-8") as f:
+-            f.write(json.dumps(log_entry) + "\n")
++            f.write(json.dumps(log_entry, default=str) + "\n")  # parsed Mongo queries can hold datetimes
+ 
+ 
+         return exec_result
+diff --git a/common_scaffold/tools/ListDBTool.py b/common_scaffold/tools/ListDBTool.py
+index 91ee8f659..c8ca12e08 100644
+--- a/common_scaffold/tools/ListDBTool.py
++++ b/common_scaffold/tools/ListDBTool.py
+@@ -1,6 +1,7 @@
+ from common_scaffold.tools.BaseTool import BaseTool, FatalError
+ import common_scaffold.tools.db_utils.duckdb_utils as duckdb_utils
+ import common_scaffold.tools.db_utils.mongo_utils as mongo_utils
++import common_scaffold.tools.db_utils.mysql_utils as mysql_utils
+ import common_scaffold.tools.db_utils.postgres_utils as postgres_utils
+ import common_scaffold.tools.db_utils.sqlite_utils as sqlite_utils
+ from common_scaffold.tools.db_utils.db_config import load_db_clients
+@@ -21,9 +22,11 @@ class ListDBTool(BaseTool):
+             for db_client in self.db_clients.values():
+                 db_type = db_client['db_type']
+                 if db_type == "mongo":
+-                    mongo_utils.load_db(db_client['dump_folder'], db_client['db_name'])
++                    mongo_utils.load_db(db_client['dump_folder'], db_client['db_name'], db_client.get('uri'))
+                 elif db_type == "postgres":
+                     postgres_utils.load_db(db_client['sql_file'], db_client['db_name'])
++                elif db_type == "mysql":
++                    mysql_utils.load_db(db_client['sql_file'], db_client['db_name'])
+     
+     def to_dict(self):
+         return super().to_dict().update({
+@@ -56,9 +59,11 @@ class ListDBTool(BaseTool):
+         for db_client in self.db_clients.values():
+             db_type = db_client['db_type']
+             if db_type == "mongo":
+-                mongo_utils.clean_up(db_client['db_name'])
++                mongo_utils.clean_up(db_client['db_name'], db_client.get('uri'))
+             elif db_type == "postgres":
+                 postgres_utils.clean_up(db_client['db_name'])
++            elif db_type == "mysql":
++                mysql_utils.clean_up(db_client['db_name'])
+         return
+ 
+     def _check_args(self, args: dict):
+@@ -82,6 +87,8 @@ class ListDBTool(BaseTool):
+             exec_args = sqlite_utils.SqliteListDBTool.check_args(db_client)
+         elif db_client['db_type'] == "postgres":
+             exec_args = postgres_utils.PostgresListDBTool.check_args(db_client)
++        elif db_client['db_type'] == "mysql":
++            exec_args = mysql_utils.MysqlListDBTool.check_args(db_client)
+         else:
+             raise FatalError(f"Unsupported db_type: {db_client['db_type']}")
+         
+@@ -102,6 +109,8 @@ class ListDBTool(BaseTool):
+             return sqlite_utils.SqliteListDBTool.exec(**exec_args)
+         elif db_type == "postgres":
+             return postgres_utils.PostgresListDBTool.exec(**exec_args)
++        elif db_type == "mysql":
++            return mysql_utils.MysqlListDBTool.exec(**exec_args)
+         else:
+             raise FatalError(f"Unsupported db_type: {db_type}")
+ 
 diff --git a/common_scaffold/tools/QueryDBTool.py b/common_scaffold/tools/QueryDBTool.py
-index b47e91944..1cd48368c 100644
+index b47e91944..542f42eb5 100644
 --- a/common_scaffold/tools/QueryDBTool.py
 +++ b/common_scaffold/tools/QueryDBTool.py
-@@ -46,7 +46,7 @@ class QueryDBTool(BaseTool):
+@@ -1,6 +1,7 @@
+ from common_scaffold.tools.BaseTool import BaseTool, FatalError
+ import common_scaffold.tools.db_utils.duckdb_utils as duckdb_utils
+ import common_scaffold.tools.db_utils.mongo_utils as mongo_utils
++import common_scaffold.tools.db_utils.mysql_utils as mysql_utils
+ import common_scaffold.tools.db_utils.postgres_utils as postgres_utils
+ import common_scaffold.tools.db_utils.sqlite_utils as sqlite_utils
+ from common_scaffold.tools.db_utils.db_config import load_db_clients
+@@ -21,9 +22,11 @@ class QueryDBTool(BaseTool):
+             for db_client in self.db_clients.values():
+                 db_type = db_client['db_type']
+                 if db_type == "mongo":
+-                    mongo_utils.load_db(db_client['dump_folder'], db_client['db_name'])
++                    mongo_utils.load_db(db_client['dump_folder'], db_client['db_name'], db_client.get('uri'))
+                 elif db_type == "postgres":
+                     postgres_utils.load_db(db_client['sql_file'], db_client['db_name'])
++                elif db_type == "mysql":
++                    mysql_utils.load_db(db_client['sql_file'], db_client['db_name'])
+     
+     def to_dict(self):
+         return super().to_dict().update({
+@@ -46,7 +49,7 @@ class QueryDBTool(BaseTool):
                          },
                          "query": {
                              "type": "string",
@@ -62,35 +152,136 @@ index b47e91944..1cd48368c 100644
                          }
                      },
                      "required": ["db_name", "query"]
+@@ -60,9 +63,11 @@ class QueryDBTool(BaseTool):
+         for db_client in self.db_clients.values():
+             db_type = db_client['db_type']
+             if db_type == "mongo":
+-                mongo_utils.clean_up(db_client['db_name'])
++                mongo_utils.clean_up(db_client['db_name'], db_client.get('uri'))
+             elif db_type == "postgres":
+                 postgres_utils.clean_up(db_client['db_name'])
++            elif db_type == "mysql":
++                mysql_utils.clean_up(db_client['db_name'])
+         return
+ 
+     def _check_args(self, args: dict):
+@@ -93,6 +98,8 @@ class QueryDBTool(BaseTool):
+             exec_args = sqlite_utils.SqliteQueryDBTool.check_args(db_client, query)
+         elif db_client['db_type'] == "postgres":
+             exec_args = postgres_utils.PostgresQueryDBTool.check_args(db_client, query)
++        elif db_client['db_type'] == "mysql":
++            exec_args = mysql_utils.MysqlQueryDBTool.check_args(db_client, query)
+         else:
+             raise FatalError(f"Unsupported db_type: {db_client['db_type']}")
+         
+@@ -113,5 +120,7 @@ class QueryDBTool(BaseTool):
+             return sqlite_utils.SqliteQueryDBTool.exec(**exec_args)
+         elif db_type == "postgres":
+             return postgres_utils.PostgresQueryDBTool.exec(**exec_args)
++        elif db_type == "mysql":
++            return mysql_utils.MysqlQueryDBTool.exec(**exec_args)
+         else:
+             raise FatalError(f"Unsupported db_type: {db_type}")
+\ No newline at end of file
+diff --git a/common_scaffold/tools/db_utils/db_config.py b/common_scaffold/tools/db_utils/db_config.py
+index e2f610b8d..4ee7a61b1 100644
+--- a/common_scaffold/tools/db_utils/db_config.py
++++ b/common_scaffold/tools/db_utils/db_config.py
+@@ -25,6 +25,13 @@ PG_USER = os.getenv("PG_USER", "postgres")
+ PG_PASSWORD = os.getenv("PG_PASSWORD", "")
+ PG_DB = os.getenv("PG_DB", "test")
+ 
++# MySQL
++MYSQL_CLIENT = os.getenv("MYSQL_CLIENT", "mysql")
++MYSQL_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")
++MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
++MYSQL_USER = os.getenv("MYSQL_USER", "root")
++MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
++
+ def load_db_clients(config_file: str):
+     with open(config_file, "r") as f:
+         db_clients = yaml.safe_load(f)['db_clients']
 diff --git a/common_scaffold/tools/db_utils/mongo_utils.py b/common_scaffold/tools/db_utils/mongo_utils.py
-index 4e7e0a6e4..2830ac03a 100644
+index 4e7e0a6e4..d83581d79 100644
 --- a/common_scaffold/tools/db_utils/mongo_utils.py
 +++ b/common_scaffold/tools/db_utils/mongo_utils.py
-@@ -1,4 +1,5 @@
+@@ -1,4 +1,6 @@
  import json
 +import os
++from bson import json_util
  import pandas as pd
  from pymongo import MongoClient
  from common_scaffold.tools.db_utils import db_config
-@@ -17,6 +18,8 @@ MongoDB Config:
+@@ -12,14 +14,22 @@ MongoDB Config:
+ - db_type
+ - db_name
+ - dump_folder
++- uri (optional): the server holding this database; default MONGO_URI
++Queries are parsed as MongoDB Extended JSON, so a date can be written {"$date": "2025-04-01T00:00:00Z"}.
+ """
+ 
++
++def _uri(uri=None):
++    return uri or db_config.MONGO_URI
++
  # Reference: https://www.mongodb.com/docs/manual/administration/install-community/?linux-distribution=ubuntu&linux-package=default&operating-system=linux&search-linux=with-search-linux#start-mongodb-12
  
- def load_db(dump_folder: str, db_name: str):
-+    if os.getenv("DAB_PERSISTENT_DBS") and check_db_exists(db_name):
+-def load_db(dump_folder: str, db_name: str):
+-    if check_db_exists(db_name) == True:
++def load_db(dump_folder: str, db_name: str, uri=None):
++    if os.getenv("DAB_PERSISTENT_DBS") and check_db_exists(db_name, uri):
 +        return
-     if check_db_exists(db_name) == True:
++    if check_db_exists(db_name, uri) == True:
          logging.getLogger(__name__).warning(f"Database '{db_name}' already exists. Cleaning up before loading dump.")
-         clean_up(db_name)
-@@ -53,6 +56,8 @@ def check_db_exists(db_name):
+-        clean_up(db_name)
++        clean_up(db_name, uri)
+         # raise FatalError(f"Database '{db_name}' already exists. Cannot load dump into existing database.")
+     try:
+         logging.getLogger(__name__).debug(f"Loading MongoDB dump from '{dump_folder}' into database '{db_name}'")
+@@ -31,7 +41,7 @@ def load_db(dump_folder: str, db_name: str):
+         #     check=True
+         # )
+         result = subprocess.run(
+-            ["mongorestore", f"--nsInclude={db_name}.*", dump_path],
++            ["mongorestore", f"--nsInclude={db_name}.*"] + ([f"--uri={uri}"] if uri else []) + [dump_path],
+             check=True,
+             stdout=subprocess.PIPE,
+             stderr=subprocess.PIPE,
+@@ -44,17 +54,19 @@ def load_db(dump_folder: str, db_name: str):
+     except Exception as e:
+         raise FatalError(f"MongoDB load error ({type(e).__name__}): {str(e)}")
+ 
+-def check_db_exists(db_name):
+-    with MongoClient(db_config.MONGO_URI) as mongo_client:
++def check_db_exists(db_name, uri=None):
++    with MongoClient(_uri(uri)) as mongo_client:
+         try:
+             dbs = mongo_client.list_database_names()
+             return db_name in dbs
+         except Exception as e:
              raise FatalError(f"MongoDB existence check error ({type(e).__name__}): {str(e)}")
  
- def clean_up(db_name):
+-def clean_up(db_name):
++def clean_up(db_name, uri=None):
 +    if os.getenv("DAB_PERSISTENT_DBS"):
 +        return
      logging.getLogger(__name__).debug(f"Cleaning up MongoDB database '{db_name}'")
-     with MongoClient(db_config.MONGO_URI) as mongo_client:
+-    with MongoClient(db_config.MONGO_URI) as mongo_client:
++    with MongoClient(_uri(uri)) as mongo_client:
          try:
-@@ -77,17 +82,21 @@ class MongoQueryDBTool:
+             if db_name in mongo_client.list_database_names():
+                 mongo_client.drop_database(db_name)
+@@ -69,36 +81,44 @@ class MongoQueryDBTool:
+         if 'db_name' not in db_client:
+             raise FatalError(f"Missing `db_name` for mongo db_client: {db_client}")
+         try:
+-            query_json = json.loads(query)
+-        except json.JSONDecodeError as e:
++            query_json = json_util.loads(query)
++        except (json.JSONDecodeError, TypeError, ValueError) as e:
+             raise ValueError(f"Invalid Mongo query JSON ({type(e).__name__}): {str(e)}")
+         if "collection" not in query_json:
+             raise ValueError("Invalid Mongo query: missing required field `collection`")
          collection = query_json["collection"]
          filter = query_json.get("filter", {})
          projection = query_json.get("projection", None)
@@ -107,15 +298,17 @@ index 4e7e0a6e4..2830ac03a 100644
 -            "limit": limit
 +            "limit": limit,
 +            "pipeline": pipeline,
++            "uri": db_client.get("uri"),
          }
  
      @staticmethod
 -    def exec(db_name, collection, filter, projection, limit):
-+    def exec(db_name, collection, filter, projection, limit, pipeline=None):
-         with MongoClient(db_config.MONGO_URI) as mongo_client:
+-        with MongoClient(db_config.MONGO_URI) as mongo_client:
++    def exec(db_name, collection, filter, projection, limit, pipeline=None, uri=None):
++        with MongoClient(_uri(uri)) as mongo_client:
              db = mongo_client[db_name]
  
-@@ -95,10 +104,13 @@ class MongoQueryDBTool:
+             if collection not in db.list_collection_names():
                  raise ValueError(f"Collection does not exist: {collection}")
          
              try:
@@ -133,6 +326,23 @@ index 4e7e0a6e4..2830ac03a 100644
              except Exception as e:
                  raise ValueError(f"MongoDB query execution error ({type(e).__name__}): {str(e)}")
          
+@@ -116,12 +136,13 @@ class MongoListDBTool:
+         if 'db_name' not in db_client:
+             raise FatalError(f"Missing `db_name` for mongo db_client: {db_client}")
+         return {
+-            "db_name": db_client['db_name']
++            "db_name": db_client['db_name'],
++            "uri": db_client.get("uri"),
+         }
+     
+     @staticmethod
+-    def exec(db_name):
+-        with MongoClient(db_config.MONGO_URI) as mongo_client:
++    def exec(db_name, uri=None):
++        with MongoClient(_uri(uri)) as mongo_client:
+             db = mongo_client[db_name]
+             try:
+                 collections = db.list_collection_names()
 diff --git a/common_scaffold/tools/db_utils/postgres_utils.py b/common_scaffold/tools/db_utils/postgres_utils.py
 index 8b49e6e07..f4855682c 100644
 --- a/common_scaffold/tools/db_utils/postgres_utils.py
@@ -156,7 +366,7 @@ index 8b49e6e07..f4855682c 100644
      try:
          conn = psycopg2.connect(
 diff --git a/run_agent.py b/run_agent.py
-index a840b82da..78f502d85 100644
+index a840b82da..567c1ff40 100644
 --- a/run_agent.py
 +++ b/run_agent.py
 @@ -10,6 +10,11 @@ from datetime import datetime
@@ -171,3 +381,120 @@ index a840b82da..78f502d85 100644
      "DEPS_DEV_V1",
      "GITHUB_REPOS",
      "googlelocal",
+diff --git a/common_scaffold/tools/db_utils/mysql_utils.py b/common_scaffold/tools/db_utils/mysql_utils.py
+new file mode 100644
+index 000000000..66034f98f
+--- /dev/null
++++ b/common_scaffold/tools/db_utils/mysql_utils.py
+@@ -0,0 +1,111 @@
++import os
++import subprocess
++import logging
++
++import pandas as pd
++import pymysql
++import sqlalchemy
++
++from common_scaffold.tools.BaseTool import FatalError
++from common_scaffold.tools.db_utils import db_config
++
++"""
++MySQL Config:
++- db_type: mysql
++- db_name
++- sql_file
++Server and credentials come from MYSQL_HOST, MYSQL_PORT, MYSQL_USER and MYSQL_PASSWORD.
++Queries run in a read-only transaction, as Postgres queries do.
++"""
++
++
++def _ident(identifier: str) -> str:
++    return "`" + identifier.replace("`", "``") + "`"
++
++
++def _connect(db_name=None):
++    return pymysql.connect(host=db_config.MYSQL_HOST, port=db_config.MYSQL_PORT, user=db_config.MYSQL_USER,
++                           password=db_config.MYSQL_PASSWORD, database=db_name, charset="utf8mb4")
++
++
++def check_db_exists(db_name):
++    try:
++        with _connect() as conn, conn.cursor() as cur:
++            cur.execute("SELECT 1 FROM information_schema.schemata WHERE schema_name = %s", (db_name,))
++            return cur.fetchone() is not None
++    except Exception as e:
++        raise FatalError(f"MySQL existence check error ({type(e).__name__}): {str(e)}")
++
++
++def load_db(sql_file: str, db_name: str):
++    if os.getenv("DAB_PERSISTENT_DBS") and check_db_exists(db_name):
++        return
++    if check_db_exists(db_name):
++        logging.getLogger(__name__).warning(f"Database '{db_name}' already exists. Cleaning up before loading dump.")
++        clean_up(db_name)
++    try:
++        with _connect() as conn, conn.cursor() as cur:
++            cur.execute(f"CREATE DATABASE {_ident(db_name)} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin")
++        cmd = [db_config.MYSQL_CLIENT, f"-h{db_config.MYSQL_HOST}", f"-P{db_config.MYSQL_PORT}",
++               f"-u{db_config.MYSQL_USER}", db_name]
++        env = os.environ.copy()
++        env["MYSQL_PWD"] = db_config.MYSQL_PASSWORD
++        with open(sql_file, "rb") as f:
++            result = subprocess.run(cmd, check=True, env=env, stdin=f, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        if result.stderr:
++            logging.getLogger(__name__).warning(f"MySQL load stderr: {result.stderr.decode(errors='replace')}")
++    except Exception as e:
++        raise FatalError(f"MySQL load error ({type(e).__name__}): {str(e)}")
++
++
++def clean_up(db_name):
++    if os.getenv("DAB_PERSISTENT_DBS"):
++        return
++    try:
++        with _connect() as conn, conn.cursor() as cur:
++            cur.execute(f"DROP DATABASE IF EXISTS {_ident(db_name)}")
++    except Exception as e:
++        raise FatalError(f"MySQL cleanup error ({type(e).__name__}): {str(e)}")
++
++
++def _engine(db_name):
++    uri = (f"mysql+pymysql://{db_config.MYSQL_USER}:{db_config.MYSQL_PASSWORD}"
++           f"@{db_config.MYSQL_HOST}:{db_config.MYSQL_PORT}/{db_name}?charset=utf8mb4")
++    return sqlalchemy.create_engine(uri)
++
++
++class MysqlQueryDBTool:
++    @staticmethod
++    def check_args(db_client, query):
++        if 'db_name' not in db_client:
++            raise FatalError(f"Missing `db_name` for mysql db_client: {db_client}")
++        return {"db_name": db_client["db_name"], "sql": query}
++
++    @staticmethod
++    def exec(db_name, sql):
++        with _engine(db_name).connect() as conn:
++            try:
++                conn.execute(sqlalchemy.text("SET SESSION TRANSACTION READ ONLY"))
++                result_df = pd.read_sql(sqlalchemy.text(sql), conn)
++            except Exception as e:
++                raise ValueError(f"MySQL query execution error ({type(e).__name__}): {str(e)}")
++        return db_config.serialize(result_df)
++
++
++class MysqlListDBTool:
++    @staticmethod
++    def check_args(db_client):
++        if 'db_name' not in db_client:
++            raise FatalError(f"Missing `db_name` for mysql db_client: {db_client}")
++        return {"db_name": db_client["db_name"]}
++
++    @staticmethod
++    def exec(db_name):
++        with _engine(db_name).connect() as conn:
++            try:
++                rows = conn.execute(sqlalchemy.text(
++                    "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() "
++                    "ORDER BY table_name")).fetchall()
++                return [r[0] for r in rows]
++            except Exception as e:
++                raise FatalError(f"MySQL list tables execution error ({type(e).__name__}): {str(e)}")

@@ -22,7 +22,9 @@ from pathlib import Path
 DAB = Path(sys.argv[1]).resolve()
 HARNESS = Path(sys.argv[2]).resolve()
 for k, v in {"DAB_PERSISTENT_DBS": "1", "PG_HOST": "127.0.0.1", "PG_PORT": "55432", "PG_USER": "postgres",
-             "PG_PASSWORD": "secret", "MONGO_URI": "mongodb://127.0.0.1:27017/?directConnection=true"}.items():
+             "PG_PASSWORD": "secret", "MONGO_URI": "mongodb://127.0.0.1:27017/?directConnection=true",
+             "MYSQL_HOST": "127.0.0.1", "MYSQL_PORT": "33306", "MYSQL_USER": "root",
+             "MYSQL_PASSWORD": "secret"}.items():
     os.environ.setdefault(k, v)  # defaults; the environment overrides them
 os.environ["PATH"] = f"{HARNESS / 'bin'}:{os.environ['PATH']}"
 os.chdir(DAB)
@@ -73,7 +75,7 @@ def setup_a():
     ds = "manufacturing"
     print(f"== query_{ds} (setup A)")
     warm(DAB, [ds])
-    check(True, "DAB loader found mfg_erp, mfg_costing and mfg_wms in place")
+    check(True, "DAB loader found mfg_erp, mfg_plm, mfg_costing, mfg_mes, mfg_procurement and mfg_wms in place")
     q, ls = tools(ds)
     for db in ("erp", "plm", "mes", "wms", "procurement", "costing"):
         out = ls.exec({"db_name": db})
@@ -141,7 +143,8 @@ def setup_c():
     def agg(coll, pipeline):
         return run(q, "mfg_state", {"collection": coll, "pipeline": pipeline})
 
-    y24 = {"$gte": "2024-01-01", "$lte": "2024-12-31"}
+    # dates are BSON dates, written in Extended JSON as the description tells the agent
+    y24 = {"$gte": {"$date": "2024-01-01T00:00:00Z"}, "$lte": {"$date": "2024-12-31T00:00:00Z"}}
     score(ds, 1, str(one(agg("work_orders", [{"$match": {"start_date": y24, "scrapped_qty": {"$gt": 0}}},
                                              {"$count": "n"}]))))
     r = agg("products", [{"$unwind": "$inventory"}, {"$group": {"_id": "$inventory.location.name",

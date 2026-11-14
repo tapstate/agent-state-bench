@@ -1,0 +1,205 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Demo player</title>
+<!-- Noto Sans SC (OFL), the whole font from recording/fonts/ (make_video.py fetches it): Google Fonts'
+     unicode-range subsets loaded unreliably for canvas text and left boxes in place of characters -->
+<style>@font-face{font-family:"Noto Sans SC";src:url("fonts/NotoSansSC-wght.ttf") format("truetype");font-weight:100 900}html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body><canvas id="cv" width="1920" height="1080"></canvas>
+<script>
+// Plays timeline.json onto a 1920x1080 canvas: caption cards, terminal replays (recorded bytes at their
+// recorded timing, idle gaps already capped), and scrolling page images. make_video.py drives it.
+const W = 1920, H = 1080, BAR = 72;                 // caption bar at the bottom
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+// Latin from the installed DejaVu fonts; CJK from Noto Sans SC (recording/fonts/, loaded by the page)
+const MONO = '"DejaVu Sans Mono", "Noto Sans SC", monospace';
+let SANS = '"DejaVu Sans", "Noto Sans SC", sans-serif';
+// East Asian wide and fullwidth characters take two terminal cells (as Python's i18n.width counts them)
+const WIDE = /[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60\uFFE0-\uFFE6]/;
+const FONT_PX = 20, LINE = 25;
+const PALETTE = {30: '#6e7681', 31: '#ff7b72', 32: '#3fb950', 33: '#d29922', 34: '#79c0ff', 35: '#d2a8ff', 36: '#39c5cf', 37: '#e6edf3'};
+let TL = null, images = {}, charW = 12;
+
+// --- terminal emulator: SGR colours, CR, LF, BS, line wrap; other escape sequences are ignored -----
+class Term {
+  constructor(cols, rows) { this.cols = cols; this.rows = rows; this.lines = [[]]; this.x = 0; this.st = {}; this.esc = ''; }
+  cur() { return this.lines[this.lines.length - 1]; }
+  nl() { this.lines.push([]); this.x = 0; }
+  write(s) {
+    for (const ch of s) {
+      if (this.esc) {
+        this.esc += ch;
+        if (this.esc.length === 2 && ch !== '[') { this.esc = ''; continue; }
+        if (this.esc.length > 2 && /[@-~]/.test(ch)) { this.sgr(this.esc); this.esc = ''; }
+        continue;
+      }
+      if (ch === '\x1b') { this.esc = ch; continue; }
+      if (ch === '\n') { this.nl(); continue; }
+      if (ch === '\r') { this.x = 0; continue; }
+      if (ch === '\b') { this.x = Math.max(0, this.x - 1); continue; }
+      if (ch < ' ' && ch !== '\t') continue;
+      const w = WIDE.test(ch) ? 2 : 1;
+      if (this.x + w > this.cols) this.nl();
+      const line = this.cur();
+      line[this.x] = {ch: ch === '\t' ? ' ' : ch, w, ...this.st};
+      if (w === 2) line[this.x + 1] = null;
+      this.x += w;
+    }
+  }
+  sgr(seq) {
+    if (!seq.endsWith('m')) return;
+    const codes = seq.slice(2, -1).split(';').filter(x => x !== '').map(Number);
+    if (!codes.length) codes.push(0);
+    for (const c of codes) {
+      if (c === 0) this.st = {};
+      else if (c === 1) this.st = {...this.st, b: 1};
+      else if (c === 2) this.st = {...this.st, d: 1};
+      else if (c === 22) this.st = {...this.st, b: 0, d: 0};
+      else if (PALETTE[c]) this.st = {...this.st, fg: PALETTE[c]};
+      else if (c === 39) this.st = {...this.st, fg: undefined};
+    }
+  }
+  draw(x0, y0) {
+    const vis = this.lines.slice(-this.rows);
+    if (vis.length && vis[vis.length - 1].length === 0 && this.lines.length > this.rows) { /* keep cursor line */ }
+    vis.forEach((line, r) => {
+      for (let c = 0; c < line.length; c++) {
+        const cell = line[c]; if (!cell || cell.ch === ' ') continue;
+        g.font = `${cell.b ? 'bold ' : ''}${FONT_PX}px ${MONO}`;
+        g.fillStyle = cell.fg || (cell.d ? '#8b949e' : '#e6edf3');
+        if (cell.d && cell.fg) g.globalAlpha = 0.7;
+        let x = x0 + c * charW;
+        if (cell.w === 2) x += (2 * charW - g.measureText(cell.ch).width) / 2;   // centre a CJK glyph in its two cells
+        g.fillText(cell.ch, x, y0 + r * LINE);
+        g.globalAlpha = 1;
+      }
+    });
+  }
+}
+
+// --- drawing helpers ----------------------------------------------------------------------------
+function wrap(text, font, maxW) {
+  g.font = font; const out = [];
+  for (const para of String(text).split('\n')) {
+    // break between words, and between any two CJK characters (Chinese has no spaces)
+    const tokens = para.match(/[⺀-鿿豈-﫿︰-﹏＀-｠“”]|[^\s⺀-鿿豈-﫿︰-﹏＀-｠“”]+|\s+/g) || [''];
+    let line = '';
+    for (const tok of tokens) {
+      const t = line + tok;
+      const closing = /^[，。：；？！）、”」』]$/.test(tok);   // never start a line with closing punctuation
+      if (g.measureText(t).width > maxW && line.trim() && !closing) { out.push(line.trimEnd()); line = tok.trimStart(); }
+      else line = t;
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+function caption(text) {
+  g.fillStyle = '#161b22'; g.fillRect(0, H - BAR, W, BAR);
+  g.fillStyle = '#30363d'; g.fillRect(0, H - BAR, W, 2);
+  g.font = `24px ${SANS}`; g.fillStyle = '#c9d1d9'; g.textBaseline = 'middle';
+  g.fillText(text, 48, H - BAR / 2 + 1); g.textBaseline = 'alphabetic';
+}
+function card(seg) {
+  g.fillStyle = '#0d1117'; g.fillRect(0, 0, W, H);
+  let y = seg.top || 230;
+  for (const blk of seg.blocks) {
+    const font = `${blk.bold ? 'bold ' : ''}${blk.size}px ${blk.mono ? MONO : SANS}`;
+    for (const ln of wrap(blk.text, font, blk.width || 1500)) {
+      g.font = font; g.fillStyle = blk.color || '#e6edf3';
+      const x = blk.align === 'left' ? (W - (blk.width || 1500)) / 2 : (W - g.measureText(ln).width) / 2;
+      g.fillText(ln, x, y); y += blk.size * 1.4;
+    }
+    y += blk.gap || 24;
+  }
+  if (seg.table) drawTable(seg.table, y + 10);
+}
+function drawTable(t, y) {
+  const colW = [520, 360, 360], x0 = (W - colW.reduce((a, b) => a + b)) / 2;
+  t.rows.forEach((row, i) => {
+    let x = x0;
+    row.forEach((cell, j) => {
+      g.font = `${i === 0 || j === 0 ? 'bold ' : ''}${i === 0 ? 30 : 34}px ${SANS}`;
+      g.fillStyle = i === 0 ? (j === 1 ? '#f0883e' : j === 2 ? '#39c5cf' : '#8b949e') : (j === 0 ? '#8b949e' : '#e6edf3');
+      g.fillText(cell, j === 0 ? x : x + colW[j] - g.measureText(cell).width - 20, y);
+      x += colW[j];
+    });
+    y += i === 0 ? 58 : 54;
+    if (i === 0) { g.fillStyle = '#30363d'; g.fillRect(x0, y - 40, colW.reduce((a, b) => a + b), 2); }
+  });
+}
+function page(seg, t) {
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H - BAR);
+  // keyframes: [time, image, y]; interpolate y between frames with the same image, smooth-stepped
+  const k = seg.keys; let i = 0;
+  while (i < k.length - 1 && k[i + 1][0] <= t) i++;
+  const [t0, im0, y0] = k[i], next = k[i + 1];
+  let y = y0;
+  if (next && next[1] === im0) { const u = Math.min(1, (t - t0) / (next[0] - t0)); y = y0 + (next[2] - y0) * (u * u * (3 - 2 * u)); }
+  const img = images[im0];
+  g.drawImage(img, 0, y, W, H - BAR, 0, 0, W, H - BAR);
+}
+
+// --- timeline -------------------------------------------------------------------------------------
+let state = null;   // {seg index, term, eventIdx}
+function segAt(t) {
+  let acc = 0;
+  for (let i = 0; i < TL.segments.length; i++) {
+    const s = TL.segments[i];
+    if (t < acc + s.dur) return [i, t - acc];
+    acc += s.dur;
+  }
+  return [TL.segments.length - 1, TL.segments[TL.segments.length - 1].dur];
+}
+function render(t) {
+  const [i, lt] = segAt(t), s = TL.segments[i];
+  if (s.kind === 'card') card(s);
+  else if (s.kind === 'term') {
+    if (!state || state.i !== i || state.lt > lt) state = {i, lt: 0, term: new Term(s.cols, s.rows), e: 0};
+    while (state.e < s.events.length && s.events[state.e][0] <= lt) state.term.write(s.events[state.e++][1]);
+    state.lt = lt;
+    g.fillStyle = '#0d1117'; g.fillRect(0, 0, W, H - BAR);
+    const x0 = Math.round((W - s.cols * charW) / 2);
+    state.term.draw(x0, 52);
+  } else if (s.kind === 'page') page(s, lt);
+  caption(s.caption);
+}
+
+async function load(url) {
+  TL = await (await fetch(url)).json();
+  if (TL.lang === 'zh') SANS = '"Noto Sans SC", "DejaVu Sans", sans-serif';
+  // canvas text does not trigger a font load, so load the face for every character the timeline draws,
+  // in both weights, before drawing anything
+  const all = JSON.stringify(TL.segments.map(s => [s.caption, s.blocks, s.table, (s.events || []).map(e => e[1])]));
+  for (const w of ['', 'bold ']) await document.fonts.load(`${w}20px "Noto Sans SC"`, all);
+  await document.fonts.load(`${FONT_PX}px ${MONO}`); await document.fonts.load(`bold ${FONT_PX}px ${MONO}`);
+  await document.fonts.load(`24px ${SANS}`);
+  g.font = `${FONT_PX}px ${MONO}`; charW = g.measureText('M'.repeat(100)).width / 100;
+  for (const [name, src] of Object.entries(TL.images || {})) {
+    const im = new Image(); im.src = src; await im.decode(); images[name] = im;
+  }
+  return {total: TL.segments.reduce((a, s) => a + s.dur, 0), charW};
+}
+function still(t) { state = null; render(t); return cv.toDataURL('image/png'); }
+
+let recorded = null;
+function record(bitrate) {
+  return new Promise(resolve => {
+    const total = TL.segments.reduce((a, s) => a + s.dur, 0);
+    const stream = cv.captureStream(30);
+    const rec = new MediaRecorder(stream, {mimeType: 'video/mp4;codecs=avc1.640028', videoBitsPerSecond: bitrate});
+    const chunks = []; rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = async () => { recorded = new Uint8Array(await new Blob(chunks).arrayBuffer()); resolve(recorded.length); };
+    state = null; render(0); rec.start(1000);
+    const t0 = performance.now();
+    const tick = setInterval(() => {
+      const t = (performance.now() - t0) / 1000;
+      if (t >= total) { clearInterval(tick); render(total - 0.001); setTimeout(() => rec.stop(), 300); return; }
+      render(t);
+    }, 1000 / 30);
+  });
+}
+function chunk(off, len) {
+  const a = recorded.subarray(off, off + len); let s = '';
+  for (let i = 0; i < a.length; i += 32768) s += String.fromCharCode.apply(null, a.subarray(i, i + 32768));
+  return btoa(s);
+}
+</script></body></html>

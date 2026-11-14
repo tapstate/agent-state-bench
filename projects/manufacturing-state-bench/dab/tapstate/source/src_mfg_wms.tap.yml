@@ -1,7 +1,9 @@
 version: tapstate/v1
 kind: source
 id: src_mfg_wms
-connector: postgres
-config: { host: postgres, port: 5432, database: mfgsrc, schema: wms, user: postgres, password: secret }
+# WMS: MongoDB mfg_wms on its own server (mongo-sources), the database setup A's agent queries
+# (read through change streams).
+connector: mongodb
+config: { isUri: true, uri: "mongodb://mongo-sources:27017/mfg_wms?replicaSet=rs1", preImage: true }
 mode: cdc
 tables: [ stock, locations ]

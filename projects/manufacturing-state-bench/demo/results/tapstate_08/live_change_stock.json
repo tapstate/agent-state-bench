@@ -1,0 +1,159 @@
+{
+ "kind": "stock",
+ "system": "wms",
+ "engine": "mongodb",
+ "table": "mfg_wms.stock",
+ "pipelines": [
+  "mfg_stock",
+  "mfg_products"
+ ],
+ "events": [
+  {
+   "t": 0.0,
+   "note": "start",
+   "statement": null,
+   "source": {
+    "_id": 61,
+    "item": "AW:BK-M68B-38",
+    "location_id": 60,
+    "quantity": 88
+   },
+   "state": {
+    "inventory": [
+     {
+      "location": "Finished Goods Storage",
+      "quantity": 100
+     },
+     {
+      "location": "Final Assembly",
+      "quantity": 88
+     }
+    ]
+   }
+  },
+  {
+   "t": 2.01,
+   "note": "set",
+   "statement": "db.stock.updateOne({ _id: 61 }, { $set: { quantity: 98 } })",
+   "source": {
+    "_id": 61,
+    "item": "AW:BK-M68B-38",
+    "location_id": 60,
+    "quantity": 98
+   },
+   "state": {
+    "inventory": [
+     {
+      "location": "Finished Goods Storage",
+      "quantity": 100
+     },
+     {
+      "location": "Final Assembly",
+      "quantity": 88
+     }
+    ]
+   }
+  },
+  {
+   "t": 2.54,
+   "note": "seen",
+   "statement": "db.stock.updateOne({ _id: 61 }, { $set: { quantity: 98 } })",
+   "source": {
+    "_id": 61,
+    "item": "AW:BK-M68B-38",
+    "location_id": 60,
+    "quantity": 98
+   },
+   "state": {
+    "inventory": [
+     {
+      "location": "Finished Goods Storage",
+      "quantity": 100
+     },
+     {
+      "location": "Final Assembly",
+      "quantity": 98
+     }
+    ]
+   }
+  },
+  {
+   "t": 5.546,
+   "note": "set",
+   "statement": "db.stock.updateOne({ _id: 61 }, { $set: { quantity: 88 } })",
+   "source": {
+    "_id": 61,
+    "item": "AW:BK-M68B-38",
+    "location_id": 60,
+    "quantity": 88
+   },
+   "state": {
+    "inventory": [
+     {
+      "location": "Finished Goods Storage",
+      "quantity": 100
+     },
+     {
+      "location": "Final Assembly",
+      "quantity": 98
+     }
+    ]
+   }
+  },
+  {
+   "t": 5.801,
+   "note": "seen",
+   "statement": "db.stock.updateOne({ _id: 61 }, { $set: { quantity: 88 } })",
+   "source": {
+    "_id": 61,
+    "item": "AW:BK-M68B-38",
+    "location_id": 60,
+    "quantity": 88
+   },
+   "state": {
+    "inventory": [
+     {
+      "location": "Finished Goods Storage",
+      "quantity": 100
+     },
+     {
+      "location": "Final Assembly",
+      "quantity": 88
+     }
+    ]
+   }
+  }
+ ],
+ "steps": [
+  {
+   "from": 88,
+   "to": 98,
+   "set_at": 2.006,
+   "latency_s": 0.534
+  },
+  {
+   "from": 98,
+   "to": 88,
+   "set_at": 5.542,
+   "latency_s": 0.259
+  }
+ ],
+ "verify": {
+  "ok": true,
+  "line": "verified: Tapstate's 504 products, 72591 work_orders, 31465 sales_orders, 4012 purchase_orders equal the reference built from the raw tables, field for field",
+  "seconds": 19
+ },
+ "pipeline_status": {
+  "mfg_product_ref": "running",
+  "mfg_stock": "running",
+  "mfg_offer": "running",
+  "mfg_routing": "running",
+  "mfg_sales_line": "running",
+  "mfg_po_line": "running",
+  "mfg_products": "running",
+  "mfg_work_orders": "running",
+  "mfg_sales_orders": "running",
+  "mfg_purchase_orders": "running"
+ },
+ "source_restored": true
+}

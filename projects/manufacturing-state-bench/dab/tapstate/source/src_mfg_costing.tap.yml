@@ -1,7 +1,8 @@
 version: tapstate/v1
 kind: source
 id: src_mfg_costing
+# Costing: Postgres mfg_costing, the database setup A's agent queries.
 connector: postgres
-config: { host: postgres, port: 5432, database: mfgsrc, schema: costing, user: postgres, password: secret }
+config: { host: postgres, port: 5432, database: mfg_costing, schema: public, user: postgres, password: secret }
 mode: cdc
 tables: [ standard_cost_history, list_price_history, item_prices ]

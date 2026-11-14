@@ -120,7 +120,7 @@ def run_one(dab, arm, model, q, k, max_turns, arms=ARMS, idle=IDLE_S):
         "args": [str(HERE / "dab_mcp_server.py"), "--dab", str(dab), "--dataset", ds, "--run-dir", str(out)],
         "env": {k2: v for k2, v in child_env().items()
                 if k2 in ("PATH", "HOME", "DOCKER_HOST", "MONGO_URI", "DAB_PERSISTENT_DBS")
-                or k2.startswith("PG_")},
+                or k2.startswith(("PG_", "MYSQL_", "DAB_MYSQL_"))},
     }}}))
     cmd = [CLAUDE, "-p", "--output-format", "json", "--model", model,
            "--system-prompt-file", str(out / "system_prompt.txt"),

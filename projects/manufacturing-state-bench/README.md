@@ -9,7 +9,7 @@ Community. It mirrors the [bank benchmark](../banking-state-bench/README.md).
 
 | Setup | What the agent reads |
 |---|---|
-| A | six source databases (ERP, PLM, MES, WMS, procurement, costing on Postgres, SQLite, DuckDB and MongoDB), each writing the product number in its own format |
+| A | six source databases on three engines (ERP, PLM and costing on Postgres; MES and procurement on MySQL; WMS on MongoDB), each writing the product number in its own format |
 | C | one MongoDB database with four collections (products, work orders, sales orders, purchase orders), built by Tapstate pipelines from the six sources |
 
 Same agent, tools, prompt and 20 questions in both setups. Design and full results:
@@ -31,6 +31,8 @@ misses (a correct answer never submitted). Per category and per question:
 [dab/RESULTS_opus.md](dab/RESULTS_opus.md). The gap is smaller than the bank benchmark's 3.5×;
 [SOURCE_SPLIT.md](SOURCE_SPLIT.md) §9 discusses why, and what a finer split would do.
 
+**Layout.** This batch ran on the first layout: PLM in SQLite, MES and procurement in DuckDB, ERP and costing in Postgres, WMS in MongoDB, with Tapstate reading a Postgres copy of the six systems. The code now builds the three-engine layout (Postgres, MySQL, MongoDB; Tapstate reads the six databases directly; [SOURCE_SPLIT.md](SOURCE_SPLIT.md) §2–3). The 200-run batch has not been repeated on it yet; its smoke test and the sales-agent demo runs are in [demo/results/RESULTS.md](demo/results/RESULTS.md).
+
 ## Reproduce it
 
 Tested on Linux (Ubuntu 26.04, Docker Engine 29, Compose 2.40). Needs Docker with Compose v2,
@@ -44,11 +46,11 @@ that stack first if it is running.
 . projects/manufacturing-state-bench/env.sh
 ```
 
-Source it in every shell you use. It sets the ports (Postgres 55432, MongoDB 27017, Tapstate
-8080), the database credentials, and what the harness needs. Override a port by exporting it
+Source it in every shell you use. It sets the ports (Postgres 55432, MySQL 33306, the WMS MongoDB
+27018, Tapstate's MongoDB 27017, Tapstate 8080), the database credentials, and what the harness needs. Override a port by exporting it
 before sourcing (`export PG_PORT=56432`).
 
-### 2. Stack: Tapstate Community 0.7.0, MongoDB, Postgres
+### 2. Stack: Tapstate Community 0.7.0, Postgres, MySQL, MongoDB
 
 ```sh
 docker compose -p "$MFG_STACK" -f projects/manufacturing-state-bench/stack/docker-compose.yml up -d
@@ -58,7 +60,7 @@ docker build -t python-data:3.12 -f stack/python-data.Dockerfile stack   # the a
 
 Install the Tapstate CLI from the
 [v0.7.0 release](https://github.com/tapstate/tapstate/releases/tag/v0.7.0) and register the two
-connectors:
+connectors (MySQL's is not bundled with the server; `register` fetches the published one):
 
 ```sh
 curl -sSLO https://github.com/tapstate/tapstate/releases/download/v0.7.0/tapstate-0.7.0-linux-x64.tar.gz
@@ -68,6 +70,7 @@ export TAPSTATE_CLI="$PWD/tapstate-cli-0.7.0/bin/tapstate"
 T="$TAPSTATE_CLI -c $TAPSTATE_SERVER -u admin"
 $T register postgres
 $T register mongodb
+$T register mysql
 ```
 
 ### 3. DAB and Python
@@ -91,19 +94,19 @@ pip install -r requirements.txt
 ```sh
 cd projects/manufacturing-state-bench/dab
 python fetch_data.py                 # the AdventureWorks OLTP install script, sha256 checked, into data/raw
-python split_sources.py "$DAB"       # setup A: the six source systems, loaded into Postgres and MongoDB
+python split_sources.py "$DAB"       # setup A: the six source systems, loaded into Postgres, MySQL and MongoDB
 python make_queries.py "$DAB"        # the 20 questions, answers and validators, for both setups
 ```
 
 ### 5. Setup C through Tapstate
 
 ```sh
-python load_mfg_to_postgres.py "$DAB"     # the six systems as Tapstate's sources (Postgres mfgsrc)
-sh run_tapstate.sh                        # applies the workspace, starts the ten pipelines in order
+sh run_tapstate.sh                        # Tapstate reads the six databases; applies, starts the ten pipelines in order
 python verify_tapstate.py "$DAB" --wait --install
 ```
 
-`run_tapstate.sh` applies the sources, discovers them, and starts the pipelines in dependency
+`run_tapstate.sh` stops and clears any earlier run of the ten pipelines, applies the sources (the six
+databases setup A queries, read through logical replication, the MySQL binlog and change streams), discovers them, and starts the pipelines in dependency
 order: the product reference and staging pipelines first, then (once their views are complete) the
 four that build setup C ([SOURCE_SPLIT.md](SOURCE_SPLIT.md) §3 explains the layout). The last step
 waits until the four views hold every document and have stopped changing, checks every document
@@ -115,7 +118,7 @@ six sources and checks them the same way; with `--install` it can stand in for T
 ### 6. Check, then run
 
 ```sh
-python reset_dbs.py "$DAB"                    # restore every database from the dataset files; before every batch
+python reset_dbs.py "$DAB"                    # restore setup C, check the sources' row counts; before every batch
 python dry_run.py "$DAB" ../../../harness     # no model calls: databases, reference answers, sandbox, prompts
 cd ../../..
 python harness/run_claude_arms.py "$DAB" --dataset manufacturing --model claude-opus-5-5 \
@@ -136,9 +139,10 @@ python projects/manufacturing-state-bench/dab/analyze_runs.py scores.csv harness
 
 ### Troubleshooting
 
-- **`load_mfg_to_postgres.py` cannot drop `mfgsrc`:** a stopped pipeline can leave its replication
-  slot behind. Drop inactive slots: `SELECT pg_drop_replication_slot(slot_name) FROM
-  pg_replication_slots WHERE NOT active`.
+- **Reloading the sources** (`split_sources.py`, or `reset_dbs.py --sources`) drops the databases
+  Tapstate captures from: stop the pipelines first, then rerun `run_tapstate.sh`. A Postgres
+  database with an active replication slot cannot be dropped; `split_sources.py` drops inactive
+  slots itself.
 - **A view stays short of its document count:** read `$T status <pipeline>`; a failed pipeline
   prints its reason. A pipeline started before the views it reads were discovered must be
   stopped, the workspace applied again, and the pipeline restarted.
