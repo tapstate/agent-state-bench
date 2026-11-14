@@ -267,6 +267,16 @@ def main():
     dab = Path(sys.argv[1]).resolve()
     lang = sys.argv[sys.argv.index("--lang") + 1] if "--lang" in sys.argv else "en"
     sample = "--sample" in sys.argv
+    if "--sample-three-ways" in sys.argv:
+        from three_ways import segments as three_way_segments
+        ensure_font()
+        segs, imgs = three_way_segments(lang, term_seg)
+        (HERE / "timeline.json").write_text(json.dumps({"lang": lang, "segments": segs, "images": imgs}))
+        total = sum(x["dur"] for x in segs)
+        print(f"timeline: {total:.1f} s: " + ", ".join(f"{x['kind']} {x['dur']:.1f}s" for x in segs))
+        name = f"sample_three_ways_{lang}"
+        return asyncio.run(render(segs, total, sample=True, names=[f"{name}_{i}" for i in (1, 2, 3, 4)],
+                                  out_name=f"{name}.mp4"))
     if "--sample-build" in sys.argv:
         segs, imgs, log = build_segments(lang)
         (HERE / "timeline.json").write_text(json.dumps({"lang": lang, "segments": segs, "images": imgs}))

@@ -16,17 +16,19 @@ CHROME = os.environ.get("CHROME_BIN") or shutil.which("google-chrome") or shutil
 
 
 class Chrome:
-    def __init__(self, width=1920, height=1080, port=9333):
+    def __init__(self, width=1920, height=1080, port=9333, args=()):
         self.width, self.height, self.port = width, height, port
+        self.args = list(args)
         self.ids = itertools.count(1)
         self.pending = {}
+        self.events = []      # CDP events (e.g. Network.*), when a domain is enabled
 
     async def __aenter__(self):
         self.profile = tempfile.mkdtemp(prefix="cdp-")
         self.proc = subprocess.Popen(
             [CHROME, "--headless=new", f"--remote-debugging-port={self.port}", f"--user-data-dir={self.profile}",
              f"--window-size={self.width},{self.height}", "--hide-scrollbars", "--no-first-run",
-             "--autoplay-policy=no-user-gesture-required", "--force-device-scale-factor=1", "about:blank"],
+             "--autoplay-policy=no-user-gesture-required", "--force-device-scale-factor=1", *self.args, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.http = aiohttp.ClientSession()
         for _ in range(100):
@@ -59,6 +61,8 @@ class Chrome:
             fut = self.pending.pop(data.get("id"), None)
             if fut and not fut.done():
                 fut.set_result(data)
+            elif "method" in data:
+                self.events.append(data)
 
     async def send(self, method, params=None):
         i = next(self.ids)
