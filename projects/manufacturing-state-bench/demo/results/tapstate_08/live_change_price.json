@@ -1,0 +1,113 @@
+{
+ "kind": "price",
+ "system": "costing",
+ "engine": "postgres",
+ "table": "mfg_costing.item_prices",
+ "pipelines": [
+  "mfg_products"
+ ],
+ "events": [
+  {
+   "t": 0.0,
+   "note": "start",
+   "statement": null,
+   "source": {
+    "product_number": "BK-M68B-38",
+    "standard_cost": 1251.9813,
+    "list_price": 2294.99
+   },
+   "state": {
+    "list_price": 2294.99,
+    "standard_cost": 1251.9813
+   }
+  },
+  {
+   "t": 2.009,
+   "note": "set",
+   "statement": "UPDATE item_prices SET list_price = 2199.99 WHERE product_number = 'BK-M68B-38';",
+   "source": {
+    "product_number": "BK-M68B-38",
+    "standard_cost": 1251.9813,
+    "list_price": 2199.99
+   },
+   "state": {
+    "list_price": 2294.99,
+    "standard_cost": 1251.9813
+   }
+  },
+  {
+   "t": 2.473,
+   "note": "seen",
+   "statement": "UPDATE item_prices SET list_price = 2199.99 WHERE product_number = 'BK-M68B-38';",
+   "source": {
+    "product_number": "BK-M68B-38",
+    "standard_cost": 1251.9813,
+    "list_price": 2199.99
+   },
+   "state": {
+    "list_price": 2199.99,
+    "standard_cost": 1251.9813
+   }
+  },
+  {
+   "t": 5.476,
+   "note": "set",
+   "statement": "UPDATE item_prices SET list_price = 2294.99 WHERE product_number = 'BK-M68B-38';",
+   "source": {
+    "product_number": "BK-M68B-38",
+    "standard_cost": 1251.9813,
+    "list_price": 2294.99
+   },
+   "state": {
+    "list_price": 2199.99,
+    "standard_cost": 1251.9813
+   }
+  },
+  {
+   "t": 5.812,
+   "note": "seen",
+   "statement": "UPDATE item_prices SET list_price = 2294.99 WHERE product_number = 'BK-M68B-38';",
+   "source": {
+    "product_number": "BK-M68B-38",
+    "standard_cost": 1251.9813,
+    "list_price": 2294.99
+   },
+   "state": {
+    "list_price": 2294.99,
+    "standard_cost": 1251.9813
+   }
+  }
+ ],
+ "steps": [
+  {
+   "from": 2294.99,
+   "to": 2199.99,
+   "set_at": 2.006,
+   "latency_s": 0.467
+  },
+  {
+   "from": 2199.99,
+   "to": 2294.99,
+   "set_at": 5.475,
+   "latency_s": 0.337
+  }
+ ],
+ "verify": {
+  "ok": true,
+  "line": "verified: Tapstate's 504 products, 72591 work_orders, 31465 sales_orders, 4012 purchase_orders equal the reference built from the raw tables, field for field",
+  "seconds": 19
+ },
+ "pipeline_status": {
+  "mfg_product_ref": "running",
+  "mfg_stock": "running",
+  "mfg_offer": "running",
+  "mfg_routing": "running",
+  "mfg_sales_line": "running",
+  "mfg_po_line": "running",
+  "mfg_products": "running",
+  "mfg_work_orders": "running",
+  "mfg_sales_orders": "running",
+  "mfg_purchase_orders": "running"
+ },
+ "source_restored": true
+}

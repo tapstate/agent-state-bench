@@ -15,6 +15,7 @@ Usage (from demo/): python recording/make_video.py <dab-root> [--sample] [--lang
 --lang zh (without --sample) writes recording/sales_agent_demo_zh.mp4 from record_live.sh's zh recordings;
 --v2 replaces the Tapstate terminal segment with the "how the state is built" section (build_section.py,
 from live_change.json) and the "three ways, one pipeline" beat (three_ways.py): sales_agent_demo_zh_v2.mp4.
+--v3 is --v2 on Tapstate 0.8.0 (record_live08.sh's takes, live_change08.json, dsl08_zh): sales_agent_demo_zh_v3.mp4.
 --sample writes recording/sample.mp4 instead: ~3 s of a caption card, ~9 s of setup A's recording,
 ~4 s of the trace report, to check the look.
 --sample --lang zh writes recording/sample_zh.mp4: everything on screen in Simplified Chinese, the
@@ -24,6 +25,7 @@ Writes recording/sales_agent_demo.mp4, recording/stills/*.png, recording/trace_r
 import asyncio
 import base64
 import json
+import os
 import re
 import subprocess
 import sys
@@ -267,6 +269,12 @@ def build_segments(lang):
 
 def main():
     dab = Path(sys.argv[1]).resolve()
+    v3 = "--v3" in sys.argv   # v2 on Tapstate 0.8.0: its own section images, DSL take and live-change log
+    if v3:
+        os.environ["DEMO_VARIANT"] = "08"
+        for lang_ in TEXT:
+            TEXT[lang_]["title_kicker"] += " · Tapstate 0.8.0"
+            TEXT[lang_]["close_caption"] += " (Tapstate 0.8.0)" if lang_ == "en" else "（Tapstate 0.8.0）"
     lang = sys.argv[sys.argv.index("--lang") + 1] if "--lang" in sys.argv else "en"
     sample = "--sample" in sys.argv
     if "--sample-three-ways" in sys.argv:
@@ -340,7 +348,7 @@ def main():
              [T["cost"], f"${A['cost_usd']:.2f}", f"${C['cost_usd']:.2f}"],
          ]}},
     ]
-    v2 = "--v2" in sys.argv
+    v2 = "--v2" in sys.argv or v3
     if v2:   # the Tapstate terminal segment gives way to "how the state is built" and "three ways"
         from three_ways import segments as three_way_segments
         build, build_imgs, _ = build_segments(lang)
@@ -367,6 +375,9 @@ def main():
             ["title", "setup_a", "caption", "flow", "pipeline", "live_change", "ways_ai", "ways_builder", "ways_dsl",
              "ways_converge", "setup_c", "report", "closing"], 1)]
         out_name = f"sales_agent_demo{sfx}_v2.mp4"
+    if v3:
+        names = [n.replace("v2", "v3", 1) for n in names]
+        out_name = f"sales_agent_demo{sfx}_v3.mp4"
     asyncio.run(render(segs, total, sample=sample, names=names, out_name=out_name))
 
 

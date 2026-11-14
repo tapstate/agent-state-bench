@@ -13,6 +13,7 @@ cd "$WS"
 if [ "${DEMO_LANG:-en}" = zh ]; then echo "${D}# 管道即代码：版本控制中的 .tap.yml，由脚本或 CI 自动校验、发布${R}"; else
   echo "${D}# Pipeline as code: a .tap.yml under version control, checked and applied by a script or CI${R}"; fi
 echo
+run "tapstate --version" 1
 run "ls pipeline/ source/" 1
 run "tapstate validate ." 1.5
 run "tapstate desc product_state -w ." 3

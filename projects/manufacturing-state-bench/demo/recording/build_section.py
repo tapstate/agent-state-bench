@@ -14,6 +14,7 @@ Simplified Chinese (zh) or English (en). Used by make_video.py.
 import asyncio
 import html
 import json
+import os
 import re
 from pathlib import Path
 
@@ -48,6 +49,9 @@ STAGING = {  # pipeline -> (zh, en)
 STATE = ["mfg_products", "mfg_work_orders", "mfg_sales_orders", "mfg_purchase_orders"]
 COLLECTION = {"mfg_products": "products", "mfg_work_orders": "work_orders", "mfg_sales_orders": "sales_orders",
               "mfg_purchase_orders": "purchase_orders"}
+# "08": the Tapstate 0.8.0 take (make_video.py --v3): its own images and live_change08.json
+VARIANT = os.environ.get("DEMO_VARIANT", "")
+
 TXT = {
     "zh": {"flow_title": "Tapstate 如何构建运营状态", "c1": "六个源系统（各自的产品编号格式）",
            "c2": "暂存管道：统一产品编号", "c3": "状态管道：嵌套（nest）", "c4": "实时状态",
@@ -89,6 +93,11 @@ h1{font:700 40px "Noto Sans SC","DejaVu Sans",sans-serif;margin:34px 60px 18px}
 .foot{position:absolute;left:60px;bottom:18px;font-size:20px;color:#8b949e}
 </style>"""
 
+if VARIANT == "08":   # say which Tapstate the section shows
+    TXT["zh"]["flow_title"] = "Tapstate 0.8.0 如何构建运营状态"
+    TXT["en"]["flow_title"] = "How Tapstate 0.8.0 builds the operational state"
+    TXT["zh"]["live_title"] += "（Tapstate 0.8.0）"
+    TXT["en"]["live_title"] += " (Tapstate 0.8.0)"
 
 def esc(s):
     return html.escape(str(s))
@@ -351,10 +360,10 @@ async def shoot(pages, out_dir, port=9340):
 
 def section(lang, captions):
     """The three beats as player segments ("page" kind, still images switched at key times)."""
-    out = HERE / f"build_{lang}"
+    out = HERE / f"build{VARIANT}_{lang}"
     pages = [(f"flow_{r}", flow_page(lang, r)) for r in range(4)]
     pages += [(f"dsl_{i}", dsl_page(lang, i)) for i in range(len(EMBEDS))]
-    log = json.loads((HERE / "live_change.json").read_text())
+    log = json.loads((HERE / f"live_change{VARIANT}.json").read_text())
     ev = log["events"]   # start, set, seen, set, seen
     steps = log["steps"]
     pages += [("live_0", live_page(lang, log, ev[0], "start")),
@@ -364,7 +373,7 @@ def section(lang, captions):
               ("live_4", live_page(lang, log, ev[4], "seen", steps[1]["latency_s"])),
               ("live_5", live_page(lang, log, ev[4], "verify", verify=log["verify"]))]
     asyncio.run(shoot(pages, out))
-    imgs = {n: f"build_{lang}/{n}.png" for n, _ in pages}
+    imgs = {n: f"build{VARIANT}_{lang}/{n}.png" for n, _ in pages}
 
     def still(keys, dur, caption):
         return {"kind": "page", "dur": dur, "caption": caption, "keys": [[t, im, 0] for t, im in keys]}

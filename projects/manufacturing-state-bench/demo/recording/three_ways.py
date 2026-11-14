@@ -11,11 +11,14 @@ Used by make_video.py --sample-three-ways.
 """
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from build_section import CSS, esc, shoot
 
 HERE = Path(__file__).resolve().parent
+VARIANT = os.environ.get("DEMO_VARIANT", "")   # "08": the Tapstate 0.8.0 take (make_video.py --v3)
+
 
 TXT = {
     "zh": {
@@ -47,6 +50,31 @@ TXT = {
 }
 
 
+# the 0.8.0 take: the DSL column is recorded on the 0.8.0 CLI; the AI draft and the builder clip are still
+# the 0.7.0 recordings, and say so
+TXT08 = {
+    "zh": {
+        "ai_caption": "① AI 辅助 + 人工确认：Claude Code 只读取导出的数据源定义、表结构和语法说明起草管道，再用 CLI 校验（快进；在 Tapstate 0.7.0 上录制）",
+        "builder_caption": "② 可视化构建器：Tapstate 自带的 Web 界面，mfg_products 管道的节点图（Tapstate 0.7.0 录屏，略去页面加载）",
+        "dsl_caption": "③ DSL（自动化）：版本控制中的 .tap.yml，由脚本或 CI 用 Tapstate 0.8.0 CLI 校验后发布",
+        "c1_note": "在 Tapstate 0.7.0 上录制；0.8.0 自带“使用 AI 构建”（本演示未配置模型）",
+        "c2": "② 可视化构建器（0.7.0 录屏）",
+        "c3_body": "product_state.example.tap.yml<br>Tapstate 0.8.0 · validate <b style='color:#3fb950'>✓</b> · desc <b style='color:#3fb950'>✓</b><br>脚本 / CI 自动发布",
+    },
+    "en": {
+        "ai_caption": "① AI-assisted + human check: Claude Code drafts from exported source definitions, schemas and the grammar, then the CLI checks it (fast-forwarded; recorded on Tapstate 0.7.0)",
+        "builder_caption": "② Visual builder: Tapstate's own web UI, the mfg_products pipeline as a graph (Tapstate 0.7.0 screen recording, page loads cut)",
+        "dsl_caption": "③ DSL (automation): a .tap.yml under version control, checked by the Tapstate 0.8.0 CLI and applied by a script or CI",
+        "c1_note": "Recorded on Tapstate 0.7.0; 0.8.0 has built-in Build with AI (no model configured in this demo)",
+        "c2": "② Visual builder (0.7.0 recording)",
+        "c3_body": "product_state.example.tap.yml<br>Tapstate 0.8.0 · validate <b style='color:#3fb950'>✓</b> · desc <b style='color:#3fb950'>✓</b><br>applied by a script / CI",
+    },
+}
+if VARIANT == "08":
+    for _l in TXT08:
+        TXT[_l].update(TXT08[_l])
+
+
 def convergence_page(lang, builder_img):
     T = TXT[lang]
     col = lambda title, body, extra="", img="": (   # noqa: E731
@@ -55,7 +83,7 @@ def convergence_page(lang, builder_img):
         + (f'<img src="{img}" style="width:490px;border-radius:8px;border:1px solid #30363d;margin-bottom:12px">' if img else "")
         + f'<div style="font-size:22px;line-height:1.6;color:#c9d1d9">{body}</div>'
         + (f'<div style="font-size:18px;color:#8b949e;margin-top:12px">{esc(extra)}</div>' if extra else "") + '</div>')
-    y1, y2, y3 = 390, 590, 350     # just under each card (the middle one holds the screenshot)
+    y1, y2, y3 = (445 if VARIANT == "08" else 390), 590, 350     # just under each card (the middle one holds the screenshot)
     return f"""<!doctype html><meta charset="utf-8">{CSS}<body><h1>{esc(T['title'])}</h1>
 <div style="position:absolute;left:60px;top:120px;width:1800px;display:flex;justify-content:space-between;align-items:flex-start">
 {col(T['c1'], T['c1_body'], T['c1_note'])}{col(T['c2'], T['c2_body'], img=builder_img)}{col(T['c3'], T['c3_body'])}</div>
@@ -86,9 +114,9 @@ def segments(lang, term_seg):
     imgs = {f"ui_{i}": f"ui_{lang}/{name}" for i, (t, name) in enumerate(frames) if t >= start}
     builder = {"kind": "page", "keys": keys, "dur": round(keys[-1][0] + 1.5, 2), "caption": T["builder_caption"],
                "still_at": keys[-1][0] + 1}
-    dsl = term_seg(f"dsl{sfx}", T["dsl_caption"], hold=2.5, cap=1.0)
+    dsl = term_seg(f"dsl{VARIANT}{sfx}", T["dsl_caption"], hold=2.5, cap=1.0)
     last_ui = frames[-1][1]
-    asyncio.run(shoot([("three_ways", convergence_page(lang, f"../ui_{lang}/{last_ui}"))], HERE / f"three_ways_{lang}"))
-    imgs["conv"] = f"three_ways_{lang}/three_ways.png"
+    asyncio.run(shoot([("three_ways", convergence_page(lang, f"../ui_{lang}/{last_ui}"))], HERE / f"three_ways{VARIANT}_{lang}"))
+    imgs["conv"] = f"three_ways{VARIANT}_{lang}/three_ways.png"
     conv = {"kind": "page", "keys": [[0, "conv", 0]], "dur": 5, "caption": T["conv_caption"], "still_at": 3}
     return [ai, builder, dsl, conv], imgs
