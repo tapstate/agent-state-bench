@@ -1,0 +1,6 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_wms
+connector: mongodb
+mode: cdc
+tables: [stock, locations]

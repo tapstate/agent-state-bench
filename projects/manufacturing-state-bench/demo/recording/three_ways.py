@@ -75,8 +75,8 @@ if VARIANT == "08":
         TXT[_l].update(TXT08[_l])
 
 
-def convergence_page(lang, builder_img):
-    T = TXT[lang]
+def convergence_page(lang, builder_img, T=None):
+    T = T or TXT[lang]
     col = lambda title, body, extra="", img="": (   # noqa: E731
         f'<div style="width:540px;border:2px solid #30363d;border-radius:14px;background:#161b22;padding:22px 24px;box-sizing:border-box">'
         f'<div style="font:700 30px Noto Sans SC,DejaVu Sans;color:#e6edf3;margin-bottom:14px">{esc(title)}</div>'
@@ -120,3 +120,37 @@ def segments(lang, term_seg):
     imgs["conv"] = f"three_ways{VARIANT}_{lang}/three_ways.png"
     conv = {"kind": "page", "keys": [[0, "conv", 0]], "dur": 5, "caption": T["conv_caption"], "still_at": 3}
     return [ai, builder, dsl, conv], imgs
+
+
+# v4: a short overview of the three ways, then the AI way for real, through MCP on Tapstate 0.8.0 (ai_mcp.py)
+OVERVIEW = {
+    "zh": {
+        "c1_body": "Claude Code 经 MCP 连接 Tapstate<br>读取数据源和 Tapstate 发现的表结构<br>生成 .tap.yml，用 CLI 校验；人工确认后发布",
+        "c1_note": "下面实际演示这一方式（Tapstate 0.8.0）",
+        "c3_body": ".tap.yml 纳入版本控制<br>脚本 / CI 用 CLI 校验后发布",
+        "target": "三种方式，同一种产物：.tap.yml 管道 → 同样的实时状态",
+        "overview_caption": "构建管道的三种方式：AI 辅助（人工确认）· 可视化构建器 · DSL（自动化）",
+        "ai_caption": "① AI 辅助（经 MCP，Tapstate 0.8.0）：Claude Code 查询数据源与表结构、生成 DSL、在屏幕上校验（实际运行，快进：压缩了等待模型的空闲时间）",
+    },
+    "en": {
+        "c1_body": "Claude Code connects to Tapstate through MCP<br>reads the sources and the schemas Tapstate discovered<br>writes the .tap.yml, checks it with the CLI; a person approves it",
+        "c1_note": "shown for real next (Tapstate 0.8.0)",
+        "c3_body": "a .tap.yml under version control<br>checked by the CLI and applied by a script / CI",
+        "target": "Three ways, one artifact: a .tap.yml pipeline → the same live state",
+        "overview_caption": "Three ways to build a pipeline: AI-assisted (human-checked) · visual builder · DSL (automation)",
+        "ai_caption": "① AI-assisted (via MCP, Tapstate 0.8.0): Claude Code queries the sources and schemas, writes the DSL and checks it on screen (real run, fast-forwarded: idle waits for the model compressed)",
+    },
+}
+
+
+def segments_v4(lang, term_seg, ai_cap=1.0):
+    """The overview card (about 12 s), then ai_mcp.py's recording (ai_mcp_<lang>)."""
+    T = {**TXT[lang], **OVERVIEW[lang]}
+    sfx = "_zh" if lang == "zh" else ""
+    frames = json.loads((HERE / f"ui_{lang}" / "frames.json").read_text())
+    out = HERE / f"three_ways_v4_{lang}"
+    asyncio.run(shoot([("overview", convergence_page(lang, f"../ui_{lang}/{frames[-1][1]}", T))], out))
+    overview = {"kind": "page", "keys": [[0, "overview", 0]], "dur": 12, "caption": T["overview_caption"],
+                "still_at": 6}
+    ai = term_seg(f"ai_mcp{sfx}", T["ai_caption"], hold=10, cap=ai_cap)
+    return [overview, ai], {"overview": f"three_ways_v4_{lang}/overview.png"}

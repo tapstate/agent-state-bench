@@ -1,0 +1,6 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_procurement
+connector: mysql
+mode: cdc
+tables: [vendors, vendor_items, purchase_orders, po_lines, ship_methods]

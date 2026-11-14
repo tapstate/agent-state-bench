@@ -1,0 +1,6 @@
+version: tapstate/v1
+kind: source
+id: src_mfg_plm
+connector: postgres
+mode: cdc
+tables: [products, subcategories, categories, models, bom]

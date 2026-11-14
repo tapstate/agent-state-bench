@@ -15,6 +15,8 @@ Usage (from demo/): python recording/make_video.py <dab-root> [--sample] [--lang
 --lang zh (without --sample) writes recording/sales_agent_demo_zh.mp4 from record_live.sh's zh recordings;
 --v2 replaces the Tapstate terminal segment with the "how the state is built" section (build_section.py,
 from live_change.json) and the "three ways, one pipeline" beat (three_ways.py): sales_agent_demo_zh_v2.mp4.
+--v4 is --v3 without the trace report, the three ways as an overview card plus the AI way
+run live through MCP (ai_mcp.py; AI_IDLE_CAP sets its idle cap): sales_agent_demo_zh_v4.mp4.
 --v3 is --v2 on Tapstate 0.8.0 (record_live08.sh's takes, live_change08.json, dsl08_zh): sales_agent_demo_zh_v3.mp4.
 --sample writes recording/sample.mp4 instead: ~3 s of a caption card, ~9 s of setup A's recording,
 ~4 s of the trace report, to check the look.
@@ -269,7 +271,8 @@ def build_segments(lang):
 
 def main():
     dab = Path(sys.argv[1]).resolve()
-    v3 = "--v3" in sys.argv   # v2 on Tapstate 0.8.0: its own section images, DSL take and live-change log
+    v4 = "--v4" in sys.argv   # v3 with the trace report cut and the three ways as overview + AI via MCP
+    v3 = "--v3" in sys.argv or v4   # v2 on Tapstate 0.8.0: its own section images, DSL take and live-change log
     if v3:
         os.environ["DEMO_VARIANT"] = "08"
         for lang_ in TEXT:
@@ -352,8 +355,13 @@ def main():
     if v2:   # the Tapstate terminal segment gives way to "how the state is built" and "three ways"
         from three_ways import segments as three_way_segments
         build, build_imgs, _ = build_segments(lang)
-        ways, ways_imgs = three_way_segments(lang, term_seg)
-        segs = segs[:3] + build + ways + segs[4:]
+        if v4:
+            from three_ways import segments_v4
+            ways, ways_imgs = segments_v4(lang, term_seg, float(os.environ.get("AI_IDLE_CAP", "1.0")))
+            segs = segs[:3] + build + ways + [segs[4], segs[6]]    # setup C, closing (the report is cut)
+        else:
+            ways, ways_imgs = three_way_segments(lang, term_seg)
+            segs = segs[:3] + build + ways + segs[4:]
         imgs = {**imgs, **build_imgs, **ways_imgs}
     if sample:
         a = term_seg("a_run", segs[1]["caption"], hold=0)
@@ -378,6 +386,11 @@ def main():
     if v3:
         names = [n.replace("v2", "v3", 1) for n in names]
         out_name = f"sales_agent_demo{sfx}_v3.mp4"
+    if v4:
+        names = [f"v4{sfx}_{i:02d}_{k}" for i, k in enumerate(
+            ["title", "setup_a", "caption", "flow", "pipeline", "live_change", "ways_overview", "ways_ai_mcp",
+             "setup_c", "closing"], 1)]
+        out_name = f"sales_agent_demo{sfx}_v4.mp4"
     asyncio.run(render(segs, total, sample=sample, names=names, out_name=out_name))
 
 
