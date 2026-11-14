@@ -12,7 +12,9 @@ seekable in QuickTime/PowerPoint), keeping the original as *_fragmented.mp4. Als
 per section.
 
 Usage (from demo/): python recording/make_video.py <dab-root> [--sample] [--lang zh]
---lang zh (without --sample) writes recording/sales_agent_demo_zh.mp4 from record_live.sh's zh recordings.
+--lang zh (without --sample) writes recording/sales_agent_demo_zh.mp4 from record_live.sh's zh recordings;
+--v2 replaces the Tapstate terminal segment with the "how the state is built" section (build_section.py,
+from live_change.json) and the "three ways, one pipeline" beat (three_ways.py): sales_agent_demo_zh_v2.mp4.
 --sample writes recording/sample.mp4 instead: ~3 s of a caption card, ~9 s of setup A's recording,
 ~4 s of the trace report, to check the look.
 --sample --lang zh writes recording/sample_zh.mp4: everything on screen in Simplified Chinese, the
@@ -338,6 +340,13 @@ def main():
              [T["cost"], f"${A['cost_usd']:.2f}", f"${C['cost_usd']:.2f}"],
          ]}},
     ]
+    v2 = "--v2" in sys.argv
+    if v2:   # the Tapstate terminal segment gives way to "how the state is built" and "three ways"
+        from three_ways import segments as three_way_segments
+        build, build_imgs, _ = build_segments(lang)
+        ways, ways_imgs = three_way_segments(lang, term_seg)
+        segs = segs[:3] + build + ways + segs[4:]
+        imgs = {**imgs, **build_imgs, **ways_imgs}
     if sample:
         a = term_seg("a_run", segs[1]["caption"], hold=0)
         a["events"] = [e for e in a["events"] if e[0] <= 9.0]
@@ -353,6 +362,11 @@ def main():
     names = None if sample else [f"{n}{sfx}" for n in ("1_title", "2_setup_a", "3_caption", "4_tapstate",
                                                         "5_setup_c", "6_report", "7_closing")]
     out_name = None if sample else f"sales_agent_demo{sfx}.mp4"
+    if v2:
+        names = [f"v2{sfx}_{i:02d}_{k}" for i, k in enumerate(
+            ["title", "setup_a", "caption", "flow", "pipeline", "live_change", "ways_ai", "ways_builder", "ways_dsl",
+             "ways_converge", "setup_c", "report", "closing"], 1)]
+        out_name = f"sales_agent_demo{sfx}_v2.mp4"
     asyncio.run(render(segs, total, sample=sample, names=names, out_name=out_name))
 
 
